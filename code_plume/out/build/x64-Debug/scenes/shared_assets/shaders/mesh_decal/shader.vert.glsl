@@ -6,8 +6,6 @@ layout (location = 2) in vec4 color;
 layout (location = 3) in vec2 texture_uv;
 layout (location = 4) in vec3 tangent;
 layout (location = 5) in vec3 bitangent;
-layout (location = 6) in vec4 normal_map;
-layout (location = 7) in vec4 decal;
 out struct fragment_data
 {
     vec4 position;
@@ -45,7 +43,7 @@ void main()
 
     vec3 t = normalize(vec3(model * vec4(tangent,   0.0)));
     vec3 b = normalize(vec3(model * vec4(bitangent, 0.0)));
-    vec3 n = normalize(vec3(model * vec4(normal,    0.0)));
+    vec3 n = normalize(vec3(model * normal));
     mat3 TBN = transpose(mat3(t, b, n));
 
     fragment.TBN = TBN;

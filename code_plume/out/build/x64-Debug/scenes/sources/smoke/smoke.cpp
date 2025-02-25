@@ -135,7 +135,16 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
                 falling_spheres_frames.push_back(falling_spheres);
                 falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
             }
-
+          /*  if(terrain_display.uniform.color_alpha > 0 && this->state == engine_state::playing)
+            {
+                terrain_display.uniform.color_alpha -= .1f * dt;
+                
+            }*/
+            if (this->state == engine_state::playing)
+            {
+                uniform(shaders["mesh_transition"], "trans_tex", (int)t_loader.ash_tex);
+                terrain_display.shader = shaders["mesh_transition"];
+            }
             frame_count++;
         }
     }
@@ -1333,11 +1342,11 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
-    //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
     terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
+    terrain_display.ash_tex_id = t_loader.ash_tex;
     terrain_display.uniform.color = { 1,1,1 };
-    terrain_display.uniform.shading.diffuse = 10000.f;
-    terrain_display.uniform.shading.ambiant = 10000.f;
+    terrain_display.uniform.shading.diffuse = 1.f;
+    terrain_display.uniform.shading.ambiant = .8f;
     
     // Params setup
     is_wind = false;
@@ -1372,6 +1381,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Parameters : constants
     g = 9.81; // (m.s-2)
+
+    
 }
 
 

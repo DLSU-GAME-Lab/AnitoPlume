@@ -11,6 +11,7 @@ struct terrain_loader
 	GLuint mesh_shader;
 	GLuint current_tex_id;
 	GLuint texture_id[5];
+	GLuint ash_tex;
 	bool new_terrain_loaded = false;
 
 	const int size = 32;

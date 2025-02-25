@@ -89,15 +89,15 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "C:/Users/theas/Documents/GitHub/Capstone/code_plume/lib_windows/glfw3_win/include"
+					"path" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/lib_windows/glfw3_win/include"
 				},
 				{
 					"backtrace" : 5,
-					"path" : "C:/Users/theas/Documents/GitHub/Capstone/code_plume/."
+					"path" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/."
 				},
 				{
 					"backtrace" : 6,
-					"path" : "C:/Users/theas/Documents/GitHub/Capstone/code_plume/third_party/eigen"
+					"path" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/third_party/eigen"
 				}
 			],
 			"language" : "CXX",
@@ -190,7 +190,7 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\theas\\Documents\\GitHub\\Capstone\\code_plume\\lib_windows\\glfw3_win\\lib\\glfw3.lib",
+				"fragment" : "C:\\Users\\theas\\Documents\\GitHub\\AnitoPlume\\code_plume\\lib_windows\\glfw3_win\\lib\\glfw3.lib",
 				"role" : "libraries"
 			},
 			{

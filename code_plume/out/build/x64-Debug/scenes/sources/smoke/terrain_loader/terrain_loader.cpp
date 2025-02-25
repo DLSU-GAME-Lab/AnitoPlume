@@ -13,6 +13,7 @@ void terrain_loader::load_all_textures()
     }
 
     current_tex_id = texture_id[0];
+    ash_tex = create_texture_gpu(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_Ash.png"));
 }
 
 void terrain_loader::show_gui()
@@ -65,6 +66,7 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     terrain.uniform.transform.scaling = 1.f;
     terrain.uniform.transform.translation = { 0.f,0.f,0.f };
+    
     //terrain.texture_id = create_texture_gpu(image_load_png(texture_path));
 
     //if (current_terrain != terrain_filename)
