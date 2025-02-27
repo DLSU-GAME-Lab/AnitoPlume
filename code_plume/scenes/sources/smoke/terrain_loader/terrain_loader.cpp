@@ -36,7 +36,7 @@ void terrain_loader::show_gui()
     ImGui::End();
 }
 
-void terrain_loader::load_terrain(std::string terrain_filename, std::string texture_filename)
+void terrain_loader::load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans)
 {
     std::string terrain_path = "../scenes/sources/smoke/terrains/" + terrain_filename;
     std::string texture_path = "../scenes/sources/smoke/textures/" + texture_filename;
@@ -65,6 +65,11 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     terrain.uniform.transform.scaling = 1.f;
     terrain.uniform.transform.translation = { 0.f,0.f,0.f };
+    if (isTrans)
+        terrain.uniform.color_alpha = 0.f;
+    else
+        terrain.uniform.color_alpha = 1.f;
+
     //terrain.texture_id = create_texture_gpu(image_load_png(texture_path));
 
     //if (current_terrain != terrain_filename)
@@ -92,5 +97,5 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
 
 void terrain_loader::load_terrain_async(std::string terrain_filename, std::string texture_filename)
 {
-    std::thread(&terrain_loader::load_terrain, this, terrain_filename, texture_filename).detach();
+    //std::thread(&terrain_loader::load_terrain, this, terrain_filename, texture_filename).detach();
 }

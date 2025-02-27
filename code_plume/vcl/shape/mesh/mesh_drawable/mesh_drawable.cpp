@@ -49,7 +49,10 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
 {
     // If shader is, skip display
     if(shader==0)
-        return ;
+    {
+        std::cout << "display  skipped" << std::endl;
+        return;
+    }
 
     // Check that the shader is a valid one
     if( glIsProgram(shader)==GL_FALSE ) {
@@ -62,11 +65,15 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
     if(shader!=GLuint(current_shader))
         glUseProgram(shader); opengl_debug();
+  
+
 
     // Bind texture only if id != 0
     if(texture_id!=0) {
         assert(glIsTexture(texture_id));
         glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
+        
+
     }
 
     // Send all uniform values to the shader
@@ -85,6 +92,7 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
+    
 
     vcl::draw(drawable.data); opengl_debug();
 
@@ -94,7 +102,10 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
 {
     // If shader is, skip display
     if (shader == 0)
+    {
+        std::cout << "display  skipped" << std::endl;
         return;
+    }
 
     // Check that the shader is a valid one
     if (glIsProgram(shader) == GL_FALSE) {
@@ -139,10 +150,69 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
-    uniform(shader, "normal_tex", (int)drawable.norm_tex_id);
 
     vcl::draw(drawable.data); opengl_debug();
 
+
+}
+
+void drawMix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float mix_prog)
+{
+    // If shader is, skip display
+    if (shader == 0)
+    {
+        std::cout << "display  skipped" << std::endl;
+        return;
+    }
+
+    // Check that the shader is a valid one
+    if (glIsProgram(shader) == GL_FALSE) {
+        std::cout << "No valid shader set to display mesh: skip display" << std::endl;
+        return;
+    }
+
+    // Switch shader program only if necessary
+    GLint current_shader = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
+    if (shader != GLuint(current_shader))
+        glUseProgram(shader); opengl_debug();
+
+    // Bind texture only if id != 0
+    if (norm_tex_id != 0)
+    {
+        assert(glIsTexture(norm_tex_id));
+        //glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
+    }
+    if (texture_id != 0) {
+        assert(glIsTexture(texture_id));
+        //glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
+    }
+    if (mix_tex_id != 0)
+    {
+        assert(glIsTexture(mix_tex_id));
+        //glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mix_tex_id);  opengl_debug();
+    }
+    uniform(shader, "rotation", drawable.uniform.transform.rotation);            opengl_debug();
+    uniform(shader, "translation", drawable.uniform.transform.translation);      opengl_debug();
+    uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
+    uniform(shader, "color_alpha", drawable.uniform.color_alpha);                opengl_debug();
+    uniform(shader, "scaling", drawable.uniform.transform.scaling);              opengl_debug();
+    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);    opengl_debug();
+
+    uniform(shader, "perspective", camera.perspective.matrix());         opengl_debug();
+    uniform(shader, "view", camera.view_matrix());                       opengl_debug();
+    uniform(shader, "camera_position", camera.camera_position());        opengl_debug();
+
+    uniform(shader, "ambiant", drawable.uniform.shading.ambiant);      opengl_debug();
+    uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
+    uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
+    uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
+    uniform(shader, "blend_progress", mix_prog);
+
+    vcl::draw(drawable.data); opengl_debug();
 
 }
 

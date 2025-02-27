@@ -55,7 +55,7 @@ void load_shaders(std::map<std::string,GLuint>& shaders)
     shaders["segment_im"] = create_shader_program("scenes/shared_assets/shaders/segment_immediate_mode/shader.vert.glsl","scenes/shared_assets/shaders/segment_immediate_mode/shader.frag.glsl");
     shaders["normals"] = create_shader_program("scenes/shared_assets/shaders/normals/shader.vert.glsl","scenes/shared_assets/shaders/normals/shader.geom.glsl","scenes/shared_assets/shaders/normals/shader.frag.glsl");
     shaders["skybox"] = create_shader_program("scenes/shared_assets/shaders/skybox/shader.vert.glsl","scenes/shared_assets/shaders/skybox/shader.frag.glsl");
-
+    shaders["mesh_mix"] = create_shader_program("scenes/shared_assets/shaders/mesh_mix/shader.vert.glsl", "scenes/shared_assets/shaders/mesh_mix/shader.frag.glsl");
     std::cout<<"\t [OK] Shader loaded"<<std::endl;
 }
 

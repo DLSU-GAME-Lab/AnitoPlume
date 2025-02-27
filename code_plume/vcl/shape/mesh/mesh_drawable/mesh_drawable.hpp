@@ -43,11 +43,12 @@ public:
     GLuint shader;
     GLuint texture_id;
     GLuint norm_tex_id;
+    float decal_progress = 0.f;
 };
 
 void draw(const mesh_drawable& drawable, const camera_scene& camera);
 void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, bool hasNormal = false);
 void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id);
 void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id);
-
+void drawMix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float decal_prog );
 }
