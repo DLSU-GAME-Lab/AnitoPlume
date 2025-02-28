@@ -89,8 +89,8 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     t_loader.show_gui();
 
     terrain_display.texture_id = t_loader.current_tex_id;
-    std::cout << terrain_display.texture_id << std::endl;
-    std::cout << t_loader.current_tex_id << std::endl;
+    //std::cout << terrain_display.texture_id << std::endl;
+    //std::cout << t_loader.current_tex_id << std::endl;
 
 
     // Force constant time step
@@ -1400,8 +1400,8 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     if (terrain_display.data.number_triangles > 0)
     {
-        //draw(terrain_display, scene.camera, shaders["mesh"], true);
-        drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        draw(terrain_display, scene.camera, shaders["mesh"], true);
+        //drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 

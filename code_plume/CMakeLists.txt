@@ -26,6 +26,7 @@ file(
     GLOB_RECURSE
     source_files
     vcl/*.[ch]pp
+    vcl/*/.[ch]pp
     main/*.[ch]pp
     third_party/*.[ch]pp
     third_party/*.[ch]
