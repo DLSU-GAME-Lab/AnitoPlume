@@ -10,8 +10,8 @@ struct terrain_loader
 	vcl::mesh_drawable terrain;
 	GLuint mesh_shader;
 	GLuint current_tex_id;
+	GLuint current_norm_id;
 	GLuint texture_id[5];
-	GLuint ash_tex;
 	bool new_terrain_loaded = false;
 
 	const int size = 32;
@@ -26,6 +26,6 @@ struct terrain_loader
 	void load_all_textures();
 
 	void show_gui();
-	void load_terrain(std::string terrain_filename, std::string texture_filename);
+	void load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
 	void load_terrain_async(std::string terrain_filename, std::string texture_filename);
 };

@@ -89,6 +89,7 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     t_loader.show_gui();
 
     terrain_display.texture_id = t_loader.current_tex_id;
+    terrain_display.norm_tex_id = t_loader.current_norm_id;
     //std::cout << terrain_display.texture_id << std::endl;
     //std::cout << t_loader.current_tex_id << std::endl;
 
@@ -1168,7 +1169,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     gui_param.display_subspheres = false;
     gui_param.display_spheres_with_subspheres = false;
     gui_param.display_billboards = true;
-    decal = t_loader.texture_id[1];
+    //decal = t_loader.texture_id[1];
     debug_mode = true;
     float seed = time(0);
     srand(seed);
@@ -1337,12 +1338,12 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2024.png");
+    t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
-    terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
+    //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
 
    
@@ -1400,8 +1401,8 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     if (terrain_display.data.number_triangles > 0)
     {
-        draw(terrain_display, scene.camera, shaders["mesh"], true);
-        //drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        //draw(terrain_display, scene.camera, shaders["mesh"], true);
+        drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 
@@ -1746,7 +1747,7 @@ void scene_model::setup_terrain_preemptive()
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
         terrain_display.uniform.color = { 1,1,1 };
-        terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
+        //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
 
 
         std::cout << "Pre-emptive terrain setup triggered" << "\n";

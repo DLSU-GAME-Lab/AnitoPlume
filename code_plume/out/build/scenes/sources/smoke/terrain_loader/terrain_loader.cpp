@@ -4,7 +4,7 @@ using namespace vcl;
 
 void terrain_loader::load_all_textures()
 {
-    const char* years[]{ "2024", "2021", "2019", "2016", "2015" };
+    const char* years[]{ "2023", "2021", "2019", "2016", "2015" };
     for (int i = 0; i < 5; i++)
     {
         std::string year = years[i];
@@ -19,7 +19,7 @@ void terrain_loader::show_gui()
 {
     ImGui::Begin("Terrain", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
-    static const char* labels[]{ "2024", "2021", "2019", "2016", "2015" };
+    static const char* labels[]{ "2023", "2021", "2019", "2016", "2015" };
     if (ImGui::Combo("Year", &current_tex, labels, IM_ARRAYSIZE(labels)))
     {
         current_tex_id = texture_id[current_tex];
@@ -36,7 +36,7 @@ void terrain_loader::show_gui()
     ImGui::End();
 }
 
-void terrain_loader::load_terrain(std::string terrain_filename, std::string texture_filename)
+void terrain_loader::load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans)
 {
     std::string terrain_path = "../scenes/sources/smoke/terrains/" + terrain_filename;
     std::string texture_path = "../scenes/sources/smoke/textures/" + texture_filename;
@@ -65,6 +65,11 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     terrain.uniform.transform.scaling = 1.f;
     terrain.uniform.transform.translation = { 0.f,0.f,0.f };
+    if (isTrans)
+        terrain.uniform.color_alpha = 0.f;
+    else
+        terrain.uniform.color_alpha = 1.f;
+
     //terrain.texture_id = create_texture_gpu(image_load_png(texture_path));
 
     //if (current_terrain != terrain_filename)
@@ -92,5 +97,5 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
 
 void terrain_loader::load_terrain_async(std::string terrain_filename, std::string texture_filename)
 {
-    std::thread(&terrain_loader::load_terrain, this, terrain_filename, texture_filename).detach();
+    //std::thread(&terrain_loader::load_terrain, this, terrain_filename, texture_filename).detach();
 }
