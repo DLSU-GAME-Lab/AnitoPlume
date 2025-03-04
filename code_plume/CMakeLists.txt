@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(pgm)
 
 # add -DVCL_NO_DEBUG for no debug
-add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLAD -DNDEBUG)
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLAD)
 
 # Add G++ Warning on Unix
 if(UNIX)
