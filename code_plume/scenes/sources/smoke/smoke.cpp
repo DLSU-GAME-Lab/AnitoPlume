@@ -141,10 +141,10 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
             }
 
             
-            if (decal_progress > 0)
+    /*        if (decal_progress > 0)
             {
                 decal_progress -= .01 * dt;
-            }
+            }*/
             frame_count++;
         }
     }

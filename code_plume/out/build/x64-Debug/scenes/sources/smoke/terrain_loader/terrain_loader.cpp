@@ -11,8 +11,15 @@ void terrain_loader::load_all_textures()
         std::string texture_path = "../scenes/sources/smoke/textures/Taal_Texture_" + year + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
     }
+    for (int i = 0; i < 5; i++)
+    {
+        std::string year = years[i];
+        std::string normal_path = "../scenes/sources/smoke/textures/Taal_Normal_" + year + ".png";
+        normal_id[i] = create_texture_gpu(image_load_png(normal_path));
+    }
 
     current_tex_id = texture_id[0];
+    current_norm_id = normal_id[0];
 }
 
 void terrain_loader::show_gui()
@@ -23,6 +30,7 @@ void terrain_loader::show_gui()
     if (ImGui::Combo("Year", &current_tex, labels, IM_ARRAYSIZE(labels)))
     {
         current_tex_id = texture_id[current_tex];
+        current_norm_id = normal_id[current_tex];
     }
 
     //ImGui::InputText("Terrain", ter_input, size, ImGuiInputTextFlags_AutoSelectAll);

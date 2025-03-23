@@ -12,6 +12,7 @@ struct terrain_loader
 	GLuint current_tex_id;
 	GLuint current_norm_id;
 	GLuint texture_id[5];
+	GLuint normal_id[5];
 	bool new_terrain_loaded = false;
 
 	const int size = 32;
