@@ -68,6 +68,8 @@ struct scene_model : scene_base
     vcl::mesh_drawable terrain;
     vcl::mesh_drawable terrain_display;
     vcl::mesh_drawable tooltip_display;
+    vcl::mesh_drawable tooltip_display2;
+    vcl::mesh_drawable tooltip_display3;
     vcl::mesh_drawable sphere;
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
