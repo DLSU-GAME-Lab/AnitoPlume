@@ -1346,8 +1346,9 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
 
-   
-
+    tip_loader.load_tooltip("Tooltip-Balantoc.obj", "Tooltip-Balantoc.png");
+    tooltip_display = tip_loader.tooltip;
+    tooltip_display.uniform.color = { 1,1,1 };
     //t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2021.png");
 
     //terrain_replace = t_loader.terrain;

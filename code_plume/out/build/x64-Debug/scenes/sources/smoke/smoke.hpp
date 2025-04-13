@@ -4,6 +4,7 @@
 #include "scenes/sources/smoke/smokeLayer.hpp"
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
+#include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -66,6 +67,7 @@ struct scene_model : scene_base
     vcl::mesh_drawable layer_mesh;
     vcl::mesh_drawable terrain;
     vcl::mesh_drawable terrain_display;
+    vcl::mesh_drawable tooltip_display;
     vcl::mesh_drawable sphere;
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
@@ -117,6 +119,7 @@ struct scene_model : scene_base
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
+    tooltip_loader tip_loader;
 
     // For replay feature
     std::vector< std::vector<smoke_layer> > smoke_layers_frames;

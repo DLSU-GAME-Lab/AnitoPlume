@@ -39,7 +39,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume/out/build/x64-Debug"
+			"value" : "c:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/out/build/x64-Debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -467,7 +467,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume/out/build/x64-Debug/CMakeFiles/pkgRedirects"
+			"value" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/out/build/x64-Debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -527,7 +527,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume"
+			"value" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -539,7 +539,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "C:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume/out/install/x64-Debug"
+			"value" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/out/install/x64-Debug"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -663,7 +663,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/mt.exe"
+			"value" : "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe"
 		},
 		{
 			"name" : "CMAKE_NUMBER_OF_MAKEFILES",
@@ -751,7 +751,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/rc.exe"
+			"value" : "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe"
 		},
 		{
 			"name" : "CMAKE_RC_COMPILER_WORKS",
@@ -1323,7 +1323,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume/out/build/x64-Debug"
+			"value" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume/out/build/x64-Debug"
 		},
 		{
 			"name" : "pgm_IS_TOP_LEVEL",
@@ -1347,7 +1347,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/vaugh/Documents/CodingProjects/AnitoPlume/code_plume"
+			"value" : "C:/Users/theas/Documents/GitHub/AnitoPlume/code_plume"
 		}
 	],
 	"kind" : "cache",
