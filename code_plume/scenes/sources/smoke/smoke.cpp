@@ -1426,7 +1426,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
 
     if (terrain_display.data.number_triangles > 0)
     {
