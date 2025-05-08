@@ -2,13 +2,17 @@
 
 vcl::skybox::skybox()
 {
-	vertices.push_back(vec3(-1.0f, 1.0f, -1.0f)); // Top-left
-	vertices.push_back(vec3( 1.0f, 1.0f, -1.0f)); // Top-right
-	vertices.push_back(vec3( 1.0f,-1.0f, -1.0f)); // Bottom-right
-	vertices.push_back(vec3( 1.0f,-1.0f, -1.0f)); // Bottom-right
-	vertices.push_back(vec3(-1.0f,-1.0f, -1.0f)); // Bottom-left
-	vertices.push_back(vec3(-1.0f, 1.0f, -1.0f)); // Top-left
+    vertices.resize(8);
+	vertices.push_back(vec3(-1.0f,-1.0f, 1.0f));
+	vertices.push_back(vec3( 1.0f,-1.0f, 1.0f));
+	vertices.push_back(vec3( 1.0f,-1.0f,-1.0f));
+	vertices.push_back(vec3(-1.0f,-1.0f,-1.0f));
+	vertices.push_back(vec3(-1.0f, 1.0f, 1.0f));
+	vertices.push_back(vec3( 1.0f, 1.0f, 1.0f));
+	vertices.push_back(vec3( 1.0f, 1.0f,-1.0f));
+	vertices.push_back(vec3(-1.0f, 1.0f,-1.0f));
 
+    connectivity.resize(12);
     connectivity.push_back({ 1,2,6 });
     connectivity.push_back({ 6,5,1 });
     connectivity.push_back({ 0,4,7 });

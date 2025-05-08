@@ -62,7 +62,4 @@ namespace vcl
         glDrawElements(GL_TRIANGLES, GLsizei(gpu_data.number_triangles * 3), GL_UNSIGNED_INT, nullptr); opengl_debug();
         glBindVertexArray(0);
     }
-
-
-
 }

@@ -40,6 +40,9 @@ namespace vcl
             return;
         }
 
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+
         // Switch shader program only if necessary
         GLint current_shader = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
@@ -59,6 +62,9 @@ namespace vcl
         uniform(shader, "view", camera.view_matrix());                  opengl_debug();
 
         vcl::draw(drawable.data); opengl_debug();
+
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
     }
 
 }
