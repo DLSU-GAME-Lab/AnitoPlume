@@ -1338,7 +1338,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2023.png");
+    t_loader.load_terrain("TaalTex.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
@@ -1365,11 +1365,18 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display3 = tip_loader.tooltip;
     tooltip_display3.uniform.transform.scaling = 4.f;
     tooltip_display3.uniform.shading.ambiant = 1.f;
-    tooltip_display3.uniform.transform.translation = { -40.f,-60.f,10.f };
+    tooltip_display3.uniform.transform.translation = { -45.f,-60.f,0.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
     tooltip_display3.uniform.transform.rotation = rotationX * rotationY;
 
+    tip_loader.load_tooltip("Tooltip-Pirapiraso.obj", "Tooltip-Pirapiraso.png");
+    tooltip_display4 = tip_loader.tooltip;
+    tooltip_display4.uniform.transform.scaling = 4.f;
+    tooltip_display4.uniform.shading.ambiant = 1.f;
+    tooltip_display4.uniform.transform.translation = { 35.f,63.f,5.f };
+    rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
+    tooltip_display4.uniform.transform.rotation = rotationX;
 
 
     //terrain_replace = t_loader.terrain;
@@ -1419,7 +1426,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
 
     if (terrain_display.data.number_triangles > 0)
     {
@@ -1428,6 +1435,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         draw(tooltip_display, scene.camera, shaders["mesh"], false);
         draw(tooltip_display2, scene.camera, shaders["mesh"], false);
         draw(tooltip_display3, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display4, scene.camera, shaders["mesh"], false);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 
