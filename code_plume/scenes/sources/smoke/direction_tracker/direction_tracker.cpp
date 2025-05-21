@@ -74,7 +74,7 @@ void direction_tracker::show_gui()
     ImVec2 win_pos = ImGui::GetWindowPos();
     win_pos.x += 5; win_pos.y += 25;
     ImVec2 start = ImVec2(win_pos.x + half_size, win_pos.y + half_size);
-    ImVec2 end = ImVec2(start.x + (half_size * wind_vector.x), start.y + (half_size * wind_vector.y));
+    ImVec2 end = ImVec2(start.x + (half_size * wind_vector.x), -start.y - (half_size * wind_vector.y));
     draw_list->AddLine(start, end, IM_COL32(240, 0, 20, 255), 2.0f);
 
     ImGui::SameLine();
