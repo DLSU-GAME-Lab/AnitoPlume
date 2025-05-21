@@ -32,7 +32,7 @@ void direction_tracker::load_data(std::string filePath)
 
 std::vector<std::string> direction_tracker::get_location_names(float angle)
 {
-    std::vector<std::string> affectedLocs;
+    std::vector<std::string> affected_locs;
     std::vector<int> arc_start_indices;
     std::vector<int> arc_end_indices;
 
@@ -49,9 +49,9 @@ std::vector<std::string> direction_tracker::get_location_names(float angle)
     }
 
     for (int locIndex : arc_end_indices)
-        affectedLocs.push_back(this->location_names[locIndex]);
+        affected_locs.push_back(this->location_names[locIndex]);
 
-    return affectedLocs;
+    return affected_locs;
 }
 
 void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
@@ -63,29 +63,29 @@ void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
 
 void direction_tracker::show_gui()
 {
-    ImGui::Begin("Direction Tracker");
+    ImGui::Begin("Direction Tracker", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
     const float image_size = 256.0f;
     const float half_size = image_size / 2.0f;
     ImGui::Image((ImTextureID)danger_zone_image, { image_size, image_size });
-    std::vector<std::string> affectedLocs = get_location_names(this->wind_angle);
+    std::vector<std::string> affected_locs = get_location_names(this->wind_angle);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 win_pos = ImGui::GetWindowPos();
-    win_pos.x += 5; win_pos.y += 5;
+    win_pos.x += 5; win_pos.y += 25;
     ImVec2 start = ImVec2(win_pos.x + half_size, win_pos.y + half_size);
     ImVec2 end = ImVec2(start.x + (half_size * wind_vector.x), start.y + (half_size * wind_vector.y));
-    draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 2.0f);
-
-    std::string affectedText;
-    for (int i = 0; i < affectedLocs.size(); i++)
-    {
-        affectedText += affectedLocs[i];
-        if (i < affectedLocs.size() - 1)
-            affectedText += ", ";
-    }
+    draw_list->AddLine(start, end, IM_COL32(240, 0, 20, 255), 2.0f);
 
     ImGui::SameLine();
-    ImGui::Text(affectedText.c_str());
+    ImGui::BeginChild("Affected Areas", {200.0f, image_size}, true);
+
+    ImGui::SetWindowFontScale(1.5f);
+    ImGui::TextColored({0.9f, 0.0f, 0.1f, 1.0f}, "Affected Areas:");
+    for (int i = 0; i < affected_locs.size(); i++)
+        ImGui::Text(affected_locs[i].c_str());
+    ImGui::SetWindowFontScale(1.0f);
+
+    ImGui::EndChild();
     ImGui::End();
 }
