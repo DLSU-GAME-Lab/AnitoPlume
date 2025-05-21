@@ -1895,6 +1895,15 @@ void scene_model::set_gui()
             }
             calculate_avg_wind_dir();
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Max Intensity"))
+        {
+            is_wind = true;
+            for (unsigned int i = 0; i < winds.size(); i++)
+                winds[i].intensity = 300;
+
+            calculate_avg_wind_dir();
+        }
 
         // Wind
 
