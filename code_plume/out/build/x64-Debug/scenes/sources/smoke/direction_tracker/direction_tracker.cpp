@@ -1,5 +1,4 @@
 #include "direction_tracker.hpp"
-#include "direction_tracker.hpp"
 #include "scenes/sources/smoke/smokeLayer.hpp"
 
 #include <iostream>
@@ -15,17 +14,18 @@ void direction_tracker::load_data(std::string filePath)
         for (std::string line; std::getline(file, line);)
         {
             std::istringstream ss(std::move(line));
+            std::vector<std::string> cell;
             for (std::string value; std::getline(ss, value, ',');)
-            {
-                this->location_names.push_back(std::move(value));
-                this->arc_start.push_back(std::atof(std::move(value).c_str()));
-                this->arc_end.push_back(std::atof(std::move(value).c_str()));
+                cell.push_back(std::move(value));
 
-                int index = this->location_names.size() - 1;
-                std::cout << "Location: "    << this->location_names[index] <<
-                             ", Arc Start: " << this->arc_start[index]      <<
-                             ", Arc End: "   << this->arc_end[index]        << "\n";
-            }
+            this->location_names.push_back(cell[0]);
+            this->arc_start.push_back(std::atof(cell[1].c_str()));
+            this->arc_end.push_back(std::atof(cell[2].c_str()));
+
+            int index = this->location_names.size() - 1;
+            std::cout << "Location: " << this->location_names[index] <<
+                ", Arc Start: " << this->arc_start[index] <<
+                ", Arc End: " << this->arc_end[index] << "\n";
         }
     }
     else std::cout << "ERROR: File with path " << filePath << " could not be opened.";

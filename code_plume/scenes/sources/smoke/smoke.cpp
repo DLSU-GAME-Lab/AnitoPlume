@@ -220,11 +220,10 @@ void scene_model::calculate_avg_wind_dir()
     float winds_squared_z = temp_vector.z * temp_vector.z;
     float magnitude = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
     this->avg_wind_direction = temp_vector/magnitude;
-    float radians = atan2f(avg_wind_direction.y, avg_wind_direction.x);
-    this->avg_wind_dir_degrees = (180 * radians / 3.14159);
-    direction_tracker.set_wind_direction(avg_wind_dir_degrees);
-    std::cout << "Direction of wind: " << this->avg_wind_dir_degrees << std::endl;
-    std::cout << "X: " << avg_wind_direction.x << " Y: " << avg_wind_direction.y << " Z: " << avg_wind_direction.z << std::endl;
+    direction_tracker.set_wind_direction(this->avg_wind_direction);
+
+    /*std::cout << "Direction of wind: " << this->avg_wind_dir_degrees << std::endl;
+    std::cout << "X: " << avg_wind_direction.x << " Y: " << avg_wind_direction.y << " Z: " << avg_wind_direction.z << std::endl;*/
 }
 
 void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
