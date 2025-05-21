@@ -5,6 +5,7 @@
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
+#include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -59,6 +60,7 @@ struct scene_model : scene_base
     unsigned int nb_of_iterations;
     unsigned int last_ppe_layer_idx;
     float decal_progress = 1.f;
+    float avg_wind_dir_degrees;
     // Meshes
     vcl::mesh mesh_terrain;
 
@@ -75,7 +77,7 @@ struct scene_model : scene_base
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
     vcl::skybox_drawable skybox;
-
+    vcl::vec3 avg_wind_direction;
     GLuint skybox_tex;
     GLuint smoke_textures[5];
     GLuint pauseIcon;
@@ -122,6 +124,7 @@ struct scene_model : scene_base
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
+    direction_tracker direction_tracker;
     tooltip_loader tip_loader;
 
     // For replay feature
@@ -161,6 +164,7 @@ struct scene_model : scene_base
 
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
+    void calculate_avg_wind_dir();
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);
     void edit_smoke_layer_properties(unsigned int i, float& d_mass);
     void apply_forces_to_smoke_layer(unsigned int i, float d_mass);

@@ -66,7 +66,7 @@ void direction_tracker::show_gui()
 {
     ImGui::Begin("Direction Tracker");
 
-    std::vector<std::string> affectedLocs = getLocationNames(this->wind_direction);
+    std::vector<std::string> affectedLocs = get_location_names(this->wind_direction);
     std::string affectedText;
 
     for (int i = 0; i < affectedLocs.size(); i++)
