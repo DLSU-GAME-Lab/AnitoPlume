@@ -210,25 +210,21 @@ vcl::vec3 scene_model::compute_wind_vector(float height)
 
 void scene_model::calculate_avg_wind_dir()
 {
-    vcl::vec3 temp_vector = { 0,0,0 };
+    vcl::vec3 winds_vec = { 0,0,0 };
     for (int i = 0; i < winds.size(); i++)
     {
-        temp_vector.x += winds[i].wind_vector.x;
-        temp_vector.y += winds[i].wind_vector.y;
-        temp_vector.z += winds[i].wind_vector.z;
-        std::cout << "wind_vector (" << winds[i].wind_vector.x << ", " << winds[i].wind_vector.y << ", " << winds[i].wind_vector.z << std::endl;;
+        winds_vec.x += winds[i].wind_vector.x;
+        winds_vec.y += winds[i].wind_vector.y;
+        winds_vec.z += winds[i].wind_vector.z;
     }
-    float winds_squared_x = temp_vector.x * temp_vector.x;
-    float winds_squared_y = temp_vector.y * temp_vector.y;
-    float winds_squared_z = temp_vector.z * temp_vector.z;
-    float magnitude = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
-    this->avg_wind_direction = vcl::vec3(temp_vector.x / magnitude, temp_vector.y / magnitude, temp_vector.z / magnitude);
-    std::cout << "Temp Vector (" << temp_vector.x << ", " << temp_vector.y <<", " << temp_vector.z << ")" << std::endl;
-    std::cout << "Magnitude :" << magnitude << std::endl;
-    std::cout << "Avg Wind Dir (" << avg_wind_direction.x << ", " << avg_wind_direction.y << avg_wind_direction.z << ")" << std::endl;
-    direction_tracker.set_wind_direction(this->avg_wind_direction);
 
- 
+    float winds_squared_x = winds_vec.x * winds_vec.x;
+    float winds_squared_y = winds_vec.y * winds_vec.y;
+    float winds_squared_z = winds_vec.z * winds_vec.z;
+
+    float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
+    this->avg_wind_direction = vcl::vec3(winds_vec.x / mag, winds_vec.y / mag, winds_vec.z / mag);
+    direction_tracker.set_wind_direction(this->avg_wind_direction);
 }
 
 void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
@@ -1183,6 +1179,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     frame_count = 0;
     export_data = false;
     state = engine_state::stopped;
+    all_angles = false;
     srand(time(0));
 
     t_loader.mesh_shader = shaders["mesh"];
@@ -1916,6 +1913,9 @@ void scene_model::set_gui()
             calculate_avg_wind_dir();
         }
 
+        ImGui::SameLine();
+        ImGui::Checkbox("All Angles", &all_angles);
+
         // Wind
 
         float lin_windbase_min = 0., lin_windbase_max = 35.;
@@ -1929,7 +1929,7 @@ void scene_model::set_gui()
                     if (i > 3) winds[i].intensity = 3 * linear_wind_base;
                     if (winds[i].intensity == 0) winds[i].intensity = 1;
                     winds[i].angle = 0;
-                    winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle), 0);
+                    winds[i].recalc_wind_vector();
                 }
             }
         }
@@ -1995,12 +1995,22 @@ void scene_model::set_gui()
            
         if (ImGui::SliderScalar("Angle", ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
         {
-            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
-            winds[selected].recalc_wind_vector();
-            if (winds[selected].intensity != 0)
+            if (all_angles)
             {
-                calculate_avg_wind_dir();
+                for (int i = 0; i < wind_size; i++)
+                {
+                    this->deg_angle[i] = this->deg_angle[selected];
+                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                    winds[i].recalc_wind_vector();
+                }
             }
+            else
+            {
+                winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+                winds[selected].recalc_wind_vector();
+            }
+            
+            if (winds[selected].intensity != 0) calculate_avg_wind_dir();
        
         }
            
@@ -2011,7 +2021,7 @@ void scene_model::set_gui()
         for (int i = 0; i < wind_size; i++)
         {
             intensity[i] = winds[i].intensity;
-            angle[i] = winds[i].angle;
+            angle[i] = this->deg_angle[i];
         }
 
 

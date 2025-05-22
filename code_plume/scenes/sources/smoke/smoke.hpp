@@ -54,6 +54,7 @@ struct scene_model : scene_base
     bool export_data;
     engine_state state;
     std::vector<int> deg_angle;
+    bool all_angles;
 
     // Trackers
     float new_layer_delay;

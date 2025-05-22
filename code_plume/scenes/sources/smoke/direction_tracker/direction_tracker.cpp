@@ -32,20 +32,29 @@ void direction_tracker::load_data(std::string filePath)
 
 std::vector<std::string> direction_tracker::get_location_names(float angle)
 {
+    if (angle > 180) angle -= 360;
+
     std::vector<std::string> affected_locs;
     std::vector<int> arc_start_indices;
     std::vector<int> arc_end_indices;
 
     for (int i = 0; i < this->arc_start.size(); i++)
     {
-        if (this->arc_start[i] <= angle)
-            arc_start_indices.push_back(i);
+        float arc_start = this->arc_start[i];
+
+        if (arc_start > 180) arc_start -= 360;
+        if (arc_start <= angle) arc_start_indices.push_back(i);
     }
     
     for (int arcIndex : arc_start_indices)
     {
-        if (this->arc_end[arcIndex] >= angle)
-            arc_end_indices.push_back(arcIndex);
+        float arc_start = this->arc_start[arcIndex];
+        float arc_end = this->arc_end[arcIndex];
+
+        if (arc_start > 180) arc_start -= 360;
+        if (arc_end > 180 && arc_end - 360 > arc_start) arc_end -= 360;
+
+        if (arc_end >= angle) arc_end_indices.push_back(arcIndex);
     }
 
     for (int locIndex : arc_end_indices)
@@ -57,8 +66,10 @@ std::vector<std::string> direction_tracker::get_location_names(float angle)
 void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
 {
     this->wind_vector = wind_vector;
-    float radians = atan2f(wind_vector.y, wind_vector.x);
-    this->wind_angle = (180 * radians / 3.14159);
+    const double pi = 3.14159;
+    double radians = atan2(wind_vector.y, wind_vector.x);
+    if (radians < 0) radians +=  (2 * pi);
+    this->wind_angle = radians * (180.0 / pi);
 }
 
 void direction_tracker::show_gui()
@@ -67,15 +78,16 @@ void direction_tracker::show_gui()
 
     const float image_size = 256.0f;
     const float half_size = image_size / 2.0f;
+    const float line_len = 108.0f;
     ImGui::Image((ImTextureID)danger_zone_image, { image_size, image_size });
     std::vector<std::string> affected_locs = get_location_names(this->wind_angle);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 win_pos = ImGui::GetWindowPos();
-    win_pos.x += 5; win_pos.y += 25;
+    win_pos.x += 6; win_pos.y += 26;
     ImVec2 start = ImVec2(win_pos.x + half_size, win_pos.y + half_size);
-    ImVec2 end = ImVec2(start.x + (half_size * wind_vector.x), -start.y - (half_size * wind_vector.y));
-    draw_list->AddLine(start, end, IM_COL32(240, 0, 20, 255), 2.0f);
+    ImVec2 end = ImVec2(start.x + (wind_vector.x * line_len), start.y + (-wind_vector.y * line_len));
+    draw_list->AddLine(start, end, IM_COL32(240, 0, 20, 255), 4.0f);
 
     ImGui::SameLine();
     ImGui::BeginChild("Affected Areas", {200.0f, image_size}, true);
