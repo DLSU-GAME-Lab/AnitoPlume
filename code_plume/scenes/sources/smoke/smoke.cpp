@@ -1363,7 +1363,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("TaalTex.obj", "Taal_Texture_2023.png");
+    t_loader.load_terrain("TaalTex2.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;

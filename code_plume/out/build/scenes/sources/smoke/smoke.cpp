@@ -210,21 +210,25 @@ vcl::vec3 scene_model::compute_wind_vector(float height)
 
 void scene_model::calculate_avg_wind_dir()
 {
-    vcl::vec3 temp_vector;
+    vcl::vec3 temp_vector = { 0,0,0 };
     for (int i = 0; i < winds.size(); i++)
     {
-        temp_vector += winds[i].wind_vector;
+        temp_vector.x += winds[i].wind_vector.x;
+        temp_vector.y += winds[i].wind_vector.y;
+        temp_vector.z += winds[i].wind_vector.z;
+        std::cout << "wind_vector (" << winds[i].wind_vector.x << ", " << winds[i].wind_vector.y << ", " << winds[i].wind_vector.z << std::endl;;
     }
     float winds_squared_x = temp_vector.x * temp_vector.x;
     float winds_squared_y = temp_vector.y * temp_vector.y;
     float winds_squared_z = temp_vector.z * temp_vector.z;
     float magnitude = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
-    this->avg_wind_direction = temp_vector/magnitude;
-    float radians = atan2f(avg_wind_direction.y, avg_wind_direction.x);
-    this->avg_wind_dir_degrees = (180 * radians / 3.14159);
-    direction_tracker.set_wind_direction(avg_wind_dir_degrees);
-    std::cout << "Direction of wind: " << this->avg_wind_dir_degrees << std::endl;
-    std::cout << "X: " << avg_wind_direction.x << " Y: " << avg_wind_direction.y << " Z: " << avg_wind_direction.z << std::endl;
+    this->avg_wind_direction = vcl::vec3(temp_vector.x / magnitude, temp_vector.y / magnitude, temp_vector.z / magnitude);
+    std::cout << "Temp Vector (" << temp_vector.x << ", " << temp_vector.y <<", " << temp_vector.z << ")" << std::endl;
+    std::cout << "Magnitude :" << magnitude << std::endl;
+    std::cout << "Avg Wind Dir (" << avg_wind_direction.x << ", " << avg_wind_direction.y << avg_wind_direction.z << ")" << std::endl;
+    direction_tracker.set_wind_direction(this->avg_wind_direction);
+
+ 
 }
 
 void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
@@ -1359,7 +1363,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("TaalTex.obj", "Taal_Texture_2023.png");
+    t_loader.load_terrain("TaalTex2.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
@@ -1416,6 +1420,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     {
         wind_altitudes.push_back(i*4000);
         winds.push_back(wind_structure(0,0));
+        this->deg_angle.push_back(0);
     }
     
     is_wind = false;
@@ -1878,7 +1883,7 @@ void scene_model::set_gui()
             {
                 winds[i].intensity = 0;
                 winds[i].angle = 0;
-                winds[i].wind_vector = vec3(1, 0, 0);
+                winds[i].recalc_wind_vector();
             }
             calculate_avg_wind_dir();
         }
@@ -1892,8 +1897,22 @@ void scene_model::set_gui()
                 if (i > 3) winds[i].intensity = 3 * linear_wind_base;
                 if (winds[i].intensity == 0) winds[i].intensity = 1;
                 winds[i].angle = 0;
-                winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle), 0);
+                winds[i].recalc_wind_vector();
             }
+
+            calculate_avg_wind_dir();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Max Intensity"))
+        {
+            is_wind = true;
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                winds[i].intensity = 300;
+                winds[i].recalc_wind_vector();
+            }
+                
+
             calculate_avg_wind_dir();
         }
 
@@ -1969,13 +1988,15 @@ void scene_model::set_gui()
 
         if (ImGui::SliderScalar("Intensity", ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
         {
-            winds[selected].wind_vector = winds[selected].intensity * vec3(cos(winds[selected].angle), sin(winds[selected].angle), 0);
+            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+            winds[selected].recalc_wind_vector();
             calculate_avg_wind_dir();
         }
            
-        if (ImGui::SliderScalar("Angle", ImGuiDataType_S32, &winds[selected].angle, &angle_min, &angle_max))
+        if (ImGui::SliderScalar("Angle", ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
         {
-            winds[selected].wind_vector = winds[selected].intensity * vec3(cos(winds[selected].angle), sin(winds[selected].angle), 0);
+            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+            winds[selected].recalc_wind_vector();
             if (winds[selected].intensity != 0)
             {
                 calculate_avg_wind_dir();
@@ -2109,4 +2130,9 @@ void scene_model::set_gui_profiler()
     //}
 
     ImGui::End();
+}
+
+void wind_structure::recalc_wind_vector()
+{
+    wind_vector = intensity * vcl::vec3(cos(angle), sin(angle), 0);
 }

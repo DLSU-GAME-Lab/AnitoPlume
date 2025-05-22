@@ -1,5 +1,4 @@
 #include "direction_tracker.hpp"
-#include "scenes/sources/smoke/smokeLayer.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -7,6 +6,9 @@
 
 void direction_tracker::load_data(std::string filePath)
 {
+    std::string texture_path = "../scenes/sources/smoke/images/danger_zones.png";
+    danger_zone_image = vcl::create_texture_gpu(vcl::image_load_png(texture_path));
+
     std::ifstream file;
     file.open(filePath);
     if (file.is_open())
@@ -21,11 +23,6 @@ void direction_tracker::load_data(std::string filePath)
             this->location_names.push_back(cell[0]);
             this->arc_start.push_back(std::atof(cell[1].c_str()));
             this->arc_end.push_back(std::atof(cell[2].c_str()));
-
-            int index = this->location_names.size() - 1;
-            std::cout << "Location: " << this->location_names[index] <<
-                ", Arc Start: " << this->arc_start[index] <<
-                ", Arc End: " << this->arc_end[index] << "\n";
         }
     }
     else std::cout << "ERROR: File with path " << filePath << " could not be opened.";
@@ -35,7 +32,7 @@ void direction_tracker::load_data(std::string filePath)
 
 std::vector<std::string> direction_tracker::get_location_names(float angle)
 {
-    std::vector<std::string> affectedLocs;
+    std::vector<std::string> affected_locs;
     std::vector<int> arc_start_indices;
     std::vector<int> arc_end_indices;
 
@@ -52,30 +49,43 @@ std::vector<std::string> direction_tracker::get_location_names(float angle)
     }
 
     for (int locIndex : arc_end_indices)
-        affectedLocs.push_back(this->location_names[locIndex]);
+        affected_locs.push_back(this->location_names[locIndex]);
 
-    return affectedLocs;
+    return affected_locs;
 }
 
-void direction_tracker::set_wind_direction(float angle)
+void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
 {
-    this->wind_direction = angle;
+    this->wind_vector = wind_vector;
+    float radians = atan2f(wind_vector.y, wind_vector.x);
+    this->wind_angle = (180 * radians / 3.14159);
 }
 
 void direction_tracker::show_gui()
 {
-    ImGui::Begin("Direction Tracker");
+    ImGui::Begin("Direction Tracker", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
-    std::vector<std::string> affectedLocs = get_location_names(this->wind_direction);
-    std::string affectedText;
+    const float image_size = 256.0f;
+    const float half_size = image_size / 2.0f;
+    ImGui::Image((ImTextureID)danger_zone_image, { image_size, image_size });
+    std::vector<std::string> affected_locs = get_location_names(this->wind_angle);
 
-    for (int i = 0; i < affectedLocs.size(); i++)
-    {
-        affectedText += affectedLocs[i];
-        if (i < affectedLocs.size() - 1)
-            affectedText += ", ";
-    }
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 win_pos = ImGui::GetWindowPos();
+    win_pos.x += 5; win_pos.y += 25;
+    ImVec2 start = ImVec2(win_pos.x + half_size, win_pos.y + half_size);
+    ImVec2 end = ImVec2(start.x + (half_size * wind_vector.x), -start.y - (half_size * wind_vector.y));
+    draw_list->AddLine(start, end, IM_COL32(240, 0, 20, 255), 2.0f);
 
-    ImGui::Text(affectedText.c_str());
+    ImGui::SameLine();
+    ImGui::BeginChild("Affected Areas", {200.0f, image_size}, true);
+
+    ImGui::SetWindowFontScale(1.5f);
+    ImGui::TextColored({0.9f, 0.0f, 0.1f, 1.0f}, "Affected Areas:");
+    for (int i = 0; i < affected_locs.size(); i++)
+        ImGui::Text(affected_locs[i].c_str());
+    ImGui::SetWindowFontScale(1.0f);
+
+    ImGui::EndChild();
     ImGui::End();
 }
