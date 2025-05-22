@@ -1360,7 +1360,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("TaalTex2.obj", "Taal_Texture_2023.png");
+    t_loader.load_terrain("TaalTex3.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
@@ -1372,13 +1372,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display = tip_loader.tooltip;
     tooltip_display.uniform.transform.scaling = 4.f;
     tooltip_display.uniform.shading.ambiant = 1.f;
-    tooltip_display.uniform.transform.translation = { -58.f,55.f,10.f };
+    tooltip_display.uniform.transform.translation = { -55.f,55.f,9.f };
 
     tip_loader.load_tooltip("Tooltip-Balantoc.obj", "Tooltip-Malaki.png");
     tooltip_display2 = tip_loader.tooltip;
     tooltip_display2.uniform.transform.scaling = 4.f;
     tooltip_display2.uniform.shading.ambiant = 1.f;
-    tooltip_display2.uniform.transform.translation = { -55.f,65.f,5.f };
+    tooltip_display2.uniform.transform.translation = { -53.f,57.f,5.f };
     mat3 rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     mat3 rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 3.14f);
     tooltip_display2.uniform.transform.rotation = rotationX * rotationY;
@@ -1387,7 +1387,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display3 = tip_loader.tooltip;
     tooltip_display3.uniform.transform.scaling = 4.f;
     tooltip_display3.uniform.shading.ambiant = 1.f;
-    tooltip_display3.uniform.transform.translation = { -45.f,-60.f,0.f };
+    tooltip_display3.uniform.transform.translation = { -42.f,-60.f,0.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
     tooltip_display3.uniform.transform.rotation = rotationX * rotationY;
@@ -1396,7 +1396,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display4 = tip_loader.tooltip;
     tooltip_display4.uniform.transform.scaling = 4.f;
     tooltip_display4.uniform.shading.ambiant = 1.f;
-    tooltip_display4.uniform.transform.translation = { 35.f,63.f,5.f };
+    tooltip_display4.uniform.transform.translation = { 37.f,60.f,0.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     tooltip_display4.uniform.transform.rotation = rotationX;
 
