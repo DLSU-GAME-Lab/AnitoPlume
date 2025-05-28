@@ -1210,10 +1210,10 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     gui.show_frame_camera = false; std::cout << "replay becomes false 0" << std::endl;
 
     // camera setup
-    scene.camera.apply_rotation(0,0,1.5,.78f);
-    scene.camera.apply_scaling(100.0);
-    scene.camera.apply_translation_in_screen_plane(0, -0.5);
-    scene.camera.apply_translation_in_world_axis(.75,.75,0.f);
+    scene.camera.set_scale(scene.camera_control.orbit_distance);
+    scene.camera.reset_translation();
+    scene.camera.apply_rotation_absolute(0.0f, 1.0f);
+    scene.camera.last_translation = { 0.0f, 50.0f, -10.0f };
 
 
     // Meshes setup

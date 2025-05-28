@@ -30,7 +30,7 @@ public:
     
     float orbit_distance = 3.0f;
     float orbit_min = 1.0f;
-    float orbit_max = 10.0f;
+    float orbit_max = 5.0f;
 
     float eye_line = 2.0f;
 

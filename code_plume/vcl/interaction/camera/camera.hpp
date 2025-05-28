@@ -51,7 +51,7 @@ struct camera_scene
     vec2 spherical_coordinates = {0,0};
 
 
-    view_mode mode = view_mode::aerial;
+    view_mode mode = view_mode::orbital;
     vec3 last_translation = {};
 
     float upper_limit = 100.f;
