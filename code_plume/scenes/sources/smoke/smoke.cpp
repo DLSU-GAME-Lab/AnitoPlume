@@ -93,6 +93,11 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     terrain_display.norm_tex_id = t_loader.current_norm_id;
     //std::cout << terrain_display.texture_id << std::endl;
     //std::cout << t_loader.current_tex_id << std::endl;
+    tooltip_display.uniform.transform.rotation = scene.camera.orientation;
+    tooltip_display2.uniform.transform.rotation = scene.camera.orientation;
+    tooltip_display3.uniform.transform.rotation = scene.camera.orientation;
+    tooltip_display4.uniform.transform.rotation = scene.camera.orientation;
+
 
 
     // Force constant time step
@@ -1191,6 +1196,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     gui_param.display_subspheres = false;
     gui_param.display_spheres_with_subspheres = false;
     gui_param.display_billboards = true;
+    gui_param.display_tooltips = true;
     //decal = t_loader.texture_id[1];
     debug_mode = true;
     float seed = time(0);
@@ -1455,7 +1461,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     {
         //draw(terrain_display, scene.camera, shaders["mesh"], true);
         drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
-        if(gui_param.display_tooltips = true)
+        if(gui_param.display_tooltips == true)
         {
             draw(tooltip_display, scene.camera, shaders["mesh"], false);
             draw(tooltip_display2, scene.camera, shaders["mesh"], false);
@@ -1833,7 +1839,7 @@ void scene_model::set_gui()
 
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
+        ImGui::BeginChild("Display", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 5));
         ImGui::Indent(indent_width);
 
         ImGui::Checkbox("Display billboards", &gui_param.display_billboards);
