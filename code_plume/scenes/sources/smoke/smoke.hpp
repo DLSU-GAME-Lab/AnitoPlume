@@ -38,6 +38,7 @@ struct gui_parameters
     bool display_subspheres;
     bool display_spheres_with_subspheres;
     bool display_billboards;
+    bool display_tooltips;
 };
 
 enum class engine_state {stopped, playing, paused};
