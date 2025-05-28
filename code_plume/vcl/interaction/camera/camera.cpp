@@ -139,9 +139,7 @@ void camera_scene::apply_rotation(float x0, float y0, float x1, float y1)
 
         spherical_coordinates.x -= dtheta;
         const float new_phi = spherical_coordinates.y + dphi;
-        if (new_phi > lower_phi_limit &&
-            (mode != view_mode::orbital && new_phi < upper_phi_limit ||
-             mode == view_mode::orbital && new_phi < orbit_phi_limit))
+        if (check_cam_rotate_limits(new_phi))
             spherical_coordinates.y = new_phi;
 
         const float theta = spherical_coordinates.x;
@@ -176,9 +174,7 @@ void camera_scene::apply_rotation(float x0, float y0, float x1, float y1)
 void camera_scene::apply_rotation_absolute(float theta, float phi)
 {
     spherical_coordinates.x = theta;
-    if (phi > lower_phi_limit &&
-        (mode != view_mode::orbital && phi < upper_phi_limit ||
-         mode == view_mode::orbital && phi < orbit_phi_limit))
+    if (check_cam_rotate_limits(phi))
         spherical_coordinates.y = phi;
 
     const mat3 Rx = { 1,      0        ,     0           ,
@@ -230,6 +226,14 @@ void camera_scene::snap_to_height(float height)
             (mode == view_mode::aerial && translation.z > height))
             translation.z = height;
     }
+}
+
+bool camera_scene::check_cam_rotate_limits(float phi) const
+{
+    return (mode != view_mode::orbital && phi > upper_phi_limit ||
+        mode == view_mode::orbital && phi > upper_orbit_phi_limit) &&
+        (mode != view_mode::orbital && phi < lower_phi_limit ||
+            mode == view_mode::orbital && phi < lower_orbit_phi_limit);
 }
 
 vec3 camera_scene::camera_position() const

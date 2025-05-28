@@ -41,14 +41,19 @@ GLuint create_texture_cube_map_gpu(std::vector<image_raw> const& im)
         glTexImage2D(
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
             0,
-            GL_RGB,
+            GL_RGBA,
             im[i].width,
             im[i].height,
             0,
-            GL_RGB,
+            GL_RGBA,
             GL_UNSIGNED_BYTE,
             &(im[i].data[0])
         );
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR)
+        {
+            std::cerr << "Error handling cubemap texture!" << "\n";
+        }
     }
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

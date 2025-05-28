@@ -57,9 +57,10 @@ struct camera_scene
     float upper_limit = 100.f;
     float lower_limit = 0.0f;
     float perimiter_limit = 100.f;
-    float lower_phi_limit = 0.0f;
-    float upper_phi_limit = 3.0f;
-    float orbit_phi_limit = 1.5f;
+    float upper_phi_limit = 0.3f;
+    float lower_phi_limit = 3.0f;
+    float upper_orbit_phi_limit = 0.3f;
+    float lower_orbit_phi_limit = 1.5f;
 
     // Apply transformation to camera
     void apply_translation_in_world_axis(float tr_x, float tr_y, float tr_z);
@@ -75,6 +76,7 @@ struct camera_scene
     void reset_translation();
     void apply_last_translation();
     void snap_to_height(float height);
+    bool check_cam_rotate_limits(float phi) const;
 };
 
 

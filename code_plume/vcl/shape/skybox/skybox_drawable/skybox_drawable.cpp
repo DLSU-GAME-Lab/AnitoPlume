@@ -29,6 +29,8 @@ namespace vcl
 
     void draw(const skybox_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id)
     {
+        GLenum error = 0;
+
         // If shader is, skip display
         if (shader == 0)
             return;
@@ -46,6 +48,7 @@ namespace vcl
         // Switch shader program only if necessary
         GLint current_shader = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
+
         if (shader != GLuint(current_shader))
             glUseProgram(shader); opengl_debug();
 
