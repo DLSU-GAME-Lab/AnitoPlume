@@ -98,7 +98,7 @@ void camera_scene::apply_translation_in_world_axis(float tr_x, float tr_y, float
     //const float alpha = scale/scale0;
 
     vec3 new_translation = translation + (/*(alpha + 0.5f) * */10.0f * vec3 { tr_x, tr_y, tr_z });
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 
 void camera_scene::apply_translation_in_screen_plane(float tr_x, float tr_y)
@@ -106,13 +106,13 @@ void camera_scene::apply_translation_in_screen_plane(float tr_x, float tr_y)
     //const float alpha = scale/scale0;
     
     vec3 new_translation = translation + (/*(alpha + 0.5f) * */10.0f * orientation * vec3 { tr_x, tr_y, 0.0f });
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 void camera_scene::apply_translation_orthogonal_to_screen_plane(float tr)
 {
     //const float alpha = scale/scale0;
     vec3 new_translation = translation + (/*(alpha+0.5f) * */10.0f * orientation * vec3{0.0f, 0.0f, tr});
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 
 static vec3 trackball_projection(float x, float y, float radius=1.0f)
@@ -205,6 +205,14 @@ void camera_scene::limit_translation(vec3 new_t)
     if (-new_t.x <= perimiter_limit && -new_t.x >= -perimiter_limit) translation.x = new_t.x;
     if (-new_t.y <= perimiter_limit && -new_t.y >= -perimiter_limit) translation.y = new_t.y;
     if (-new_t.z <= upper_limit && -new_t.z >= lower_limit) translation.z = new_t.z;
+}
+
+void camera_scene::sphere_limit_translation(vec3 new_t)
+{
+    float sqr_mag = (new_t.x * new_t.x) + (new_t.y * new_t.y) + (new_t.z * new_t.z);
+    if (sqr_mag <= radial_limit * radial_limit && -new_t.z >= lower_limit)
+        translation = new_t;
+    else translation = (new_t / sqrtf(sqr_mag)) * radial_limit;
 }
 
 void camera_scene::reset_translation()
