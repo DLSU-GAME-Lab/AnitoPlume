@@ -210,9 +210,12 @@ void camera_scene::limit_translation(vec3 new_t)
 void camera_scene::sphere_limit_translation(vec3 new_t)
 {
     float sqr_mag = (new_t.x * new_t.x) + (new_t.y * new_t.y) + (new_t.z * new_t.z);
-    if (sqr_mag <= radial_limit * radial_limit && -new_t.z >= lower_limit)
-        translation = new_t;
-    else translation = (new_t / sqrtf(sqr_mag)) * radial_limit;
+
+    if (sqr_mag > radial_limit * radial_limit)
+         new_t = (new_t / sqrtf(sqr_mag)) * radial_limit;
+
+    if (new_t.z > lower_limit) new_t.z = lower_limit;
+    translation = new_t;
 }
 
 void camera_scene::reset_translation()
