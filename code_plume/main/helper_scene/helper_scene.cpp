@@ -79,14 +79,15 @@ void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std:
 
     scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 2000.0f);
 
+    scene.clear_color = { 0.7f, 0.9f, 1.0f, 1.0f };
     const image_raw white{1,1,image_color_type::rgba,{255,255,255,255}};
     scene.texture_white = create_texture_gpu(white);
 
 }
 
-void clear_screen()
+void clear_screen(scene_structure& scene)
 {
-    glClearColor(0.7f, 0.9f, 1.0f, 1.0f);
+    glClearColor(scene.clear_color[0], scene.clear_color[1], scene.clear_color[2], scene.clear_color[3]);
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -139,6 +140,11 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
         if (ImGui::BeginMenu("Edit"))
         {
 
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::ColorPicker4("Clear Color", &scene.clear_color[0]);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))
