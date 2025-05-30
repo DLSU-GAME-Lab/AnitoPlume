@@ -57,11 +57,12 @@ struct camera_scene
     float upper_limit = 100.f;
     float lower_limit = 0.0f;
     float perimiter_limit = 100.f;
-    float radial_limit = 100.f;
+    float radial_limit = 200.f;
 
-    float upper_phi_limit = 0.3f;
+    // No clip tool tips 0.3f
+    float upper_phi_limit = 0.0f;
     float lower_phi_limit = 3.0f;
-    float upper_orbit_phi_limit = 0.3f;
+    float upper_orbit_phi_limit = 0.0f;
     float lower_orbit_phi_limit = 1.5f;
 
     // Apply transformation to camera

@@ -13,6 +13,7 @@ private:
 	std::vector<float> arc_start;
 	std::vector<float> arc_end;
 	std::vector<std::string> location_names;
+	bool enabled = true;
 
 	const double pi = 3.14159;
 	float cone_radius = 15.0f;
@@ -26,5 +27,5 @@ private:
 public:
 	void set_wind_direction(vcl::vec3 wind_vector);
 	void load_data(std::string filePath);
-    void show_gui();
+    void show_gui(bool* show);
 };

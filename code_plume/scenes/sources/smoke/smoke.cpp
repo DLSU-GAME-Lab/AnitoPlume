@@ -83,11 +83,11 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     setup_terrain_preemptive();
 
     dt = timer.update();
-    set_gui();
-    set_gui_playback();
-    set_gui_profiler();
-    t_loader.show_gui();
-    direction_tracker.show_gui();
+    set_gui(gui);
+    set_gui_playback(gui);
+    set_gui_profiler(gui);
+    t_loader.show_gui(&gui.enabled["Terrain"]);
+    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
 
     terrain_display.texture_id = t_loader.current_tex_id;
     terrain_display.norm_tex_id = t_loader.current_norm_id;
@@ -1208,6 +1208,11 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     }
 
     gui.show_frame_camera = false; std::cout << "replay becomes false 0" << std::endl;
+    gui.enabled["Simulator Input"] = true;
+    gui.enabled["Direction Tracker"] = true;
+    gui.enabled["Playback"] = true;
+    gui.enabled["Profiler"] = true;
+    gui.enabled["Terrain"] = true;
 
     // camera setup
     scene.camera.set_scale(scene.camera_control.orbit_distance);
@@ -1820,9 +1825,9 @@ void scene_model::setup_terrain_preemptive()
 }
 
 
-void scene_model::set_gui()
+void scene_model::set_gui(gui_structure& gui)
 {
-    ImGui::Begin("Simulator Input", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
     float indent_width = 5;
@@ -2064,9 +2069,9 @@ void scene_model::set_gui()
     ImGui::End();
 }
 
-void scene_model::set_gui_playback()
+void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", NULL, ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
@@ -2126,9 +2131,9 @@ void scene_model::set_gui_playback()
     ImGui::End();
 }
 
-void scene_model::set_gui_profiler()
+void scene_model::set_gui_profiler(gui_structure& gui)
 {
-    ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Profiler", &gui.enabled["Profiler"], ImGuiWindowFlags_AlwaysAutoResize);
 
     std::string smoke_layers_count = "Smoke Layers: " + std::to_string(smoke_layers.size());
     std::string free_sphere_count = "Free Spheres: " + std::to_string(free_spheres.size());

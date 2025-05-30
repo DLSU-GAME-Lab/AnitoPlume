@@ -83,6 +83,7 @@ void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std:
     const image_raw white{1,1,image_color_type::rgba,{255,255,255,255}};
     scene.texture_white = create_texture_gpu(white);
 
+    gui.enabled["Camera Settings"] = true;
 }
 
 void clear_screen(scene_structure& scene)
@@ -149,6 +150,11 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
         }
         if (ImGui::BeginMenu("Window"))
         {
+            for (auto it = gui.enabled.begin(); it != gui.enabled.end(); it++)
+            {
+                if (ImGui::MenuItem(it->first.c_str()))
+                    gui.enabled[it->first] = !gui.enabled[it->first];
+            }
 
             ImGui::EndMenu();
         }
@@ -166,10 +172,9 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
     }
 }
 
-void gui_camera_settings(scene_structure& scene)
+void gui_camera_settings(gui_structure& gui, scene_structure& scene)
 {
-
-    ImGui::Begin("Camera Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Camera Settings", &gui.enabled["Camera Settings"], ImGuiWindowFlags_AlwaysAutoResize);
     
     ImGui::SliderScalar(
         "Speed",

@@ -18,6 +18,7 @@ struct gui_structure
 {
     GLFWwindow* window;
     std::string window_title;
+    std::map<std::string, bool> enabled;
 
     bool show_frame_camera     = true;
     bool show_frame_worldspace = false;
@@ -34,4 +35,4 @@ void update_fps_title(GLFWwindow* window, const std::string& title, vcl::glfw_fp
 void gui_start_basic_structure(gui_structure& gui, scene_structure& scene);
 
 void gui_main_menu_bar(gui_structure& gui, scene_structure& scene);
-void gui_camera_settings(scene_structure& scene);
+void gui_camera_settings(gui_structure& gui, scene_structure& scene);

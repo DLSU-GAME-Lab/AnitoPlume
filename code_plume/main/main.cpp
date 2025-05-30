@@ -96,7 +96,7 @@ int main()
 
         gui_main_menu_bar(gui, scene);
         gui_start_basic_structure(gui, scene);
-        gui_camera_settings(scene);
+        gui_camera_settings(gui, scene);
 
         // Perform computation and draw calls for each iteration loop
         scene_current.frame_draw(shaders, scene, gui);
