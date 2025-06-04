@@ -54,10 +54,10 @@ struct camera_scene
     view_mode mode = view_mode::orbital;
     vec3 last_translation = {};
 
-    float upper_limit = 100.f;
-    float lower_limit = 0.0f;
-    float perimiter_limit = 100.f;
     float radial_limit = 200.f;
+    float lower_limit = 0.0f;
+    float upper_limit = 100.f;
+    float perimiter_limit = 100.f;
 
     // No clip tool tips 0.3f
     float upper_phi_limit = 0.0f;
