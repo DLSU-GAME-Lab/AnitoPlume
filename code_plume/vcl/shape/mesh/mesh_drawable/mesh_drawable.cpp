@@ -185,21 +185,13 @@ void draw_sky(const mesh_drawable& drawable, const camera_scene& camera, GLuint 
         glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
     }
 
+    uniform(shader, "rotation", drawable.uniform.transform.rotation);         opengl_debug();
+    uniform(shader, "translation", drawable.uniform.transform.translation);   opengl_debug();
+    uniform(shader, "scaling", drawable.uniform.transform.scaling);           opengl_debug();
+    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis); opengl_debug();
 
-
-    // Send all uniform values to the shader
-    uniform(shader, "translation", drawable.uniform.transform.translation);      opengl_debug();
-    uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
-    uniform(shader, "color_alpha", drawable.uniform.color_alpha);                opengl_debug();
-    uniform(shader, "scaling", drawable.uniform.transform.scaling);              opengl_debug();
-    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);    opengl_debug();
-
-    uniform(shader, "perspective", camera.perspective.matrix());         opengl_debug();
-    uniform(shader, "view", camera.view_matrix());                       opengl_debug();
-    uniform(shader, "camera_position", camera.camera_position());        opengl_debug();
-
-    uniform(shader, "ambiant", drawable.uniform.shading.ambiant);      opengl_debug();
-    uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
+    uniform(shader, "perspective", camera.perspective.matrix());              opengl_debug();
+    uniform(shader, "view", camera.view_matrix());                            opengl_debug();
 
     vcl::draw(drawable.data); opengl_debug();
 }

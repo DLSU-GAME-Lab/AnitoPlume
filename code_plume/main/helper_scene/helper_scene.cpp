@@ -78,7 +78,7 @@ void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std:
     glfwGetWindowSize(gui.window, &width, &height);
     const float aspect_ratio = width/static_cast<float>(height);
 
-    scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 2000.0f);
+    scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 3000.0f);
 
     scene.clear_color = { 0.7f, 0.9f, 1.0f, 1.0f };
     const image_raw white{1,1,image_color_type::rgba,{255,255,255,255}};
