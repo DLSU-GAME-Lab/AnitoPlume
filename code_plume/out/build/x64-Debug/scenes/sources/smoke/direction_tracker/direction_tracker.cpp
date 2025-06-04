@@ -74,9 +74,10 @@ void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
     this->wind_angle = vector_to_angle(wind_vector);
 }
 
-void direction_tracker::show_gui()
+void direction_tracker::show_gui(bool* show)
 {
-    ImGui::Begin("Direction Tracker", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Direction Tracker", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
+    *show = enabled;
 
     const float image_size = 256.0f;
     const float half_size = image_size / 2.0f;

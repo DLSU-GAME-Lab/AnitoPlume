@@ -63,6 +63,15 @@ std::vector<uint3> connectivity_grid(size_t Nu, size_t Nv, bool periodic_u, bool
 }
 
 
+mesh mesh_primitive_cube(float width, float height, const vec3& p0)
+{
+    mesh shape;
+
+    // Make cube
+
+    return shape;
+}
+
 mesh mesh_primitive_sphere(float radius, const vec3& p0, size_t Nu, size_t Nv)
 {
     assert(Nu>=4);

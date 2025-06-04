@@ -1269,21 +1269,27 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
-    //skybox setup
-    std::vector<image_raw> skybox_tex_raw;
-    for (int i = 0; i < 6; i++)
-    {
-        std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
-        path += std::to_string(i) + ".png";
-        skybox_tex_raw.push_back(image_load_png(path));
-    }
-    skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
-    skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+    //sky mesh setup
+    sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
+    sphere.shader = shaders["sky_mesh"];
+    sphere.uniform.color = { 1,1,1 };
+    sphere.texture_id = scene.texture_white;
 
-    auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
-    sphere_circle = curve_drawable(circle);
-    sphere_circle.shader = shaders["curve"];
-    sphere_circle.uniform.color = {1,0,0};
+    ////skybox setup
+    //std::vector<image_raw> skybox_tex_raw;
+    //for (int i = 0; i < 6; i++)
+    //{
+    //    std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
+    //    path += std::to_string(i) + ".png";
+    //    skybox_tex_raw.push_back(image_load_png(path));
+    //}
+    //skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
+    //skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+
+    //auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
+    //sphere_circle = curve_drawable(circle);
+    //sphere_circle.shader = shaders["curve"];
+    //sphere_circle.uniform.color = {1,0,0};
 
     //sampling subpheres
     {
@@ -1460,19 +1466,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, scene.camera, shaders["mesh"], true);
-        drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
-        if(gui_param.display_tooltips == true)
-        {
-            draw(tooltip_display, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display2, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display3, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display4, scene.camera, shaders["mesh"], false);
-        }
+        draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 
@@ -1630,6 +1630,16 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     }
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+
+    if (gui_param.display_tooltips == true)
+    {
+        glDepthMask(false);
+        draw(tooltip_display, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display2, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display3, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display4, scene.camera, shaders["mesh"], false);
+        glDepthMask(true);
+    }
 
 }
 

@@ -16,6 +16,7 @@ std::vector<uint3> connectivity_grid(size_t Nu, size_t Nv, bool periodic_u, bool
 /** Quadrangle defined by four points */
 mesh mesh_primitive_quad(const vec3& p00={-0.5f,-0.5f,0.0f}, const vec3& p10={0.5f,-0.5f,0.0f}, const vec3& p11={0.5f,0.5f,0.0f}, const vec3& p01={-0.5f,0.5f,0.0});
 
+mesh mesh_primitive_cube(float width=1.0f, float height=1.0f, const vec3& p0={0,0,0});
 mesh mesh_primitive_sphere(float radius=1.0f, const vec3& p0={0,0,0}, size_t Nu=20, size_t Nv=40);
 mesh mesh_primitive_cylinder(float radius=0.2f, const vec3& p1={0,0,0}, const vec3& p2={0,0,1}, size_t Nu=10, size_t Nv=10, bool is_border_duplicated=false);
 mesh mesh_primitive_cone(float radius=0.2f, const vec3& p_base={0,0,0}, const vec3& p_extremity={0,0,1}, size_t Nu=20, size_t Nv=10);

@@ -22,9 +22,10 @@ void terrain_loader::load_all_textures()
     current_norm_id = normal_id[0];
 }
 
-void terrain_loader::show_gui()
+void terrain_loader::show_gui(bool* show)
 {
-    ImGui::Begin("Terrain", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Terrain", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
+    *show = enabled;
 
     static const char* labels[]{ "2023", "2021", "2019", "2016", "2015" };
     if (ImGui::Combo("Year", &current_tex, labels, IM_ARRAYSIZE(labels)))

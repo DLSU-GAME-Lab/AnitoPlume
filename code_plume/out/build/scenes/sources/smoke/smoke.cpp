@@ -83,11 +83,11 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     setup_terrain_preemptive();
 
     dt = timer.update();
-    set_gui();
-    set_gui_playback();
-    set_gui_profiler();
-    t_loader.show_gui();
-    direction_tracker.show_gui();
+    set_gui(gui);
+    set_gui_playback(gui);
+    set_gui_profiler(gui);
+    t_loader.show_gui(&gui.enabled["Terrain"]);
+    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
 
     terrain_display.texture_id = t_loader.current_tex_id;
     terrain_display.norm_tex_id = t_loader.current_norm_id;
@@ -1208,6 +1208,11 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     }
 
     gui.show_frame_camera = false; std::cout << "replay becomes false 0" << std::endl;
+    gui.enabled["Simulator Input"] = true;
+    gui.enabled["Direction Tracker"] = true;
+    gui.enabled["Playback"] = true;
+    gui.enabled["Profiler"] = true;
+    gui.enabled["Terrain"] = true;
 
     // camera setup
     scene.camera.set_scale(scene.camera_control.orbit_distance);
@@ -1264,21 +1269,27 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
-    //skybox setup
-    std::vector<image_raw> skybox_tex_raw;
-    for (int i = 0; i < 6; i++)
-    {
-        std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
-        path += std::to_string(i) + ".png";
-        skybox_tex_raw.push_back(image_load_png(path));
-    }
-    skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
-    skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+    //sky mesh setup
+    sphere = mesh_drawable(mesh_primitive_sphere(200.0f));
+    sphere.shader = shaders["sky_mesh"];
+    sphere.uniform.color = { 1,1,1 };
+    sphere.texture_id = scene.texture_white;
 
-    auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
-    sphere_circle = curve_drawable(circle);
-    sphere_circle.shader = shaders["curve"];
-    sphere_circle.uniform.color = {1,0,0};
+    ////skybox setup
+    //std::vector<image_raw> skybox_tex_raw;
+    //for (int i = 0; i < 6; i++)
+    //{
+    //    std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
+    //    path += std::to_string(i) + ".png";
+    //    skybox_tex_raw.push_back(image_load_png(path));
+    //}
+    //skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
+    //skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+
+    //auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
+    //sphere_circle = curve_drawable(circle);
+    //sphere_circle.shader = shaders["curve"];
+    //sphere_circle.uniform.color = {1,0,0};
 
     //sampling subpheres
     {
@@ -1366,7 +1377,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.specular = 0.0f;
     }
     
-    t_loader.load_terrain("TaalTex3.obj", "Taal_Texture_2023.png");
+    t_loader.load_terrain("Taal-Spherical-1_0.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
@@ -1455,12 +1466,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
-        //draw(terrain_display, scene.camera, shaders["mesh"], true);
-        drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        draw(terrain_display, scene.camera, shaders["mesh"], true);
+        //draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
         if(gui_param.display_tooltips == true)
         {
             draw(tooltip_display, scene.camera, shaders["mesh"], false);
@@ -1820,9 +1832,9 @@ void scene_model::setup_terrain_preemptive()
 }
 
 
-void scene_model::set_gui()
+void scene_model::set_gui(gui_structure& gui)
 {
-    ImGui::Begin("Simulator Input", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
     float indent_width = 5;
@@ -2064,9 +2076,9 @@ void scene_model::set_gui()
     ImGui::End();
 }
 
-void scene_model::set_gui_playback()
+void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", NULL, ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
@@ -2126,9 +2138,9 @@ void scene_model::set_gui_playback()
     ImGui::End();
 }
 
-void scene_model::set_gui_profiler()
+void scene_model::set_gui_profiler(gui_structure& gui)
 {
-    ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Profiler", &gui.enabled["Profiler"], ImGuiWindowFlags_AlwaysAutoResize);
 
     std::string smoke_layers_count = "Smoke Layers: " + std::to_string(smoke_layers.size());
     std::string free_sphere_count = "Free Spheres: " + std::to_string(free_spheres.size());

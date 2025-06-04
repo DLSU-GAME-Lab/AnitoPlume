@@ -14,6 +14,7 @@ struct terrain_loader
 	GLuint texture_id[5];
 	GLuint normal_id[5];
 	bool new_terrain_loaded = false;
+	bool enabled = true;
 
 	const int size = 32;
 	std::string current_terrain = "taal_paid.obj";
@@ -26,7 +27,7 @@ struct terrain_loader
 
 	void load_all_textures();
 
-	void show_gui();
+	void show_gui(bool* show);
 	void load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
 	void load_terrain_async(std::string terrain_filename, std::string texture_filename);
 };

@@ -56,6 +56,7 @@ struct scene_model : scene_base
     engine_state state;
     std::vector<int> deg_angle;
     bool all_angles;
+    int gui_index;
 
     // Trackers
     float new_layer_delay;
@@ -77,6 +78,7 @@ struct scene_model : scene_base
     vcl::mesh_drawable tooltip_display3;
     vcl::mesh_drawable tooltip_display4;
     vcl::mesh_drawable sphere;
+    vcl::mesh_drawable sky_sphere;
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
     vcl::skybox_drawable skybox;
@@ -202,9 +204,9 @@ struct scene_model : scene_base
                            vcl::mesh_drawable terrain);
 
     // Init
-    void set_gui();
-    void set_gui_playback();
-    void set_gui_profiler();
+    void set_gui(gui_structure& gui);
+    void set_gui_playback(gui_structure& gui);
+    void set_gui_profiler(gui_structure& gui);
 
     gui_parameters gui_param;
 };
