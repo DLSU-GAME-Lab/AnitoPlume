@@ -1270,10 +1270,20 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     quad.uniform.shading.specular = 0.0;
 
     //sky mesh setup
-    sphere = mesh_drawable(mesh_primitive_sphere(200.0f));
+    sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
     sphere.shader = shaders["sky_mesh"];
     sphere.uniform.color = { 1,1,1 };
     sphere.texture_id = scene.texture_white;
+
+    mesh sky = mesh_load_file_obj("../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
+    skysphere = mesh_drawable(sky);
+    skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skydome_Tex.png"));
+    skysphere.shader = shaders["mesh"];
+    skysphere.uniform.color = { 0.36f, 0.32f, 0.24f };
+    skysphere.uniform.shading.specular = 0.0f;
+    skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
+    skysphere.uniform.transform.scaling = 0.25f;
+    skysphere.uniform.transform.translation = { 37.,68.,-25.f };
 
     ////skybox setup
     //std::vector<image_raw> skybox_tex_raw;
@@ -1466,20 +1476,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
-    draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
+    draw(skysphere, scene.camera, shaders["mesh"], skybox_tex);
+    //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
-        draw(terrain_display, scene.camera, shaders["mesh"], true);
-        //draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
-        if(gui_param.display_tooltips == true)
-        {
-            draw(tooltip_display, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display2, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display3, scene.camera, shaders["mesh"], false);
-            draw(tooltip_display4, scene.camera, shaders["mesh"], false);
-        }
+        //draw(terrain_display, scene.camera, shaders["mesh"], true);
+        draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 
@@ -1637,6 +1640,16 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     }
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+
+    if (gui_param.display_tooltips == true)
+    {
+        glDepthMask(false);
+        draw(tooltip_display, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display2, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display3, scene.camera, shaders["mesh"], false);
+        draw(tooltip_display4, scene.camera, shaders["mesh"], false);
+        glDepthMask(true);
+    }
 
 }
 

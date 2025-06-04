@@ -1275,6 +1275,15 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     sphere.uniform.color = { 1,1,1 };
     sphere.texture_id = scene.texture_white;
 
+    mesh sky = mesh_load_file_obj("../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
+    skysphere = mesh_drawable(sky);
+    skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
+    skysphere.uniform.color = { 0.36f, 0.32f, 0.24f };
+    skysphere.uniform.shading.specular = 100.0f;
+    skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
+    skysphere.uniform.transform.scaling = 0.25f;
+    skysphere.uniform.transform.translation = { 37.,68.,-25.f };
+
     ////skybox setup
     //std::vector<image_raw> skybox_tex_raw;
     //for (int i = 0; i < 6; i++)
@@ -1466,8 +1475,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
-    draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
+    draw_mix(skysphere, scene.camera, shaders["mesh_mix"], skysphere.texture_id, skysphere.norm_tex_id,decal,decal_progress);
+    //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
