@@ -28,7 +28,7 @@ void main()
     if (fog_density > 0)
     {
         float fog_distance = length(vec3(fragment.position) - camera_position);
-        float fog_factor = exp(-fog_density * fog_distance);
+        fog_factor = exp(-fog_density * fog_distance);
         fog_factor = clamp(fog_factor, 0.0, 1.0);
     
         if (fragment.position.z >= fog_fade_height && fragment.position.z <= fog_max_height)

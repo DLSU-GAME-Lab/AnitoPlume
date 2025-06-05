@@ -10,7 +10,7 @@ in struct fragment_data
 } fragment;
 
 uniform sampler2D texture_sampler;
-uniform sampler2D texture_blend;
+//uniform sampler2D texture_blend;
 uniform sampler2D normal_tex;
 
 out vec4 FragColor;
