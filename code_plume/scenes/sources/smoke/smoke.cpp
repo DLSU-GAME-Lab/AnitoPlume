@@ -1216,7 +1216,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // camera setup
     scene.camera.set_scale(scene.camera_control.orbit_distance);
-    scene.camera.reset_translation();
+    scene.camera.translation = { 0.0f, 0.0f, -10.0f };
     scene.camera.apply_rotation_absolute(0.0f, 1.0f);
     scene.camera.last_translation = { 0.0f, 50.0f, -10.0f };
 

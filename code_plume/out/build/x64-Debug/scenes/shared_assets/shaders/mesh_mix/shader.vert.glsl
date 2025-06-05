@@ -46,7 +46,13 @@ void main()
     vec3 b = normalize(vec3(model * vec4(bitangent, 0.0)));
     vec3 n = normalize(vec3(model * normal));
     mat3 TBN = transpose(mat3(t, b, n));
-
+//
+//    float depth = 1;
+//    vec3 cam_to_frag;
+//    vec3 cam_direction;
+//    vec3 euclidean = depth / (cam_to_frag * cam_direction);
+//    float F = euclidean / (cam_to_frag.y - cam_direction.y)
+//
     fragment.TBN = TBN;
     fragment.color = color;
     fragment.texture_uv = texture_uv;

@@ -65,6 +65,12 @@ struct camera_scene
     float upper_orbit_phi_limit = 0.0f;
     float lower_orbit_phi_limit = 1.5f;
 
+    vec3 fog_color = { 0.5f, 0.6f, 1.0f };
+    float fog_start = 200.0f;
+    float fog_density = 0.001f;
+    float fog_fade_height = 50.0f;
+    float fog_max_height = 100.0f;
+
     // Apply transformation to camera
     void apply_translation_in_world_axis(float tr_x, float tr_y, float tr_z);
     void apply_translation_in_screen_plane(float tr_x, float tr_y);

@@ -71,9 +71,10 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     terrain.shader = mesh_shader;
     terrain.uniform.color = { 1,1,1 };
     terrain.uniform.shading.specular = 0.0f;
+    terrain.uniform.shading.diffuse = 1.0f;
     terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     terrain.uniform.transform.scaling = 1.f;
-    terrain.uniform.transform.translation = { 0.f,0.f,0.f };
+    terrain.uniform.transform.translation = { 0.f,0.f,-10.f };
     if (isTrans)
         terrain.uniform.color_alpha = 0.f;
     else

@@ -25,7 +25,6 @@ struct gui_structure
     bool show_file_explorer = false;
 };
 
-
 GLFWwindow* create_window(const std::string& window_title);
 void initialize_interface(gui_structure& gui);
 void load_shaders(std::map<std::string,GLuint>& shaders);

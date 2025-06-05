@@ -221,7 +221,7 @@ void gui_camera_settings(gui_structure& gui, scene_structure& scene)
         case view_mode::orbital:
         {
             scene.camera.set_scale(scene.camera_control.orbit_distance);
-            scene.camera.reset_translation();
+            scene.camera.translation = { 0.0f, 0.0f, -10.0f };
             scene.camera.apply_rotation_absolute(0.0f, 1.0f);
             break;
         }
