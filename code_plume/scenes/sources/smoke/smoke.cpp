@@ -1399,7 +1399,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display = tip_loader.tooltip;
     tooltip_display.uniform.transform.scaling = 4.f;
     tooltip_display.uniform.shading.ambiant = 1.f;
-    tooltip_display.uniform.transform.translation = { -55.f,55.f,-5.f };
+    tooltip_display.uniform.transform.translation = { -57.f,55.f,-2.f };
 
     tip_loader.load_tooltip("Tooltip-Malaki.obj", "Tooltip-Malaki.png");
     tooltip_display2 = tip_loader.tooltip;
