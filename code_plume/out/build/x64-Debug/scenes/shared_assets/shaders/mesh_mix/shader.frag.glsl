@@ -11,7 +11,7 @@ in struct fragment_data
 
 uniform sampler2D texture_sampler;
 //uniform sampler2D texture_blend;
-uniform sampler2D normal_tex;
+//uniform sampler2D normal_tex;
 
 out vec4 FragColor;
 
@@ -34,7 +34,7 @@ vec3 light = vec3(0, 0, -100);
 
 void main()
 {
-//    vec3 n = normalize(fragment.normal.xyz);
+    vec3 n = normalize(fragment.normal.xyz * 2.0 - 1.0);
 //    vec3 u = normalize(light-fragment.position.xyz);
 //    vec3 r = reflect(u,n);
 //    vec3 t = normalize(fragment.position.xyz-camera_position);
@@ -42,7 +42,7 @@ void main()
 //    float diffuse_value  = diffuse * clamp( dot(u,n), 0.0, 1.0);
 //    float specular_value = specular * pow( clamp( dot(r,t), 0.0, 1.0), specular_exponent);
 
-    vec3 n = normalize(texture(normal_tex, fragment.texture_uv).rgb * 2.0 - 1.0);
+//    vec3 n = normalize(texture(normal_tex, fragment.texture_uv).rgb * 2.0 - 1.0);
     vec3 u = fragment.TBN*normalize(light-fragment.position.xyz);
     vec3 r = reflect(u,n);
     vec3 t = fragment.TBN*normalize(camera_position-fragment.position.xyz);

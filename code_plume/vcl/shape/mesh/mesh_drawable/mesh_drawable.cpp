@@ -233,23 +233,23 @@ void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint 
         glUseProgram(shader); opengl_debug();
 
     // Bind texture only if id != 0
-    if (norm_tex_id != 0)
-    {
-        assert(glIsTexture(norm_tex_id));
-        //glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
-    }
+    //if (norm_tex_id != 0)
+    //{
+    //    assert(glIsTexture(norm_tex_id));
+    //    //glActiveTexture(GL_TEXTURE1);
+    //    glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
+    //}
     if (texture_id != 0) {
         assert(glIsTexture(texture_id));
         //glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
     }
-    if (mix_tex_id != 0)
-    {
-        assert(glIsTexture(mix_tex_id));
-        //glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mix_tex_id);  opengl_debug();
-    }
+    //if (mix_tex_id != 0)
+    //{
+    //    assert(glIsTexture(mix_tex_id));
+    //    //glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, mix_tex_id);  opengl_debug();
+    //}
     uniform(shader, "rotation", drawable.uniform.transform.rotation);           opengl_debug();
     uniform(shader, "translation", drawable.uniform.transform.translation);     opengl_debug();
     uniform(shader, "color", drawable.uniform.color);                           opengl_debug();

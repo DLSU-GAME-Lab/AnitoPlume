@@ -1405,7 +1405,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display2 = tip_loader.tooltip;
     tooltip_display2.uniform.transform.scaling = 4.f;
     tooltip_display2.uniform.shading.ambiant = 1.f;
-    tooltip_display2.uniform.transform.translation = { -53.f,57.f,5.f };
+    tooltip_display2.uniform.transform.translation = { -53.f,57.f,-10.f };
     mat3 rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     mat3 rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 3.14f);
     tooltip_display2.uniform.transform.rotation = rotationX * rotationY;
@@ -1414,7 +1414,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display3 = tip_loader.tooltip;
     tooltip_display3.uniform.transform.scaling = 4.f;
     tooltip_display3.uniform.shading.ambiant = 1.f;
-    tooltip_display3.uniform.transform.translation = { -42.f,-60.f,0.f };
+    tooltip_display3.uniform.transform.translation = { -42.f,-60.f,-10.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
     tooltip_display3.uniform.transform.rotation = rotationX * rotationY;
@@ -1423,7 +1423,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_display4 = tip_loader.tooltip;
     tooltip_display4.uniform.transform.scaling = 4.f;
     tooltip_display4.uniform.shading.ambiant = 1.f;
-    tooltip_display4.uniform.transform.translation = { 37.f,60.f,0.f };
+    tooltip_display4.uniform.transform.translation = { 37.f,60.f,-10.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     tooltip_display4.uniform.transform.rotation = rotationX;
 
@@ -1837,6 +1837,7 @@ void scene_model::setup_terrain_preemptive()
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
         terrain_display.uniform.color = { 1,1,1 };
+        terrain_display.uniform.shading.ambiant = 0.75f;
         //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
 
 
