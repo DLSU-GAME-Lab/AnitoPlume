@@ -93,10 +93,11 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     terrain_display.norm_tex_id = t_loader.current_norm_id;
     //std::cout << terrain_display.texture_id << std::endl;
     //std::cout << t_loader.current_tex_id << std::endl;
-    tooltip_display.uniform.transform.rotation = scene.camera.orientation;
-    tooltip_display2.uniform.transform.rotation = scene.camera.orientation;
-    tooltip_display3.uniform.transform.rotation = scene.camera.orientation;
-    tooltip_display4.uniform.transform.rotation = scene.camera.orientation;
+    for (int i = 0; i < 4; i++)
+    {
+        tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
+    }
+   
 
 
 
@@ -1386,7 +1387,11 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.diffuse = 0.3f;
         subspheres_display.uniform.shading.specular = 0.0f;
     }
-    
+    tooltip_names.push_back("Tooltip-Balantoc") ;
+    tooltip_names.push_back("Tooltip-Malaki") ;
+    tooltip_names.push_back("Tooltip-Munti") ;
+    tooltip_names.push_back("Tooltip-Pirapiraso") ;
+
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
@@ -1395,37 +1400,33 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
 
-    tip_loader.load_tooltip("Tooltip-Balantoc.obj", "Tooltip-Balantoc.png");
-    tooltip_display = tip_loader.tooltip;
-    tooltip_display.uniform.transform.scaling = 4.f;
-    tooltip_display.uniform.shading.ambiant = 1.f;
-    tooltip_display.uniform.transform.translation = { -55.f,55.f,9.f };
+    for (int i = 0; i < tooltip_names.size(); i++)
+    {
+        std::cout << tooltip_names[i] << std::endl;
+        tip_loader.load_tooltip(tooltip_names[i] + ".obj", tooltip_names[i] + ".png");
+        tooltip_display[i] = tip_loader.tooltip;
+        tooltip_display[i].uniform.transform.scaling = 4.f;
+        tooltip_display[i].uniform.shading.ambiant = 1.f;
+    }
 
-    tip_loader.load_tooltip("Tooltip-Malaki.obj", "Tooltip-Malaki.png");
-    tooltip_display2 = tip_loader.tooltip;
-    tooltip_display2.uniform.transform.scaling = 4.f;
-    tooltip_display2.uniform.shading.ambiant = 1.f;
-    tooltip_display2.uniform.transform.translation = { -53.f,57.f,-10.f };
+    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,9.f };
+
+    
+    tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
     mat3 rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     mat3 rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 3.14f);
-    tooltip_display2.uniform.transform.rotation = rotationX * rotationY;
+    tooltip_display[1].uniform.transform.rotation = rotationX * rotationY;
 
-    tip_loader.load_tooltip("Tooltip-Munti.obj", "Tooltip-Munti.png");
-    tooltip_display3 = tip_loader.tooltip;
-    tooltip_display3.uniform.transform.scaling = 4.f;
-    tooltip_display3.uniform.shading.ambiant = 1.f;
-    tooltip_display3.uniform.transform.translation = { -42.f,-60.f,-10.f };
+ 
+    tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
     rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
-    tooltip_display3.uniform.transform.rotation = rotationX * rotationY;
+    tooltip_display[2].uniform.transform.rotation = rotationX * rotationY;
 
-    tip_loader.load_tooltip("Tooltip-Pirapiraso.obj", "Tooltip-Pirapiraso.png");
-    tooltip_display4 = tip_loader.tooltip;
-    tooltip_display4.uniform.transform.scaling = 4.f;
-    tooltip_display4.uniform.shading.ambiant = 1.f;
-    tooltip_display4.uniform.transform.translation = { 37.f,60.f,-10.f };
+  
+    tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
     rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    tooltip_display4.uniform.transform.rotation = rotationX;
+    tooltip_display[3].uniform.transform.rotation = rotationX;
 
 
     //terrain_replace = t_loader.terrain;
@@ -1497,7 +1498,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         smoke_layer lay = smoke_layers[i];
 
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio + 5);
+        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio + 3);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
         if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
     }
@@ -1516,7 +1517,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
             float new_scaling = free_spheres[j].r/ratio;
             //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 5);
+            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 3);
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = R;
@@ -1548,7 +1549,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 5);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  +3);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1573,7 +1574,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 5);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio +3);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1615,7 +1616,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     for (unsigned int j = 0; j<falling_spheres.size(); j++)
     {
         float new_scaling = falling_spheres[j].r/ratio;
-        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio + 5};
+        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio + 3 };
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
@@ -1644,10 +1645,12 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if (gui_param.display_tooltips == true)
     {
         glDepthMask(false);
-        draw(tooltip_display, scene.camera, shaders["mesh"], false);
-        draw(tooltip_display2, scene.camera, shaders["mesh"], false);
-        draw(tooltip_display3, scene.camera, shaders["mesh"], false);
-        draw(tooltip_display4, scene.camera, shaders["mesh"], false);
+        for (int i = 0; i < 4; i++)
+        {
+            draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+        }
+       
+
         glDepthMask(true);
     }
 
@@ -1836,7 +1839,9 @@ void scene_model::setup_terrain_preemptive()
 
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
+        terrain_display.uniform.shading.ambiant = .5f;
         terrain_display.uniform.color = { 1,1,1 };
+
         //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
 
 
@@ -1892,8 +1897,8 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
         float initial_density_min = 150., initial_density_max = 250.;
         ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
-        float vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
+     /*   float vent_ray_min = 50., vent_ray_max = 200.;*/
+        //ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
         ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
 
