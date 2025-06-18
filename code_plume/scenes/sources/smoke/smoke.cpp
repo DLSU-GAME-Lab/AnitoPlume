@@ -1409,7 +1409,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         tooltip_display[i].uniform.shading.ambiant = 1.f;
     }
 
-    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,9.f };
+    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
 
     
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
@@ -1472,6 +1472,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Parameters : constants
     g = 9.81; // (m.s-2)
+    tooltip_dist = 100;
 }
 
 
@@ -1647,7 +1648,11 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         glDepthMask(false);
         for (int i = 0; i < 4; i++)
         {
-            draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + scene.camera.translation;
+            float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
+            
+            if (sqr_mag <= tooltip_dist * tooltip_dist)
+                draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
         }
        
 
