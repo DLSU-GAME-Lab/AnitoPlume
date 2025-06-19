@@ -97,6 +97,10 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     {
         tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
+    for (int i = 0; i < 4; i++)
+    {
+        landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
+    }
    
 
 
@@ -1388,11 +1392,18 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.diffuse = 0.3f;
         subspheres_display.uniform.shading.specular = 0.0f;
     }
+    // tooltip names
     tooltip_names.push_back("Tooltip-Balantoc") ;
     tooltip_names.push_back("Tooltip-Malaki") ;
     tooltip_names.push_back("Tooltip-Munti") ;
     tooltip_names.push_back("Tooltip-Piraso") ;
+    //landmark names
+    landmark_names.push_back("Landmark_Lipa");
+    landmark_names.push_back("Landmark_SantaTeresita");
+    landmark_names.push_back("Landmark_Tagaytay");
+    landmark_names.push_back("Landmark_Tanauan");
 
+    //load terrain
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
@@ -1400,43 +1411,51 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
-
+    //load tooltips
     for (int i = 0; i < tooltip_names.size(); i++)
     {
-        std::cout << tooltip_names[i] << std::endl;
         tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
         tooltip_display[i] = tip_loader.tooltip;
         tooltip_display[i].uniform.transform.scaling = 4.f;
         tooltip_display[i].uniform.shading.ambiant = 1.f;
     }
 
+    //setup tooltips
     tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
 
     
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
-    mat3 rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    mat3 rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 3.14f);
-    tooltip_display[1].uniform.transform.rotation = rotationX * rotationY;
+
 
  
     tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
-    tooltip_display[2].uniform.transform.rotation = rotationX * rotationY;
+    
 
   
     tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-    rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    tooltip_display[3].uniform.transform.rotation = rotationX;
 
 
-    //terrain_replace = t_loader.terrain;
-    //terrain_replace.uniform.transform.scaling = .25f;
-    ////terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
-    //terrain_replace.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
-    //terrain_replace.uniform.color = { 1,1,1 };
 
-  
+    //load landmark
+    for (int i = 0; i < landmark_names.size(); i++)
+    {
+        mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
+        landmark_display[i] = mark_loader.tooltip;
+        landmark_display[i].uniform.transform.scaling = 10.f;
+        landmark_display[i].uniform.shading.ambiant = 1.f;
+    }
+    // lipa
+    landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
+    // sta terisita
+    landmark_display[1].uniform.transform.translation = { -100,-200.f,5.f };
+    //tagaytay
+    landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
+    // tanauan
+    landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
+
+
+
+
 
     
     // Params setup
@@ -1665,7 +1684,10 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
         glDepthMask(true);
     }
-
+    glDepthMask(false);
+    for(int i = 0; i< 4 ;i++)
+        draw(landmark_display[i], scene.camera, shaders["mesh"], false);
+    glDepthMask(true);
 }
 
 void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame)

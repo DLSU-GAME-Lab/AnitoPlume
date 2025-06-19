@@ -5,6 +5,7 @@
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
+#include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
 #include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
 
 #include <iostream>
@@ -66,6 +67,7 @@ struct scene_model : scene_base
     float decal_progress = 1.f;
     float avg_wind_dir_degrees;
     std::vector<std::string> tooltip_names;
+    std::vector<std::string> landmark_names;
     // Meshes
     vcl::mesh mesh_terrain;
 
@@ -76,6 +78,7 @@ struct scene_model : scene_base
     vcl::mesh_drawable skysphere;
     vcl::mesh_drawable terrain_display;
     vcl::mesh_drawable tooltip_display[4];
+    vcl::mesh_drawable landmark_display[4];
     vcl::mesh_drawable sphere;
     vcl::mesh_drawable sky_sphere;
     vcl::mesh_drawable quad;
@@ -132,6 +135,7 @@ struct scene_model : scene_base
     terrain_loader t_loader;
     direction_tracker direction_tracker;
     tooltip_loader tip_loader;
+    landmark_loader mark_loader;
 
     // For replay feature
     std::vector< std::vector<smoke_layer> > smoke_layers_frames;
