@@ -76,7 +76,7 @@ void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
 
 void direction_tracker::show_gui(bool* show)
 {
-    ImGui::Begin("Direction Tracker", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Plume Direction Tracker", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
     *show = enabled;
 
     const float image_size = 256.0f;

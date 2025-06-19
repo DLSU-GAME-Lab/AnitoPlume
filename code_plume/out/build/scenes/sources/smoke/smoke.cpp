@@ -1190,6 +1190,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     t_loader.mesh_shader = shaders["mesh"];
     t_loader.load_all_textures();
+    tip_loader.load_all_textures();
 
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     gui_param.display_smoke_layers = false;
@@ -1390,7 +1391,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_names.push_back("Tooltip-Balantoc") ;
     tooltip_names.push_back("Tooltip-Malaki") ;
     tooltip_names.push_back("Tooltip-Munti") ;
-    tooltip_names.push_back("Tooltip-Pirapiraso") ;
+    tooltip_names.push_back("Tooltip-Piraso") ;
 
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
 
@@ -1403,13 +1404,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     for (int i = 0; i < tooltip_names.size(); i++)
     {
         std::cout << tooltip_names[i] << std::endl;
-        tip_loader.load_tooltip(tooltip_names[i] + ".obj", tooltip_names[i] + ".png");
+        tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
         tooltip_display[i] = tip_loader.tooltip;
         tooltip_display[i].uniform.transform.scaling = 4.f;
         tooltip_display[i].uniform.shading.ambiant = 1.f;
     }
 
-    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,9.f };
+    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
 
     
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
@@ -1472,6 +1473,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Parameters : constants
     g = 9.81; // (m.s-2)
+    tooltip_dist = 100;
 }
 
 
@@ -1498,7 +1500,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         smoke_layer lay = smoke_layers[i];
 
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio + 3);
+        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
         if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
     }
@@ -1517,7 +1519,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
             float new_scaling = free_spheres[j].r/ratio;
             //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 3);
+            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = R;
@@ -1549,7 +1551,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  +3);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1574,7 +1576,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio +3);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1616,7 +1618,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     for (unsigned int j = 0; j<falling_spheres.size(); j++)
     {
         float new_scaling = falling_spheres[j].r/ratio;
-        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio + 3 };
+        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio - 2 };
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
@@ -1642,12 +1644,21 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
 
-    if (gui_param.display_tooltips == true)
+    if (gui_param.display_tooltips == true  && scene.camera.mode != view_mode::orbital )
     {
         glDepthMask(false);
         for (int i = 0; i < 4; i++)
         {
+            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + scene.camera.translation;
+            float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
+            
+            if (sqr_mag <= tooltip_dist * tooltip_dist)
+                tooltip_display[i].texture_id =  tip_loader.texture_id[i];
+            else
+                tooltip_display[i].texture_id = tip_loader.texture_id[4];
+
             draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+
         }
        
 
