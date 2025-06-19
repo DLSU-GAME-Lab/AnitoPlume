@@ -1190,6 +1190,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     t_loader.mesh_shader = shaders["mesh"];
     t_loader.load_all_textures();
+    tip_loader.load_all_textures();
 
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     gui_param.display_smoke_layers = false;
@@ -1390,7 +1391,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     tooltip_names.push_back("Tooltip-Balantoc") ;
     tooltip_names.push_back("Tooltip-Malaki") ;
     tooltip_names.push_back("Tooltip-Munti") ;
-    tooltip_names.push_back("Tooltip-Pirapiraso") ;
+    tooltip_names.push_back("Tooltip-Piraso") ;
 
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
 
@@ -1403,7 +1404,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     for (int i = 0; i < tooltip_names.size(); i++)
     {
         std::cout << tooltip_names[i] << std::endl;
-        tip_loader.load_tooltip(tooltip_names[i] + ".obj", tooltip_names[i] + ".png");
+        tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
         tooltip_display[i] = tip_loader.tooltip;
         tooltip_display[i].uniform.transform.scaling = 4.f;
         tooltip_display[i].uniform.shading.ambiant = 1.f;
@@ -1643,7 +1644,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
 
-    if (gui_param.display_tooltips == true)
+    if (gui_param.display_tooltips == true  && scene.camera.mode != view_mode::orbital )
     {
         glDepthMask(false);
         for (int i = 0; i < 4; i++)
@@ -1652,7 +1653,12 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
             
             if (sqr_mag <= tooltip_dist * tooltip_dist)
-                draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+                tooltip_display[i].texture_id =  tip_loader.texture_id[i];
+            else
+                tooltip_display[i].texture_id = tip_loader.texture_id[4];
+
+            draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+
         }
        
 
@@ -2101,7 +2107,7 @@ void scene_model::set_gui(gui_structure& gui)
 
 void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 74), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)

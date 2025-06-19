@@ -1,5 +1,17 @@
 #include "tooltip_loader.hpp"
 using namespace vcl;
+void tooltip_loader::load_all_textures()
+{
+    const char* tooltips[] = { "Tooltip-Balantoc", "Tooltip-Malaki",
+    "Tooltip-Munti", "Tooltip-Piraso", "Tooltip-Minimized" };
+    for (int i = 0; i < 5; i++)
+    {
+        std::string name = tooltips[i];
+        std::string texture_path = "../scenes/sources/smoke/tooltips/"+ name + ".png";
+        texture_id[i] = create_texture_gpu(image_load_png(texture_path));
+    }
+    current_tex_id = texture_id[0];
+}
 void tooltip_loader::load_tooltip(std::string terrain_filename, std::string texture_filename, bool isTrans)
 {
     std::string tooltip_path = "../scenes/sources/smoke/tooltips/" + terrain_filename;

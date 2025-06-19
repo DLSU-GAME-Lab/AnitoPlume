@@ -20,5 +20,6 @@ struct tooltip_loader
 
 	int current_tex = 0;
 
+	void load_all_textures();
 	void load_tooltip(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
 };
