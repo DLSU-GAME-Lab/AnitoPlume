@@ -1499,7 +1499,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         smoke_layer lay = smoke_layers[i];
 
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio + 3);
+        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
         if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
     }
@@ -1518,7 +1518,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
             float new_scaling = free_spheres[j].r/ratio;
             //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio + 3);
+            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = R;
@@ -1550,7 +1550,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  +3);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1575,7 +1575,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio +3);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1617,7 +1617,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     for (unsigned int j = 0; j<falling_spheres.size(); j++)
     {
         float new_scaling = falling_spheres[j].r/ratio;
-        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio + 3 };
+        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio - 2 };
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
