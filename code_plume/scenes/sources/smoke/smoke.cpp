@@ -1261,15 +1261,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     subspheres.uniform.shading.diffuse = 0.8f;
     subspheres.uniform.shading.specular = 0.0f;
 
-    GLuint texture_billboard;
-    for (int i = 0; i < 5; i++)
-    {
-        std::string path = "../scenes/sources/smoke/smoke_tex/smoke-tex-";
-        path += std::to_string(i) + ".png";
-        texture_billboard = create_texture_gpu(image_load_png(path));
-        smoke_textures[i] = texture_billboard;
-    }
-
+    smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
     quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
     quad.uniform.shading.ambiant = 1.0;
     quad.uniform.shading.diffuse = 0.0;
@@ -1552,10 +1544,10 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
            
-            int texIndex = (int)(free_spheres[j].lifetime / 100);
-            if (texIndex > 4) texIndex = 4;
+            float l = (free_spheres[j].lifetime / 1000) + 0.3f;
+            if (l > 1) l = 1;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texIndex]);
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l});
         }
         glDepthMask(true);
     }
@@ -1924,13 +1916,13 @@ void scene_model::set_gui(gui_structure& gui)
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
+        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 2));
         ImGui::Indent(indent_width);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        //float initial_density_min = 150., initial_density_max = 250.;
+        //ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
      /*   float vent_ray_min = 50., vent_ray_max = 200.;*/
         //ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;

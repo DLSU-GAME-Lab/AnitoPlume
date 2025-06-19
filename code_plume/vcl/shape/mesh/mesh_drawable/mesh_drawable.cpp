@@ -45,7 +45,7 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
 }
 
 
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id)
+void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color)
 {
     // If shader is, skip display
     if(shader==0)
@@ -77,9 +77,11 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     }
 
     // Send all uniform values to the shader
+    if (color[0] == 1 && color[1] == 1 && color[2] == 1)
+        uniform(shader, "color", drawable.uniform.color);
+    else uniform(shader, "color", color);                                        opengl_debug();
     uniform(shader, "rotation", drawable.uniform.transform.rotation);            opengl_debug();
     uniform(shader, "translation", drawable.uniform.transform.translation);      opengl_debug();
-    uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
     uniform(shader, "color_alpha", drawable.uniform.color_alpha);                opengl_debug();
     uniform(shader, "scaling", drawable.uniform.transform.scaling);              opengl_debug();
     uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);    opengl_debug();

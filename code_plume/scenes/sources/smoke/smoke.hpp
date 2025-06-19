@@ -86,7 +86,7 @@ struct scene_model : scene_base
     vcl::skybox_drawable skybox;
     vcl::vec3 avg_wind_direction;
     GLuint skybox_tex;
-    GLuint smoke_textures[5];
+    GLuint smoke_texture;
     GLuint pauseIcon;
     GLuint playIcon;
     GLuint resetIcon;
