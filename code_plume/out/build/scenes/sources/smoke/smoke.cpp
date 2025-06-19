@@ -1535,7 +1535,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
            /* draw(quad, scene.camera, shaders["mesh"]);*/
             int texNumber = j % 5;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texNumber]);
+            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texNumber], smoke_textures[0]);
         }
         glDepthMask(true);
     }
@@ -2107,7 +2107,7 @@ void scene_model::set_gui(gui_structure& gui)
 
 void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 74), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)

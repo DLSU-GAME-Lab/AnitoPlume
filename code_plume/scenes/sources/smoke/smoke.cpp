@@ -271,7 +271,7 @@ void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     float rho_new = mass_new/volume_new;
     float r_new = cbrt(volume_new/3.14);
     smoke_layers[i].thickness = r_new;
-    smoke_layers[i].lifespan -= dt;
+    smoke_layers[i].lifetime = smoke_layers[i].lifetime + dt;
 
 
     // new speed due to conservation of energy (old)
@@ -529,7 +529,7 @@ void scene_model::ground_falling_sphere_update(free_sphere_params& sphere, int i
 
     sphere.speed = v;
     sphere.center = p;
-    sphere.lifespan -= dt;
+    sphere.lifetime = sphere.lifetime + dt;
 
     if (!sphere.falling_disappeared) sphere_ground_collision(sphere, idx, frame_nb);
 }
@@ -882,7 +882,7 @@ void scene_model::update_free_spheres()
                 sphere_i.r = new_r;
                 sphere_i.relative_distance = norm(sphere_i.center-smoke_layers[closest_layer_id].center);
                 sphere_i.rho = smoke_layers[closest_layer_id].rho;
-                sphere_i.lifespan -= dt;
+                sphere_i.lifetime = sphere_i.lifetime + dt;
 
                 if (!sphere_i.stagnate && smoke_layers[closest_layer_id].theta >1)
                 {
@@ -1532,10 +1532,11 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
-           /* draw(quad, scene.camera, shaders["mesh"]);*/
-            int texNumber = j % 5;
+           
+            int texIndex = (int)(free_spheres[j].lifetime / 100);
+            if (texIndex > 4) texIndex = 4;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texNumber]);
+            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texIndex]);
         }
         glDepthMask(true);
     }
@@ -2185,7 +2186,7 @@ void scene_model::set_gui_profiler(gui_structure& gui)
 
     //if (tracked_smoke)
     //{
-    //    std::string subsphere_count = "Tracked smoke lifespan: " + std::to_string(tracked_smoke->lifespan);
+    //    std::string subsphere_count = "Tracked smoke lifetime: " + std::to_string(tracked_smoke->lifetime);
     //    ImGui::Text(subsphere_count.c_str());
     //}
 
