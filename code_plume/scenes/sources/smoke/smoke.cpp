@@ -97,7 +97,7 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     {
         tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 11; i++)
     {
         landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
@@ -1394,6 +1394,15 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     landmark_names.push_back("Landmark_SantaTeresita");
     landmark_names.push_back("Landmark_Tagaytay");
     landmark_names.push_back("Landmark_Tanauan");
+    landmark_names.push_back("Landmark-Talisay");
+    landmark_names.push_back("Landmark-Agoncillo");
+    landmark_names.push_back("Landmark-Alitagtag");
+    landmark_names.push_back("Landmark-Balete");
+    landmark_names.push_back("Landmark-Cuenca");
+    landmark_names.push_back("Landmark-Laurel");
+    landmark_names.push_back("Landmark-Mataasnakahoy");
+    
+
 
     //load terrain
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
@@ -1428,6 +1437,10 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 
 
+
+
+
+
     //load landmark
     for (int i = 0; i < landmark_names.size(); i++)
     {
@@ -1439,11 +1452,25 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // lipa
     landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
     // sta terisita
-    landmark_display[1].uniform.transform.translation = { -100,-200.f,5.f };
+    landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
     //tagaytay
     landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
     // tanauan
     landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
+    //talisay
+    landmark_display[4].uniform.transform.translation = { 0,150,5.f };
+    //Agoncillo
+    landmark_display[5].uniform.transform.translation = { -100,0,5.f };
+    //Alitagtag
+    landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
+    //Balete
+    landmark_display[7].uniform.transform.translation = { 175,0,5.f };
+    //Cuenca
+    landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
+    //Laurel
+    landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
+    //Mataas na Kahoy
+    landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
 
 
 
@@ -1677,7 +1704,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         glDepthMask(true);
     }
     glDepthMask(false);
-    for(int i = 0; i< 4 ;i++)
+    for(int i = 0; i< 11 ;i++)
         draw(landmark_display[i], scene.camera, shaders["mesh"], false);
     glDepthMask(true);
 }
