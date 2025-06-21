@@ -10,6 +10,8 @@ struct scene_structure
     vcl::camera_control_glfw camera_control;
     vcl::mesh_drawable frame_camera;
     vcl::mesh_drawable frame_worldspace;
+
+    bool sky_enabled;
     vcl::vec4 clear_color;
     GLuint texture_white;
 };

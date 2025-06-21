@@ -1517,8 +1517,9 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    draw_sky(skysphere, scene.camera, shaders["sky_mesh"], skysphere.texture_id);
-    //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
+    if (scene.sky_enabled)
+        draw_sky(skysphere, scene.camera, shaders["sky_mesh"], skysphere.texture_id);
+        //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
