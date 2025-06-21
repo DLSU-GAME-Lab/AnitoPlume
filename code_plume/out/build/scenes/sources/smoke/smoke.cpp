@@ -97,6 +97,10 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     {
         tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
+    for (int i = 0; i < 11; i++)
+    {
+        landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
+    }
    
 
 
@@ -271,7 +275,7 @@ void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     float rho_new = mass_new/volume_new;
     float r_new = cbrt(volume_new/3.14);
     smoke_layers[i].thickness = r_new;
-    smoke_layers[i].lifespan -= dt;
+    smoke_layers[i].lifetime = smoke_layers[i].lifetime + dt;
 
 
     // new speed due to conservation of energy (old)
@@ -529,7 +533,7 @@ void scene_model::ground_falling_sphere_update(free_sphere_params& sphere, int i
 
     sphere.speed = v;
     sphere.center = p;
-    sphere.lifespan -= dt;
+    sphere.lifetime = sphere.lifetime + dt;
 
     if (!sphere.falling_disappeared) sphere_ground_collision(sphere, idx, frame_nb);
 }
@@ -882,7 +886,7 @@ void scene_model::update_free_spheres()
                 sphere_i.r = new_r;
                 sphere_i.relative_distance = norm(sphere_i.center-smoke_layers[closest_layer_id].center);
                 sphere_i.rho = smoke_layers[closest_layer_id].rho;
-                sphere_i.lifespan -= dt;
+                sphere_i.lifetime = sphere_i.lifetime + dt;
 
                 if (!sphere_i.stagnate && smoke_layers[closest_layer_id].theta >1)
                 {
@@ -1257,15 +1261,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     subspheres.uniform.shading.diffuse = 0.8f;
     subspheres.uniform.shading.specular = 0.0f;
 
-    GLuint texture_billboard;
-    for (int i = 0; i < 5; i++)
-    {
-        std::string path = "../scenes/sources/smoke/smoke_tex/smoke-tex-";
-        path += std::to_string(i) + ".png";
-        texture_billboard = create_texture_gpu(image_load_png(path));
-        smoke_textures[i] = texture_billboard;
-    }
-
+    smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
     quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
     quad.uniform.shading.ambiant = 1.0;
     quad.uniform.shading.diffuse = 0.0;
@@ -1398,6 +1394,15 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     landmark_names.push_back("Landmark_SantaTeresita");
     landmark_names.push_back("Landmark_Tagaytay");
     landmark_names.push_back("Landmark_Tanauan");
+    landmark_names.push_back("Landmark-Talisay");
+    landmark_names.push_back("Landmark-Agoncillo");
+    landmark_names.push_back("Landmark-Alitagtag");
+    landmark_names.push_back("Landmark-Balete");
+    landmark_names.push_back("Landmark-Cuenca");
+    landmark_names.push_back("Landmark-Laurel");
+    landmark_names.push_back("Landmark-Mataasnakahoy");
+    
+
 
     //load terrain
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
@@ -1421,32 +1426,55 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
-    mat3 rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    mat3 rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 3.14f);
-    tooltip_display[1].uniform.transform.rotation = rotationX * rotationY;
+
 
  
     tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    rotationY = rotation_from_axis_angle_mat3({ 0, 1.0f, 0 }, 2.36);
-    tooltip_display[2].uniform.transform.rotation = rotationX * rotationY;
+    
 
   
     tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-    rotationX = rotation_from_axis_angle_mat3({ 1.0f, 0, 0 }, 3.14f / 2);
-    tooltip_display[3].uniform.transform.rotation = rotationX;
+
+
+
+
+
 
 
     //load landmark
     for (int i = 0; i < landmark_names.size(); i++)
     {
-        mark_loader.load_landmark("Landmark.obj", landmark_names[0] + ".png");
+        mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
         landmark_display[i] = mark_loader.tooltip;
-        landmark_display[i].uniform.transform.scaling = 4.f;
+        landmark_display[i].uniform.transform.scaling = 10.f;
         landmark_display[i].uniform.shading.ambiant = 1.f;
     }
+    // lipa
+    landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
+    // sta terisita
+    landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
+    //tagaytay
+    landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
+    // tanauan
+    landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
+    //talisay
+    landmark_display[4].uniform.transform.translation = { 0,150,5.f };
+    //Agoncillo
+    landmark_display[5].uniform.transform.translation = { -100,0,5.f };
+    //Alitagtag
+    landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
+    //Balete
+    landmark_display[7].uniform.transform.translation = { 175,0,5.f };
+    //Cuenca
+    landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
+    //Laurel
+    landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
+    //Mataas na Kahoy
+    landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
 
-  
+
+
+
 
     
     // Params setup
@@ -1542,10 +1570,11 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
-           /* draw(quad, scene.camera, shaders["mesh"]);*/
-            int texNumber = j % 5;
+           
+            float l = (free_spheres[j].lifetime / 1000) + 0.3f;
+            if (l > 1) l = 1;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texNumber], smoke_textures[0]);
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l});
         }
         glDepthMask(true);
     }
@@ -1675,7 +1704,8 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         glDepthMask(true);
     }
     glDepthMask(false);
-        draw(tooltip_display[0], scene.camera, shaders["mesh"], false);
+    for(int i = 0; i< 11 ;i++)
+        draw(landmark_display[i], scene.camera, shaders["mesh"], false);
     glDepthMask(true);
 }
 
@@ -1913,13 +1943,13 @@ void scene_model::set_gui(gui_structure& gui)
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
+        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 2));
         ImGui::Indent(indent_width);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        //float initial_density_min = 150., initial_density_max = 250.;
+        //ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
      /*   float vent_ray_min = 50., vent_ray_max = 200.;*/
         //ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
@@ -2197,7 +2227,7 @@ void scene_model::set_gui_profiler(gui_structure& gui)
 
     //if (tracked_smoke)
     //{
-    //    std::string subsphere_count = "Tracked smoke lifespan: " + std::to_string(tracked_smoke->lifespan);
+    //    std::string subsphere_count = "Tracked smoke lifetime: " + std::to_string(tracked_smoke->lifetime);
     //    ImGui::Text(subsphere_count.c_str());
     //}
 

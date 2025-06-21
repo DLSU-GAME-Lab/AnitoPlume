@@ -78,7 +78,7 @@ struct scene_model : scene_base
     vcl::mesh_drawable skysphere;
     vcl::mesh_drawable terrain_display;
     vcl::mesh_drawable tooltip_display[4];
-    vcl::mesh_drawable landmark_display[4];
+    vcl::mesh_drawable landmark_display[11];
     vcl::mesh_drawable sphere;
     vcl::mesh_drawable sky_sphere;
     vcl::mesh_drawable quad;
@@ -86,7 +86,7 @@ struct scene_model : scene_base
     vcl::skybox_drawable skybox;
     vcl::vec3 avg_wind_direction;
     GLuint skybox_tex;
-    GLuint smoke_textures[5];
+    GLuint smoke_texture;
     GLuint pauseIcon;
     GLuint playIcon;
     GLuint resetIcon;
@@ -129,6 +129,7 @@ struct scene_model : scene_base
     std::vector<free_sphere_params> stagnate_spheres;
     std::vector<free_sphere_params> falling_spheres;
     std::vector< std::vector<free_sphere_params> > falling_spheres_buffers;
+    std::vector<float> sphere_lifetime;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
