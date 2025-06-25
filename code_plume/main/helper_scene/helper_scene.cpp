@@ -24,7 +24,7 @@ void initialize_interface(gui_structure& gui)
 
 
     std::cout<<"*** Create window ***"<<std::endl;
-    gui.window_title = "Anito Plume";
+    gui.window_title = "AnitoPlume";
     gui.window = create_window(gui.window_title);
     std::cout<<"\t [OK] Window Created"<<std::endl;
 

@@ -1505,6 +1505,9 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id);
+        terrain_display.uniform.transform.translation = t_loader.terrain.uniform.transform.translation;
+        terrain_display.uniform.transform.scaling = t_loader.terrain.uniform.transform.scaling;
+
         draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);

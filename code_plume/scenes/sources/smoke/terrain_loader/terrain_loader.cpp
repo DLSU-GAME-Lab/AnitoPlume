@@ -34,6 +34,22 @@ void terrain_loader::show_gui(bool* show)
     //    current_norm_id = normal_id[current_tex];
     //}
 
+    vec3 t_pos = terrain.uniform.transform.translation;
+    float pos[3] = { t_pos.x, t_pos.y, t_pos.z };
+    float scale = terrain.uniform.transform.scaling;
+
+    if (ImGui::InputFloat3("Position", pos, 2))
+    {
+        terrain.uniform.transform.translation = vec3({ pos[0], pos[1], pos[2] });
+    }
+
+    if (ImGui::InputFloat("Scale", &scale, 0.1f, 0.5f, "%.2f"))
+    {
+        terrain.uniform.transform.scaling = scale;
+    }
+
+    ImGui::NewLine();
+
     ImGui::InputText("Model", ter_input, size);
     ImGui::InputText("Texture", tex_input, size);
 
@@ -70,7 +86,7 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
         terrain.uniform.shading.specular = 0.0f;
         terrain.uniform.shading.diffuse = 1.0f;
         terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
-        terrain.uniform.transform.scaling = 1.f;
+        terrain.uniform.transform.scaling = 0.25f;
         terrain.uniform.transform.translation = { 0.f,0.f,-10.f };
         std::cout << "TERRAIN LOADER: Terrain model loaded!" << "\n";
     }
