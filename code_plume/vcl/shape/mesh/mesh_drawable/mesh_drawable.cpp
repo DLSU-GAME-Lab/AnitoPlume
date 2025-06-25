@@ -65,7 +65,6 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
     if(shader!=GLuint(current_shader))
         glUseProgram(shader); opengl_debug();
-  
 
 
     // Bind texture only if id != 0
@@ -126,13 +125,14 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     if (shader != GLuint(current_shader))
         glUseProgram(shader); opengl_debug();
 
-    // Bind texture only if id != 0
-    if (norm_tex_id != 0)
-    {
-        assert(glIsTexture(norm_tex_id));
-        //glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
-    }
+    //// Bind texture only if id != 0
+    //if (norm_tex_id != 0)
+    //{
+    //    assert(glIsTexture(norm_tex_id));
+    //    //glActiveTexture(GL_TEXTURE1);
+    //    glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
+    //}
+
     if (texture_id != 0) {
         assert(glIsTexture(texture_id));
         //glActiveTexture(GL_TEXTURE0);
@@ -241,11 +241,13 @@ void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint 
     //    //glActiveTexture(GL_TEXTURE1);
     //    glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
     //}
+
     if (texture_id != 0) {
         assert(glIsTexture(texture_id));
         //glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
     }
+
     //if (mix_tex_id != 0)
     //{
     //    assert(glIsTexture(mix_tex_id));

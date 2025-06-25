@@ -1193,7 +1193,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     srand(time(0));
 
     t_loader.mesh_shader = shaders["mesh"];
-    t_loader.load_all_textures();
+    //t_loader.load_all_textures();
     tip_loader.load_all_textures();
 
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
@@ -1384,25 +1384,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.diffuse = 0.3f;
         subspheres_display.uniform.shading.specular = 0.0f;
     }
-    // tooltip names
-    tooltip_names.push_back("Tooltip-Balantoc") ;
-    tooltip_names.push_back("Tooltip-Malaki") ;
-    tooltip_names.push_back("Tooltip-Munti") ;
-    tooltip_names.push_back("Tooltip-Piraso") ;
-    //landmark names
-    landmark_names.push_back("Landmark_Lipa");
-    landmark_names.push_back("Landmark_SantaTeresita");
-    landmark_names.push_back("Landmark_Tagaytay");
-    landmark_names.push_back("Landmark_Tanauan");
-    landmark_names.push_back("Landmark-Talisay");
-    landmark_names.push_back("Landmark-Agoncillo");
-    landmark_names.push_back("Landmark-Alitagtag");
-    landmark_names.push_back("Landmark-Balete");
-    landmark_names.push_back("Landmark-Cuenca");
-    landmark_names.push_back("Landmark-Laurel");
-    landmark_names.push_back("Landmark-Mataasnakahoy");
-    
-
 
     //load terrain
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
@@ -1412,71 +1393,71 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
-    //load tooltips
-    for (int i = 0; i < tooltip_names.size(); i++)
-    {
-        tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
-        tooltip_display[i] = tip_loader.tooltip;
-        tooltip_display[i].uniform.transform.scaling = 4.f;
-        tooltip_display[i].uniform.shading.ambiant = 1.f;
-    }
 
-    //setup tooltips
-    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
+    //// tooltip names
+    //tooltip_names.push_back("Tooltip-Balantoc") ;
+    //tooltip_names.push_back("Tooltip-Malaki") ;
+    //tooltip_names.push_back("Tooltip-Munti") ;
+    //tooltip_names.push_back("Tooltip-Piraso") ;
+    ////landmark names
+    //landmark_names.push_back("Landmark_Lipa");
+    //landmark_names.push_back("Landmark_SantaTeresita");
+    //landmark_names.push_back("Landmark_Tagaytay");
+    //landmark_names.push_back("Landmark_Tanauan");
+    //landmark_names.push_back("Landmark-Talisay");
+    //landmark_names.push_back("Landmark-Agoncillo");
+    //landmark_names.push_back("Landmark-Alitagtag");
+    //landmark_names.push_back("Landmark-Balete");
+    //landmark_names.push_back("Landmark-Cuenca");
+    //landmark_names.push_back("Landmark-Laurel");
+    //landmark_names.push_back("Landmark-Mataasnakahoy");
+    //
+    ////load tooltips
+    //for (int i = 0; i < tooltip_names.size(); i++)
+    //{
+    //    tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
+    //    tooltip_display[i] = tip_loader.tooltip;
+    //    tooltip_display[i].uniform.transform.scaling = 4.f;
+    //    tooltip_display[i].uniform.shading.ambiant = 1.f;
+    //}
 
-    
-    tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
+    ////setup tooltips
+    //tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
+    //tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
+    //tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
+    //tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
 
-
- 
-    tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    
-
-  
-    tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-
-
-
-
-
-
-
-    //load landmark
-    for (int i = 0; i < landmark_names.size(); i++)
-    {
-        mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
-        landmark_display[i] = mark_loader.tooltip;
-        landmark_display[i].uniform.transform.scaling = 10.f;
-        landmark_display[i].uniform.shading.ambiant = 1.f;
-    }
-    // lipa
-    landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
-    // sta terisita
-    landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
-    //tagaytay
-    landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
-    // tanauan
-    landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
-    //talisay
-    landmark_display[4].uniform.transform.translation = { 0,150,5.f };
-    //Agoncillo
-    landmark_display[5].uniform.transform.translation = { -100,0,5.f };
-    //Alitagtag
-    landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
-    //Balete
-    landmark_display[7].uniform.transform.translation = { 175,0,5.f };
-    //Cuenca
-    landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
-    //Laurel
-    landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
-    //Mataas na Kahoy
-    landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
-
-
-
-
-
-    
+    ////load landmark
+    //for (int i = 0; i < landmark_names.size(); i++)
+    //{
+    //    mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
+    //    landmark_display[i] = mark_loader.tooltip;
+    //    landmark_display[i].uniform.transform.scaling = 10.f;
+    //    landmark_display[i].uniform.shading.ambiant = 1.f;
+    //}
+    //// lipa
+    //landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
+    //// sta terisita
+    //landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
+    ////tagaytay
+    //landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
+    //// tanauan
+    //landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
+    ////talisay
+    //landmark_display[4].uniform.transform.translation = { 0,150,5.f };
+    ////Agoncillo
+    //landmark_display[5].uniform.transform.translation = { -100,0,5.f };
+    ////Alitagtag
+    //landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
+    ////Balete
+    //landmark_display[7].uniform.transform.translation = { 175,0,5.f };
+    ////Cuenca
+    //landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
+    ////Laurel
+    //landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
+    ////Mataas na Kahoy
+    //landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
+    //
     // Params setup
     is_wind = false;
     linear_wind_base = 15.;
@@ -1523,7 +1504,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     if (terrain_display.data.number_triangles > 0)
     {
-        //draw(terrain_display, scene.camera, shaders["mesh"], true);
+        //draw(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id);
         draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
@@ -1892,13 +1873,13 @@ void scene_model::setup_terrain_preemptive()
         t_loader.new_terrain_loaded = false;
 
         terrain_display = t_loader.terrain;
+        //t_loader.terrain = {};
+
+        terrain_display.texture_id = t_loader.current_tex_id;
         terrain_display.uniform.transform.scaling = .25f;
         terrain_display.uniform.shading.ambiant = .5f;
         terrain_display.uniform.color = { 1,1,1 };
-
-        //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
-
-
+        
         std::cout << "Pre-emptive terrain setup triggered" << "\n";
     }
 }

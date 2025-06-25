@@ -17,17 +17,17 @@ struct terrain_loader
 	bool enabled = true;
 
 	const int size = 32;
-	std::string current_terrain = "taal_paid.obj";
-	std::string current_texture = "Taal_Texture_2024.png";
+	std::string current_terrain = "";
+	std::string current_texture = "";
 
-	char ter_input[32] = "taal_paid.obj";
-	char tex_input[32] = "Taal_Texture_2024.png";
+	char ter_input[32] = "Taal-Spherical-2_0.obj";
+	char tex_input[32] = "Taal_Texture_2023.png";
 
 	int current_tex = 0;
 
 	void load_all_textures();
 
 	void show_gui(bool* show);
-	void load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
+	void load_terrain(std::string terrain_filename, std::string texture_filename);
 	void load_terrain_async(std::string terrain_filename, std::string texture_filename);
 };
