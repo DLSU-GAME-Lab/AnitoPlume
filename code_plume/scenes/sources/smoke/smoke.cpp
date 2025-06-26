@@ -1423,23 +1423,9 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     //setup tooltips
     tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
-
-    
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
-
-
- 
     tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    
-
-  
     tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-
-
-
-
-
-
 
     //load landmark
     for (int i = 0; i < landmark_names.size(); i++)
@@ -1512,6 +1498,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // Parameters : constants
     g = 9.81; // (m.s-2)
     tooltip_dist = 100;
+    landmark_min_dist = 80;
+    landmark_max_dist = 30;
 }
 
 
@@ -1704,9 +1692,22 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
         glDepthMask(true);
     }
+
     glDepthMask(false);
-    for(int i = 0; i< 11 ;i++)
-        draw(landmark_display[i], scene.camera, shaders["mesh"], false);
+    for (int i = 0; i < 11; i++)
+    {
+        vec3 lm_vec = landmark_display[i].uniform.transform.translation + scene.camera.translation;
+        float sqr_mag = (lm_vec.x * lm_vec.x) + (lm_vec.y * lm_vec.y) + (lm_vec.z * lm_vec.z);
+        float alpha = 1.0f;
+
+        if (sqr_mag < landmark_min_dist * landmark_min_dist)
+        {
+            alpha = (sqr_mag - (landmark_max_dist * landmark_max_dist)) / (landmark_min_dist * landmark_min_dist);
+            if (alpha < 0.0f) alpha = 0.0f;
+        }
+        
+        draw(landmark_display[i], scene.camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+    }
     glDepthMask(true);
 }
 

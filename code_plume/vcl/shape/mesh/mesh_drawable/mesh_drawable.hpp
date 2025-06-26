@@ -48,7 +48,7 @@ public:
 
 void draw(const mesh_drawable& drawable, const camera_scene& camera);
 void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, bool hasNormal = false);
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color = { 1, 1, 1 });
+void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color = { 1, 1, 1 }, float alpha = 1.0f);
 void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id);
 void draw_sky(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id);
 void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float decal_prog );
