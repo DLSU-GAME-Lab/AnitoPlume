@@ -1450,7 +1450,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         landmark_display[i].uniform.shading.ambiant = 1.f;
     }
     // lipa
-    landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
+    landmark_display[0].uniform.transform.translation = { 285.f,-130.f,5.f };
     // sta terisita
     landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
     //tagaytay
@@ -1464,13 +1464,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //Alitagtag
     landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
     //Balete
-    landmark_display[7].uniform.transform.translation = { 175,0,5.f };
+    landmark_display[7].uniform.transform.translation = { 255,50,5.f };
     //Cuenca
     landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
     //Laurel
     landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
     //Mataas na Kahoy
-    landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
+    landmark_display[10].uniform.transform.translation = { 225, -50.f,5.f };
 
 
 
