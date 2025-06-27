@@ -11,7 +11,7 @@ void landmark_loader::load_landmark(std::string terrain_filename, std::string te
 
 
 
-    std::cout << "TOOLTIP LOADER: Loading landmark..." << "\n";
+    std::cout << "LANDMARK LOADER: Loading landmark..." << "\n";
 
    
 

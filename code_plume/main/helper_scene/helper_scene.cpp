@@ -62,7 +62,6 @@ void load_shaders(std::map<std::string,GLuint>& shaders)
 
 void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std::string,GLuint>& shaders)
 {
-
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
     //glFrontFace(GL_CCW);
@@ -153,8 +152,8 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
             ImGui::ColorEdit3("Fog Color", &scene.camera.fog_color[0]);
             ImGui::InputFloat("Fog Density", &scene.camera.fog_density, 0.0f, 0.1f, "%.4f");
             ImGui::SliderFloat("Fog Start Distance", &scene.camera.fog_start, 0, 300, "%.2f");
-            ImGui::SliderFloat("Fog Fade Height", &scene.camera.fog_fade_height, 0, 300, "%.2f");
-            ImGui::SliderFloat("Fog Max Height", &scene.camera.fog_max_height, 0, 300, "%.2f");
+            ImGui::SliderFloat("Fog Fade Height", &scene.camera.fog_fade_height, -100, 300, "%.2f");
+            ImGui::SliderFloat("Fog Max Height", &scene.camera.fog_max_height, -100, 300, "%.2f");
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))

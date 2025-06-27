@@ -1908,13 +1908,14 @@ void scene_model::setup_terrain_preemptive()
 void scene_model::set_gui(gui_structure& gui)
 {
     ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
     float indent_width = 5;
     
     // Can set the speed of the animation
     float scale_min = 0.05f;
-    float scale_max = 2.0f;
+    float scale_max = 5.0f;
     ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer.scale, &scale_min, &scale_max, "%.2f s");
 
     // Parameters
