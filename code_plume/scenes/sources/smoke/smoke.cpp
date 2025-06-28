@@ -1457,11 +1457,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
     //Mataas na Kahoy
     landmark_display[10].uniform.transform.translation = { 225, -50.f,5.f };
-
-
-
-
-
     
     // Params setup
     is_wind = false;
@@ -1540,6 +1535,23 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if(gui_param.display_billboards)
     {
         glDepthMask(false);
+
+        // transition smoke
+        for (int j = 0; j < transition_lifetime.size(); j++)
+        {
+            float new_scaling = 0.1f;
+            vec3 new_translation = vec3(0, 0, fmax(0, sinf(transition_lifetime[j])));
+            float var = vcl::perlin(j, 2);
+
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), j * var) * scene.camera.orientation;
+            quad.uniform.transform.translation = new_translation;
+            quad.uniform.transform.scaling = new_scaling * 1.3;
+            quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
+
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+        }
+
+
         for (unsigned int j = 0; j<free_spheres.size(); j++)
         {
 

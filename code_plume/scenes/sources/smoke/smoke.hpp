@@ -132,6 +132,7 @@ struct scene_model : scene_base
     std::vector<free_sphere_params> falling_spheres;
     std::vector< std::vector<free_sphere_params> > falling_spheres_buffers;
     std::vector<float> sphere_lifetime;
+    std::vector<float> transition_lifetime;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
