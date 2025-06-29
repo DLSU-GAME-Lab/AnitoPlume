@@ -123,6 +123,10 @@ struct scene_model : scene_base
     float landmark_min_dist;
     float landmark_max_dist;
 
+    int max_smoke;
+    float transition_speed;
+    float transition_delay;
+
     // Data structures
     std::vector<smoke_layer> smoke_layers;
     std::vector<free_sphere_params> free_spheres;

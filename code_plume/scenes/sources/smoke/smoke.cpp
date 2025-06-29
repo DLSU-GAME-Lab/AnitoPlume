@@ -101,17 +101,19 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     {
         landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
-   
-
 
 
     // Force constant time step
     t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
     new_layer_delay += t_step;
 
-
     if (!replay)
     {
+        for (int i = 0; i < transition_lifetime.size(); i++)
+        {
+            transition_lifetime[i] += t_step;
+        }
+
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
         {
             // add smoke layer each x seconds
@@ -1267,6 +1269,12 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
+    max_smoke = 20;
+    transition_speed = 5.0f;
+    transition_delay = 0.2f;
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
+
     //sky mesh setup
     sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
     sphere.shader = shaders["sky_mesh"];
@@ -1539,14 +1547,16 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         // transition smoke
         for (int j = 0; j < transition_lifetime.size(); j++)
         {
-            float new_scaling = 0.1f;
-            vec3 new_translation = vec3(0, 0, fmax(0, sinf(transition_lifetime[j])));
+            float animation = fmax(0, sinf(transition_speed * transition_lifetime[j]));
+            float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
+            float offset = terrain_display.uniform.transform.translation.z;
+            vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
             float var = vcl::perlin(j, 2);
 
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), j * var) * scene.camera.orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), transition_speed * transition_lifetime[j] * var) * scene.camera.orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling * 1.3;
-            quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
+            quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
 
             draw(quad, scene.camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
         }
@@ -1886,6 +1896,10 @@ void scene_model::reset_simulation()
     falling_spheres_buffers.clear();
     frame_count = 0;
     decal_progress = 1.f;
+
+    transition_lifetime.clear();
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
 
     smoke_layers_frames.clear();
     free_spheres_frames.clear();
