@@ -2178,7 +2178,7 @@ void scene_model::set_gui(gui_structure& gui)
 
 void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 74), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 78), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
@@ -2261,6 +2261,32 @@ void scene_model::set_gui_profiler(gui_structure& gui)
     //}
 
     ImGui::End();
+}
+
+void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    const bool key_escape = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
+    const bool key_space = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+    if (key_escape)
+    {
+        reset_simulation();
+        state = engine_state::stopped;
+    }
+
+    if (key_space)
+    {
+         if (state == engine_state::stopped || state == engine_state::paused)
+         {
+             timer.start();
+             state = engine_state::playing;
+         }
+         else if (state == engine_state::playing)
+         {
+             timer.stop();
+             state = engine_state::paused;
+         }
+    }
 }
 
 void wind_structure::recalc_wind_vector()

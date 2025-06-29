@@ -215,6 +215,9 @@ struct scene_model : scene_base
     void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
                            vcl::mesh_drawable terrain);
 
+    // Input
+    void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
+
     // Init
     void set_gui(gui_structure& gui);
     void set_gui_playback(gui_structure& gui);

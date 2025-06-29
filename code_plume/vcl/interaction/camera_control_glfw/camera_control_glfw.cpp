@@ -107,11 +107,11 @@ void camera_control_glfw::update_mouse_scroll(camera_scene& camera, GLFWwindow* 
 
     float new_distance = camera.scale0 - (yoffset * scroll_speed * dt);
 
-    if (new_distance >= orbit_min && new_distance <= orbit_max)
-    {
-        orbit_distance = new_distance;
-        camera.set_scale(orbit_distance);
-    }
+    if (new_distance < orbit_min) new_distance = orbit_min;
+    else if (new_distance > orbit_max) new_distance = orbit_max;
+    else orbit_distance = new_distance;
+
+    camera.set_scale(orbit_distance);
 }
 
 void camera_control_glfw::update_timer()
