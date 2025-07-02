@@ -12,6 +12,7 @@ uniform sampler2D texture_sampler;
 
 uniform vec3 camera_position;
 
+uniform float gamma = 1.0;
 uniform vec3 fog_color = vec3(0.5, 0.5, 0.5);
 uniform float fog_density = 0.001;
 uniform float fog_fade_height = 20.0;
@@ -39,8 +40,11 @@ void main()
         }
         else if (fragment.position.z > fog_max_height) fog_factor = 1.0;
     }
-    
+
+    vec3 fogged_color;
     if (fog_factor < 0.01)
-        FragColor = color_texture;
-    else FragColor = vec4(mix(fog_color, color_texture.rgb, fog_factor), color_texture.a);
+        fogged_color = color_texture.rgb;
+    else fogged_color = mix(fog_color, color_texture.rgb, fog_factor);
+
+    FragColor = vec4(pow(fogged_color, vec3(1.0/gamma)), color_texture.a);
 }

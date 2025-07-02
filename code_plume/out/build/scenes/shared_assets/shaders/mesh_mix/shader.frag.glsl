@@ -10,8 +10,7 @@ in struct fragment_data
 } fragment;
 
 uniform sampler2D texture_sampler;
-//uniform sampler2D texture_blend;
-//uniform sampler2D normal_tex;
+uniform sampler2D normal_tex;
 
 out vec4 FragColor;
 
@@ -22,8 +21,8 @@ uniform float ambiant  = 0.2;
 uniform float diffuse  = 0.8;
 uniform float specular = 0.5;
 uniform int specular_exponent = 128;
-uniform float blend_progress = 0.0;
 
+uniform float gamma = 1.0;
 uniform vec3 fog_color = vec3(0.5, 0.5, 0.5);
 uniform float fog_start = 20.0;
 uniform float fog_density = 0.001;
@@ -76,7 +75,10 @@ void main()
         else if (fragment.position.z > fog_max_height) fog_factor = 1.0;
     }
     
+    vec3 fogged_color;
     if (fog_factor < 0.01)
-        FragColor = vec4(base_color, color_texture.a*fragment.color.a*color_alpha);
-    else FragColor = vec4(mix(fog_color, base_color, fog_factor), color_texture.a*fragment.color.a*color_alpha);
+        fogged_color = base_color;
+    else fogged_color = mix(fog_color, base_color, fog_factor);
+
+    FragColor = vec4(pow(fogged_color, vec3(1.0/gamma)), color_texture.a*fragment.color.a*color_alpha);
 }

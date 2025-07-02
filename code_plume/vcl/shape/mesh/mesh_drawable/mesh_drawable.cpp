@@ -99,6 +99,7 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
 
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
     uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
     uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
     uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
@@ -162,6 +163,7 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
 
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
     uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
     uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
     uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
@@ -208,6 +210,7 @@ void draw_sky(const mesh_drawable& drawable, const camera_scene& camera, GLuint 
     uniform(shader, "perspective", camera.perspective.matrix());              opengl_debug();
     uniform(shader, "view", camera.view_matrix());                            opengl_debug();
 
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
     uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
     uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
     uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
@@ -272,6 +275,7 @@ void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint 
     uniform(shader, "specular", drawable.uniform.shading.specular);                     opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent);   opengl_debug();
 
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
     uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
     uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
     uniform(shader, "fog_density", camera.fog_density);         opengl_debug();

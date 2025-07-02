@@ -21,6 +21,7 @@ uniform float ambiant  = 0.2;
 uniform float diffuse  = 0.8;
 uniform float specular = 0.5;
 uniform int specular_exponent = 128;
+uniform float gamma = 1.0;
 
 vec3 light = vec3(0, 0, -100);
 
@@ -47,5 +48,5 @@ void main()
     vec4 color_texture = texture(texture_sampler, fragment.texture_uv);
     vec3 c = (ambiant+diffuse_value)*color.rgb*fragment.color.rgb*color_texture.rgb + specular_value*white;
 
-    FragColor = vec4(c, color_texture.a*fragment.color.a*color_alpha);
+    FragColor = vec4(pow(c, vec3(1.0/gamma)), color_texture.a*fragment.color.a*color_alpha);
 }

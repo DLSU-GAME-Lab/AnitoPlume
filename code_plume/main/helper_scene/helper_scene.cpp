@@ -80,7 +80,7 @@ void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std:
     scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 3000.0f);
 
     scene.sky_enabled = true;
-    scene.clear_color = { 0.7f, 0.9f, 1.0f, 1.0f };
+    scene.clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
     const image_raw white{1,1,image_color_type::rgba,{255,255,255,255}};
     scene.texture_white = create_texture_gpu(white);
 
@@ -147,6 +147,7 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
         if (ImGui::BeginMenu("View"))
         {
             ImGui::Checkbox("Enable Sky", &scene.sky_enabled);
+            ImGui::SliderFloat("Gamma", &scene.camera.gamma, 0.0f, 10.0f, "%.2f");
             ImGui::ColorEdit3("Viewport Clear Color", &scene.clear_color[0]);
             ImGui::Separator();
             ImGui::ColorEdit3("Fog Color", &scene.camera.fog_color[0]);
