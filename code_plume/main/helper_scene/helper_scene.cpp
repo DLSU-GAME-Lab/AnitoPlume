@@ -147,7 +147,7 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
         if (ImGui::BeginMenu("View"))
         {
             ImGui::Checkbox("Enable Sky", &scene.sky_enabled);
-            ImGui::SliderFloat("Gamma", &scene.camera.gamma, 0.0f, 10.0f, "%.2f");
+            ImGui::SliderFloat("Gamma", &scene.camera.gamma, 0.0f, 5.0f, "%.2f");
             ImGui::ColorEdit3("Viewport Clear Color", &scene.clear_color[0]);
             ImGui::Separator();
             ImGui::ColorEdit3("Fog Color", &scene.camera.fog_color[0]);
