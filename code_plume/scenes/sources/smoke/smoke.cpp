@@ -1287,6 +1287,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
     skysphere.uniform.color = { 1, 1, 1 };
     skysphere.uniform.shading.specular = 100.0f;
+    skysphere.uniform.shading.ambiant = 1.0f;
+    skysphere.uniform.shading.diffuse = 1.0f;
     skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     skysphere.uniform.transform.scaling = 1.0f;
     skysphere.uniform.transform.translation = { 0,0,0 };
@@ -1920,7 +1922,7 @@ void scene_model::setup_terrain_preemptive()
 
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
-        terrain_display.uniform.shading.ambiant = .5f;
+        terrain_display.uniform.shading.ambiant = 1.0f;
         terrain_display.uniform.color = { 1,1,1 };
 
         //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
