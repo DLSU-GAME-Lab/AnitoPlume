@@ -1974,15 +1974,15 @@ void scene_model::set_gui(gui_structure& gui)
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 2));
+        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
         ImGui::Indent(indent_width);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        //float initial_density_min = 150., initial_density_max = 250.;
-        //ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
-     /*   float vent_ray_min = 50., vent_ray_max = 200.;*/
-        //ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        float initial_density_min = 150., initial_density_max = 250.;
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        float vent_ray_min = 50., vent_ray_max = 200.;
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
         ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
 

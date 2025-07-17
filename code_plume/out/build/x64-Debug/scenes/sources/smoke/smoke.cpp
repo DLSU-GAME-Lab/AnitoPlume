@@ -101,17 +101,19 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     {
         landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
     }
-   
-
 
 
     // Force constant time step
     t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
     new_layer_delay += t_step;
 
-
     if (!replay)
     {
+        for (int i = 0; i < transition_lifetime.size(); i++)
+        {
+            transition_lifetime[i] += t_step;
+        }
+
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
         {
             // add smoke layer each x seconds
@@ -1267,6 +1269,12 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
+    max_smoke = 20;
+    transition_speed = 5.0f;
+    transition_delay = 0.2f;
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
+
     //sky mesh setup
     sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
     sphere.shader = shaders["sky_mesh"];
@@ -1279,6 +1287,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
     skysphere.uniform.color = { 1, 1, 1 };
     skysphere.uniform.shading.specular = 100.0f;
+    skysphere.uniform.shading.ambiant = 1.0f;
+    skysphere.uniform.shading.diffuse = 1.0f;
     skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     skysphere.uniform.transform.scaling = 1.0f;
     skysphere.uniform.transform.translation = { 0,0,0 };
@@ -1423,23 +1433,9 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     //setup tooltips
     tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
-
-    
     tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
-
-
- 
     tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    
-
-  
     tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-
-
-
-
-
-
 
     //load landmark
     for (int i = 0; i < landmark_names.size(); i++)
@@ -1450,7 +1446,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         landmark_display[i].uniform.shading.ambiant = 1.f;
     }
     // lipa
-    landmark_display[0].uniform.transform.translation = { 255.f,-130.f,5.f };
+    landmark_display[0].uniform.transform.translation = { 285.f,-130.f,5.f };
     // sta terisita
     landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
     //tagaytay
@@ -1464,18 +1460,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //Alitagtag
     landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
     //Balete
-    landmark_display[7].uniform.transform.translation = { 175,0,5.f };
+    landmark_display[7].uniform.transform.translation = { 255,50,5.f };
     //Cuenca
     landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
     //Laurel
     landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
     //Mataas na Kahoy
-    landmark_display[10].uniform.transform.translation = { 175,-100.f,5.f };
-
-
-
-
-
+    landmark_display[10].uniform.transform.translation = { 225, -50.f,5.f };
     
     // Params setup
     is_wind = false;
@@ -1512,6 +1503,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // Parameters : constants
     g = 9.81; // (m.s-2)
     tooltip_dist = 100;
+    landmark_min_dist = 80;
+    landmark_max_dist = 30;
 }
 
 
@@ -1552,6 +1545,25 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if(gui_param.display_billboards)
     {
         glDepthMask(false);
+
+        // transition smoke
+        for (int j = 0; j < transition_lifetime.size(); j++)
+        {
+            float animation = fmax(0, sinf(transition_speed * transition_lifetime[j]));
+            float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
+            float offset = terrain_display.uniform.transform.translation.z;
+            vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
+            float var = vcl::perlin(j, 2);
+
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), transition_speed * transition_lifetime[j] * var) * scene.camera.orientation;
+            quad.uniform.transform.translation = new_translation;
+            quad.uniform.transform.scaling = new_scaling * 1.3;
+            quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
+
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+        }
+
+
         for (unsigned int j = 0; j<free_spheres.size(); j++)
         {
 
@@ -1704,9 +1716,22 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
         glDepthMask(true);
     }
+
     glDepthMask(false);
-    for(int i = 0; i< 11 ;i++)
-        draw(landmark_display[i], scene.camera, shaders["mesh"], false);
+    for (int i = 0; i < 11; i++)
+    {
+        vec3 lm_vec = landmark_display[i].uniform.transform.translation + scene.camera.translation;
+        float sqr_mag = (lm_vec.x * lm_vec.x) + (lm_vec.y * lm_vec.y) + (lm_vec.z * lm_vec.z);
+        float alpha = 1.0f;
+
+        if (sqr_mag < landmark_min_dist * landmark_min_dist)
+        {
+            alpha = (sqr_mag - (landmark_max_dist * landmark_max_dist)) / (landmark_min_dist * landmark_min_dist);
+            if (alpha < 0.0f) alpha = 0.0f;
+        }
+        
+        draw(landmark_display[i], scene.camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+    }
     glDepthMask(true);
 }
 
@@ -1874,6 +1899,10 @@ void scene_model::reset_simulation()
     frame_count = 0;
     decal_progress = 1.f;
 
+    transition_lifetime.clear();
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
+
     smoke_layers_frames.clear();
     free_spheres_frames.clear();
     s2_spheres_frames.clear();
@@ -1893,7 +1922,7 @@ void scene_model::setup_terrain_preemptive()
 
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
-        terrain_display.uniform.shading.ambiant = .5f;
+        terrain_display.uniform.shading.ambiant = 1.0f;
         terrain_display.uniform.color = { 1,1,1 };
 
         //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
@@ -1907,13 +1936,14 @@ void scene_model::setup_terrain_preemptive()
 void scene_model::set_gui(gui_structure& gui)
 {
     ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
     float indent_width = 5;
     
     // Can set the speed of the animation
     float scale_min = 0.05f;
-    float scale_max = 2.0f;
+    float scale_max = 5.0f;
     ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer.scale, &scale_min, &scale_max, "%.2f s");
 
     // Parameters
@@ -2150,7 +2180,7 @@ void scene_model::set_gui(gui_structure& gui)
 
 void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 74), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 78), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
@@ -2233,6 +2263,32 @@ void scene_model::set_gui_profiler(gui_structure& gui)
     //}
 
     ImGui::End();
+}
+
+void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    const bool key_escape = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
+    const bool key_space = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+    if (key_escape)
+    {
+        reset_simulation();
+        state = engine_state::stopped;
+    }
+
+    if (key_space)
+    {
+         if (state == engine_state::stopped || state == engine_state::paused)
+         {
+             timer.start();
+             state = engine_state::playing;
+         }
+         else if (state == engine_state::playing)
+         {
+             timer.stop();
+             state = engine_state::paused;
+         }
+    }
 }
 
 void wind_structure::recalc_wind_vector()

@@ -120,6 +120,12 @@ struct scene_model : scene_base
     // Parameters : constants
     float g;
     float tooltip_dist;
+    float landmark_min_dist;
+    float landmark_max_dist;
+
+    int max_smoke;
+    float transition_speed;
+    float transition_delay;
 
     // Data structures
     std::vector<smoke_layer> smoke_layers;
@@ -130,6 +136,7 @@ struct scene_model : scene_base
     std::vector<free_sphere_params> falling_spheres;
     std::vector< std::vector<free_sphere_params> > falling_spheres_buffers;
     std::vector<float> sphere_lifetime;
+    std::vector<float> transition_lifetime;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
@@ -207,6 +214,9 @@ struct scene_model : scene_base
     // Fill structures
     void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
                            vcl::mesh_drawable terrain);
+
+    // Input
+    void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 
     // Init
     void set_gui(gui_structure& gui);
