@@ -60,6 +60,7 @@ struct scene_model : scene_base
     int gui_index;
 
     // Trackers
+    float sim_time;
     float new_layer_delay;
     unsigned int total_layers_ejected;
     unsigned int nb_of_iterations;
@@ -124,6 +125,7 @@ struct scene_model : scene_base
     float landmark_max_dist;
 
     int max_smoke;
+    float max_lifetime;
     float transition_speed;
     float transition_delay;
 
@@ -189,6 +191,7 @@ struct scene_model : scene_base
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
     void smoke_layer_update(unsigned int i);
+    void remove_smoke_layers();
 
     // Pyroclastic flow : falling spheres
     float field_height_at(float x, float y);

@@ -109,6 +109,8 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
 
     if (!replay)
     {
+        sim_time += t_step;
+        //remove_smoke_layers();
         for (int i = 0; i < transition_lifetime.size(); i++)
         {
             transition_lifetime[i] += t_step;
@@ -156,7 +158,7 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
             
     /*        if (decal_progress > 0)
             {
-                decal_progress -= .01 * dt;
+                decal_progress -= .01 * t_step;
             }*/
             frame_count++;
         }
@@ -277,7 +279,7 @@ void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     float rho_new = mass_new/volume_new;
     float r_new = cbrt(volume_new/3.14);
     smoke_layers[i].thickness = r_new;
-    smoke_layers[i].lifetime = smoke_layers[i].lifetime + dt;
+    smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
 
 
     // new speed due to conservation of energy (old)
@@ -415,6 +417,44 @@ void scene_model::smoke_layer_update(unsigned int i)
     apply_forces_to_smoke_layer(i, d_mass);
 }
 
+void scene_model::remove_smoke_layers()
+{
+    /*
+    * if sim time is greater than max lifetime
+    * and the beginning of smoke layers vector is less that max lifetime
+    * erase the layer that's over max lifetime and repeat
+    * do the same for sphere params
+    */
+    if (sim_time > max_lifetime)
+    {
+        if (!smoke_layers.empty())
+        {
+            int size = smoke_layers.size();
+            while (smoke_layers[0].lifetime > max_lifetime)
+                smoke_layers.erase(smoke_layers.begin());
+            std::cout << "Size difference: " << size - smoke_layers.size() << "\n";
+        }
+
+        if (!free_spheres.empty())
+        {
+            while (free_spheres[0].lifetime > max_lifetime)
+                free_spheres.erase(free_spheres.begin());
+        }
+
+        if (!s2_spheres.empty())
+        {
+            while (s2_spheres[0].lifetime > max_lifetime)
+                s2_spheres.erase(s2_spheres.begin());
+        }
+
+        if (!s3_spheres.empty())
+        {
+            while (s3_spheres[0].lifetime > max_lifetime)
+                s3_spheres.erase(s3_spheres.begin());
+        }
+    }
+}
+
 
 //------------------------------------------------------------
 //--------------------- FALLING SPHERES ----------------------
@@ -535,7 +575,7 @@ void scene_model::ground_falling_sphere_update(free_sphere_params& sphere, int i
 
     sphere.speed = v;
     sphere.center = p;
-    sphere.lifetime = sphere.lifetime + dt;
+    sphere.lifetime = sphere.lifetime + t_step;
 
     if (!sphere.falling_disappeared) sphere_ground_collision(sphere, idx, frame_nb);
 }
@@ -888,7 +928,7 @@ void scene_model::update_free_spheres()
                 sphere_i.r = new_r;
                 sphere_i.relative_distance = norm(sphere_i.center-smoke_layers[closest_layer_id].center);
                 sphere_i.rho = smoke_layers[closest_layer_id].rho;
-                sphere_i.lifetime = sphere_i.lifetime + dt;
+                sphere_i.lifetime = sphere_i.lifetime + t_step;
 
                 if (!sphere_i.stagnate && smoke_layers[closest_layer_id].theta >1)
                 {
@@ -1189,6 +1229,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     total_layers_ejected = 0;
     nb_of_iterations = 0;
     frame_count = 0;
+    sim_time = 0;
+    max_lifetime = 10;
     export_data = false;
     state = engine_state::stopped;
     all_angles = false;
@@ -1584,7 +1626,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
            
-            float l = (free_spheres[j].lifetime / 1000) + 0.3f;
+            float l = (free_spheres[j].lifetime / 120) + 0.3f;
             if (l > 1) l = 1;
 
             draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l});
@@ -1897,6 +1939,7 @@ void scene_model::reset_simulation()
     stagnate_spheres.clear();
     falling_spheres_buffers.clear();
     frame_count = 0;
+    sim_time = 0;
     decal_progress = 1.f;
 
     transition_lifetime.clear();
@@ -1935,7 +1978,7 @@ void scene_model::setup_terrain_preemptive()
 
 void scene_model::set_gui(gui_structure& gui)
 {
-    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
@@ -2001,7 +2044,7 @@ void scene_model::set_gui(gui_structure& gui)
     // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 12.25f));
+        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 12.5f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
@@ -2014,33 +2057,10 @@ void scene_model::set_gui(gui_structure& gui)
         int wind_min = 0, wind_max = 300;
         int angle_min = 0, angle_max = 360;
 
-        const float indent_w = 33;
+        const float indent_w = 29;
         const float slider_width = 25;
-        const float plot_width = 335;
+        const float plot_width = 330;
         const float plot_height = 100;
-
-        ImGui::Indent(indent_w);
-        ImGui::PushItemWidth(plot_width);
-
-        if (ImGui::SliderScalar("##Altitude", ImGuiDataType_S32, &wind_alt, &alt_min, &alt_max, "%d meters in altitude"))
-        {
-            for (int i = 0; i < wind_size && !altitude_selected; i++)
-            {
-                if (wind_altitudes[i] == wind_alt)
-                {
-                    altitude_selected = true;
-                    selected = i;
-                }
-            }
-
-            if (!altitude_selected)
-            {
-                selected = clamp(((float)wind_alt / wind_alt_step) + 0.5f, 0, wind_size - 1);
-                wind_alt = wind_altitudes[selected];
-            }
-        }
-        ImGui::PopItemWidth();
-        ImGui::Unindent(indent_w);
 
         float intensity[wind_size] = {};
         float angle[wind_size] = {};
@@ -2053,6 +2073,27 @@ void scene_model::set_gui(gui_structure& gui)
 
         const int x_offset = ImGui::GetCursorScreenPos().x;
         const int plot_start = ImGui::GetCursorScreenPos().y;
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        const float plot_grid_offset = x_offset + slider_width + 11;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 1; j < wind_size - 1; j++)
+            {
+                float plot_division = (float)j / (wind_size - 1);
+                float plot_grid = (plot_division * (plot_width - 8)) + plot_grid_offset;
+
+                float total_height = plot_start + plot_height * i + (i * 3);
+                ImVec2 start = ImVec2(plot_grid, total_height);
+                ImVec2 end;
+
+                if (i == 2) end = ImVec2(plot_grid, total_height + 22);
+                else end = ImVec2(plot_grid, total_height + plot_height);
+
+                draw_list->AddLine(start, end, IM_COL32(255, 255, 255, 100), 1.0f);
+            }
+        }
 
         if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
         {
@@ -2090,28 +2131,35 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::PlotLines("##Wind Angle", angle, wind_size, 0, "Wind Angle (degrees)", angle_min, angle_max, ImVec2(plot_width, plot_height));
         ImGui::PopStyleColor();
 
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-        const float plot_grid_offset = x_offset + slider_width + 11;
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 1; j < wind_size - 1; j++)
-            {
-                float plot_division = (float)j / (wind_size - 1);
-                float plot_grid = (plot_division * (plot_width - 8)) + plot_grid_offset;
-
-                ImVec2 start = ImVec2(plot_grid, plot_start + (plot_height * i) + (i * 3));
-                ImVec2 end = ImVec2(plot_grid, plot_start + (plot_height * (i + 1)) + (i * 3));
-                draw_list->AddLine(start, end, IM_COL32(255, 255, 255, 100), 1.0f);
-            }
-        }
-
         float plot_div = (float)selected / (wind_size - 1);
         float plot_x = (plot_div * (plot_width - 8)) + plot_grid_offset;
 
         ImVec2 start = ImVec2(plot_x, plot_start);
         ImVec2 end = ImVec2(plot_x, plot_start + (plot_height * 2) + 3);
         draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 3.0f);
+
+        ImGui::Indent(indent_w);
+        ImGui::PushItemWidth(plot_width + 7);
+        if (ImGui::SliderScalar("##Altitude", ImGuiDataType_S32, &wind_alt, &alt_min, &alt_max, "%d meters in altitude"))
+        {
+            for (int i = 0; i < wind_size && !altitude_selected; i++)
+            {
+                if (wind_altitudes[i] == wind_alt)
+                {
+                    altitude_selected = true;
+                    selected = i;
+                }
+            }
+
+            if (!altitude_selected)
+            {
+                selected = clamp(((float)wind_alt / wind_alt_step) + 0.5f, 0, wind_size - 1);
+                wind_alt = wind_altitudes[selected];
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::Unindent(indent_w);
+        ImGui::Spacing();
 
         if (ImGui::Button("No wind"))
         {
