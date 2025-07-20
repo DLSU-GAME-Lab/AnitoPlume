@@ -2047,7 +2047,7 @@ void scene_model::set_gui(gui_structure& gui)
     // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 12.5f));
+        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 13.5f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
@@ -2168,12 +2168,13 @@ void scene_model::set_gui(gui_structure& gui)
             is_wind = false;
             for (unsigned int i = 0; i < winds.size(); i++)
             {
-                winds[i].intensity = 0;
-                winds[i].angle = 0;
+                this->deg_angle[i] = 0;
+                winds[i] = wind_structure(0, this->deg_angle[i]);
                 winds[i].recalc_wind_vector();
             }
             calculate_avg_wind_dir();
         }
+
         ImGui::SameLine();
         if (ImGui::Button("Linear Wind"))
         {
@@ -2183,12 +2184,11 @@ void scene_model::set_gui(gui_structure& gui)
                 winds[i].intensity = i * linear_wind_base;
                 if (i > 3) winds[i].intensity = 3 * linear_wind_base;
                 if (winds[i].intensity == 0) winds[i].intensity = 1;
-                winds[i].angle = 0;
                 winds[i].recalc_wind_vector();
             }
-
             calculate_avg_wind_dir();
         }
+
         ImGui::SameLine();
         if (ImGui::Button("Max Intensity"))
         {
@@ -2198,8 +2198,6 @@ void scene_model::set_gui(gui_structure& gui)
                 winds[i].intensity = 300;
                 winds[i].recalc_wind_vector();
             }
-
-
             calculate_avg_wind_dir();
         }
 
@@ -2217,12 +2215,40 @@ void scene_model::set_gui(gui_structure& gui)
                     winds[i].intensity = i * linear_wind_base;
                     if (i > 3) winds[i].intensity = 3 * linear_wind_base;
                     if (winds[i].intensity == 0) winds[i].intensity = 1;
-                    winds[i].angle = 0;
+                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
                     winds[i].recalc_wind_vector();
                 }
+                calculate_avg_wind_dir();
             }
         }
         ImGui::PopItemWidth();
+
+        if (ImGui::Button("Set to 2020 Eruption Params"))
+        {
+            //U_0 = 200;
+            //rho_0 = 250;
+
+            winds[0].intensity = 1;
+            winds[1].intensity = 14;
+            winds[2].intensity = 20;
+            winds[3].intensity = 30;
+            winds[4].intensity = 40;
+            winds[5].intensity = 58;
+
+            this->deg_angle[0] = 0;
+            this->deg_angle[1] = 30;
+            this->deg_angle[2] = 330;
+            this->deg_angle[3] = 90;
+            this->deg_angle[4] = 120;
+            this->deg_angle[5] = 135;
+
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                winds[i].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
+        }
 
         ImGui::Unindent();
         ImGui::EndChild();
