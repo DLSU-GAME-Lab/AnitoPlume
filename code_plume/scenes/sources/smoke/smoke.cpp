@@ -1513,9 +1513,12 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // Params setup
     is_wind = false;
     linear_wind_base = 15.;
-    for(unsigned int i = 0; i<6; i++)
+    max_altitude = 10000;
+    altitude_step = 2000;
+    altitude_size = int(max_altitude / altitude_step) + 1;
+    for(unsigned int i = 0; i < altitude_size; i++)
     {
-        wind_altitudes.push_back(i*4000);
+        wind_altitudes.push_back(i* altitude_step);
         winds.push_back(wind_structure(0,0));
         this->deg_angle.push_back(0);
     }
@@ -2049,11 +2052,10 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
-        const int wind_alt_step = 4000;
         const int wind_size = 6;
         bool altitude_selected = false;
 
-        int alt_min = 0, alt_max = wind_alt_step * (wind_size - 1);
+        int alt_min = 0, alt_max = max_altitude;
         int wind_min = 0, wind_max = 300;
         int angle_min = 0, angle_max = 360;
 
@@ -2153,7 +2155,7 @@ void scene_model::set_gui(gui_structure& gui)
 
             if (!altitude_selected)
             {
-                selected = clamp(((float)wind_alt / wind_alt_step) + 0.5f, 0, wind_size - 1);
+                selected = clamp(((float)wind_alt / altitude_step) + 0.5f, 0, wind_size - 1);
                 wind_alt = wind_altitudes[selected];
             }
         }

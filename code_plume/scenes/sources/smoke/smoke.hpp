@@ -120,14 +120,19 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
+    float max_lifetime;
+
     float tooltip_dist;
     float landmark_min_dist;
     float landmark_max_dist;
 
     int max_smoke;
-    float max_lifetime;
     float transition_speed;
     float transition_delay;
+
+    float max_altitude;
+    float altitude_step;
+    int altitude_size;
 
     // Data structures
     std::vector<smoke_layer> smoke_layers;
