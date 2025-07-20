@@ -68,6 +68,42 @@ float direction_tracker::vector_to_angle(vcl::vec3 vector) const
     return radians * (180.0 / pi);
 }
 
+void direction_tracker::show_affected_areas(float image_size)
+{
+    ImGui::BeginChild("Affected Areas", { 200.0f, image_size }, true);
+    std::vector<std::string> affected_locs = get_location_names(this->wind_angle);
+    ImGui::SetWindowFontScale(1.5f);
+    ImGui::TextColored({ 0.9f, 0.0f, 0.1f, 1.0f }, "Affected Areas:");
+    for (int i = 0; i < affected_locs.size(); i++)
+        ImGui::Text(affected_locs[i].c_str());
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::EndChild();
+}
+
+void direction_tracker::set_plume_positions(unsigned int index, vcl::vec3 position, float radius)
+{
+    if (index == this->positions.size())
+    {
+        this->positions.push_back(vcl::vec2(position.x, position.y));
+        this->radii.push_back(radius);
+        this->cone_radius = radii[radii.size() - 1] / ratio;
+    }
+    else if (index < this->positions.size())
+    {
+        this->positions[index].x = position.x;
+        this->positions[index].y = position.y;
+        this->radii[index] = radius;
+        this->cone_radius = radii[radii.size() - 1] / ratio;
+    }
+}
+
+void direction_tracker::reset_plume_positions()
+{
+    this->positions.clear();
+    this->radii.clear();
+    this->cone_radius = 5.0f;
+}
+
 void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
 {
     this->wind_vector = wind_vector;
@@ -83,33 +119,58 @@ void direction_tracker::show_gui(bool* show)
     const float half_size = image_size / 2.0f;
     const float line_len = 108.0f;
     ImGui::Image((ImTextureID)danger_zone_image, { image_size, image_size });
-    std::vector<std::string> affected_locs = get_location_names(this->wind_angle);
-
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 win_pos = ImGui::GetWindowPos();
     win_pos.x += 8; win_pos.y += 27;
     ImVec2 start = ImVec2(win_pos.x + half_size, win_pos.y + half_size);
 
-    float angle = vector_to_angle(wind_vector);
-    vcl::vec3 wind1 = angle_to_vector(angle + cone_radius);
-    vcl::vec3 wind2 = angle_to_vector(angle - cone_radius);
+    const float line_thk = 2.0f;
+    ImU32 red = IM_COL32(240, 0, 40, 255);
+    ImU32 alpha_red = IM_COL32(240, 0, 40, 100);
 
-    ImVec2 end1 = ImVec2(start.x + (wind1.x * line_len), start.y + (-wind1.y * line_len));
-    ImVec2 end2 = ImVec2(start.x + (wind2.x * line_len), start.y + (-wind2.y * line_len));
-    draw_list->AddLine(start, end1, IM_COL32(240, 0, 40, 255), 2.0f);
-    draw_list->AddLine(start, end2, IM_COL32(240, 0, 20, 255), 2.0f);
-    draw_list->AddTriangleFilled(start, end1, end2, IM_COL32(240, 0, 40, 100));
+    if (layered_view_enabled)
+    {
+        float x_offset = -25;
+        for (int i = 0; i < positions.size(); i++)
+        {
+            vcl::vec2 pos = positions[i];
+            pos /= ratio;
+            pos.x += x_offset;
+            pos.y *= -1;
+
+            float map_r = (image_size / 2) - 32;
+
+            if (pos.x > -map_r && pos.x < map_r &&
+                pos.y > -map_r && pos.y < map_r)
+            {
+                ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
+                float radius = radii[i] / ratio;
+
+                draw_list->AddCircleFilled(center, radius, alpha_red);
+            }
+        }
+    }
+    else
+    {
+        if (!radii.empty())
+        {
+            float angle = vector_to_angle(wind_vector);
+            vcl::vec3 wind1 = angle_to_vector(angle + cone_radius);
+            vcl::vec3 wind2 = angle_to_vector(angle - cone_radius);
+
+            ImVec2 end1 = ImVec2(start.x + (wind1.x * line_len), start.y + (-wind1.y * line_len));
+            ImVec2 end2 = ImVec2(start.x + (wind2.x * line_len), start.y + (-wind2.y * line_len));
+
+            draw_list->AddLine(start, end1, red, line_thk);
+            draw_list->AddLine(start, end2, red, line_thk);
+            draw_list->AddTriangleFilled(start, end1, end2, alpha_red);
+        }
+    }
 
     ImGui::SameLine();
-    ImGui::BeginChild("Affected Areas", {200.0f, image_size}, true);
+    show_affected_areas(image_size);
+    ImGui::Checkbox("Display layered view", &layered_view_enabled);
 
-    ImGui::SetWindowFontScale(1.5f);
-    ImGui::TextColored({0.9f, 0.0f, 0.1f, 1.0f}, "Affected Areas:");
-    for (int i = 0; i < affected_locs.size(); i++)
-        ImGui::Text(affected_locs[i].c_str());
-    ImGui::SetWindowFontScale(1.0f);
-
-    ImGui::EndChild();
     ImGui::End();
 }

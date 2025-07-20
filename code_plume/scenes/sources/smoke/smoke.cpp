@@ -237,7 +237,7 @@ void scene_model::calculate_avg_wind_dir()
     float winds_squared_z = winds_vec.z * winds_vec.z;
 
     float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
-    this->avg_wind_direction = vcl::vec3(winds_vec.x / mag, winds_vec.y / mag, winds_vec.z / mag);
+    this->avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
     direction_tracker.set_wind_direction(this->avg_wind_direction);
 }
 
@@ -415,6 +415,21 @@ void scene_model::smoke_layer_update(unsigned int i)
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass);
+    check_smoke_position(i);
+}
+
+void scene_model::check_smoke_position(unsigned int i)
+{
+    const int steps = 15;
+    const float step_size = 1000.0f;
+
+    for (int j = 0; j < steps; j++)
+    {
+        if (int(smoke_layers[i].center.z) == int(j * step_size) + 1)
+        {
+            direction_tracker.set_plume_positions(j, smoke_layers[i].center, smoke_layers[i].r);
+        }
+    }
 }
 
 void scene_model::remove_smoke_layers()
@@ -1522,6 +1537,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         winds.push_back(wind_structure(0,0));
         this->deg_angle.push_back(0);
     }
+    calculate_avg_wind_dir();
     
     is_wind = false;
     linear_wind_base = 15.;
@@ -1941,6 +1957,7 @@ void scene_model::reset_simulation()
     falling_spheres.clear();
     stagnate_spheres.clear();
     falling_spheres_buffers.clear();
+    direction_tracker.reset_plume_positions();
     frame_count = 0;
     sim_time = 0;
     decal_progress = 1.f;
@@ -2125,8 +2142,7 @@ void scene_model::set_gui(gui_structure& gui)
                 winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
                 winds[selected].recalc_wind_vector();
             }
-
-            if (winds[selected].intensity != 0) calculate_avg_wind_dir();
+            calculate_avg_wind_dir();
         }
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
@@ -2290,34 +2306,6 @@ void scene_model::set_gui_playback(gui_structure& gui)
             state = engine_state::stopped;
         }
     }
-
-   /* if (ImGui::Button("Replay"))
-    {
-        if (!export_data)
-        {
-            timer.stop();
-            frame_replay = 0;
-            replay = true; std::cout << "replay becomes true" << std::endl;
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Stop Replay"))
-    {
-        timer.start();
-        replay = false; std::cout << "replay becomes false" << std::endl;
-    }
-
-    if (ImGui::Button("Export data during simulation"))
-    {
-        export_data = true;
-        replay = false;
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-    {
-        ImGui::SetTooltip("(slow, no replay, activate before starting simulation)");
-    }*/
-
     ImGui::End();
 }
 
@@ -2336,12 +2324,6 @@ void scene_model::set_gui_profiler(gui_structure& gui)
     ImGui::Text(falling_sphere_count.c_str());
     ImGui::Text(stagnate_sphere_count.c_str());
     ImGui::Text(subsphere_count.c_str());
-
-    //if (tracked_smoke)
-    //{
-    //    std::string subsphere_count = "Tracked smoke lifetime: " + std::to_string(tracked_smoke->lifetime);
-    //    ImGui::Text(subsphere_count.c_str());
-    //}
 
     ImGui::End();
 }

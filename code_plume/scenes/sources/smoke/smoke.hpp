@@ -196,6 +196,7 @@ struct scene_model : scene_base
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
     void smoke_layer_update(unsigned int i);
+    void check_smoke_position(unsigned int i);
     void remove_smoke_layers();
 
     // Pyroclastic flow : falling spheres
