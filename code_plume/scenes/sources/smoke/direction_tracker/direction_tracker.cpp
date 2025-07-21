@@ -4,6 +4,12 @@
 #include <fstream>
 #include <sstream>
 
+void direction_tracker::initialize(float max_altitude, float altitude_step)
+{
+    this->max_altitude = max_altitude;
+    this->altitude_step = altitude_step;
+}
+
 void direction_tracker::load_data(std::string filePath)
 {
     std::string texture_path = "../scenes/sources/smoke/images/danger_zones.png";
@@ -84,14 +90,13 @@ void direction_tracker::set_plume_positions(unsigned int index, vcl::vec3 positi
 {
     if (index == this->positions.size())
     {
-        this->positions.push_back(vcl::vec2(position.x, position.y));
+        this->positions.push_back(position);
         this->radii.push_back(radius);
         this->cone_radius = radii[radii.size() - 1] / ratio;
     }
     else if (index < this->positions.size())
     {
-        this->positions[index].x = position.x;
-        this->positions[index].y = position.y;
+        this->positions[index] = position;
         this->radii[index] = radius;
         this->cone_radius = radii[radii.size() - 1] / ratio;
     }
@@ -101,7 +106,7 @@ void direction_tracker::reset_plume_positions()
 {
     this->positions.clear();
     this->radii.clear();
-    this->cone_radius = 5.0f;
+    this->cone_radius = 0.0f;
 }
 
 void direction_tracker::set_wind_direction(vcl::vec3 wind_vector)
@@ -129,12 +134,26 @@ void direction_tracker::show_gui(bool* show)
     ImU32 red = IM_COL32(240, 0, 40, 255);
     ImU32 alpha_red = IM_COL32(240, 0, 40, 100);
 
+    if (predicton_enabled && cone_radius != 0)
+    {
+        float angle = vector_to_angle(wind_vector);
+        vcl::vec3 wind1 = angle_to_vector(angle + cone_radius);
+        vcl::vec3 wind2 = angle_to_vector(angle - cone_radius);
+
+        ImVec2 end1 = ImVec2(start.x + (wind1.x * line_len), start.y + (-wind1.y * line_len));
+        ImVec2 end2 = ImVec2(start.x + (wind2.x * line_len), start.y + (-wind2.y * line_len));
+
+        draw_list->AddLine(start, end1, red, line_thk);
+        draw_list->AddLine(start, end2, red, line_thk);
+        draw_list->AddTriangleFilled(start, end1, end2, alpha_red);
+    }
+
     if (layered_view_enabled)
     {
-        float x_offset = -25;
+        float x_offset = -18;
         for (int i = 0; i < positions.size(); i++)
         {
-            vcl::vec2 pos = positions[i];
+            vcl::vec2 pos = vcl::vec2(positions[i].x, positions[i].y);
             pos /= ratio;
             pos.x += x_offset;
             pos.y *= -1;
@@ -146,31 +165,23 @@ void direction_tracker::show_gui(bool* show)
             {
                 ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
                 float radius = radii[i] / ratio;
+                if (int(i * altitude_step) + 1 >= int(positions[i].z))
+                    radius *= ((i * altitude_step) / max_altitude) + 0.1f;
 
-                draw_list->AddCircleFilled(center, radius, alpha_red);
+                float col = 64 + (192 * (i / 15.0f));
+                draw_list->AddCircleFilled(center, radius, IM_COL32(col, col, col, 200));
             }
-        }
-    }
-    else
-    {
-        if (!radii.empty())
-        {
-            float angle = vector_to_angle(wind_vector);
-            vcl::vec3 wind1 = angle_to_vector(angle + cone_radius);
-            vcl::vec3 wind2 = angle_to_vector(angle - cone_radius);
-
-            ImVec2 end1 = ImVec2(start.x + (wind1.x * line_len), start.y + (-wind1.y * line_len));
-            ImVec2 end2 = ImVec2(start.x + (wind2.x * line_len), start.y + (-wind2.y * line_len));
-
-            draw_list->AddLine(start, end1, red, line_thk);
-            draw_list->AddLine(start, end2, red, line_thk);
-            draw_list->AddTriangleFilled(start, end1, end2, alpha_red);
         }
     }
 
     ImGui::SameLine();
     show_affected_areas(image_size);
+
     ImGui::Checkbox("Display layered view", &layered_view_enabled);
+    ImGui::SameLine();
+    ImGui::Spacing();
+    ImGui::SameLine();
+    ImGui::Checkbox("Display predicted direction", &predicton_enabled);
 
     ImGui::End();
 }

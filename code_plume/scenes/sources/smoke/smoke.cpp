@@ -420,12 +420,9 @@ void scene_model::smoke_layer_update(unsigned int i)
 
 void scene_model::check_smoke_position(unsigned int i)
 {
-    const int steps = 15;
-    const float step_size = 1000.0f;
-
-    for (int j = 0; j < steps; j++)
+    for (int j = 0; j < direction_tracker_step_size; j++)
     {
-        if (int(smoke_layers[i].center.z) == int(j * step_size) + 1)
+        if (int(smoke_layers[i].center.z) == int(j * direction_tracker_step) + 1)
         {
             direction_tracker.set_plume_positions(j, smoke_layers[i].center, smoke_layers[i].r);
         }
@@ -1255,7 +1252,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     t_loader.load_all_textures();
     tip_loader.load_all_textures();
 
-    direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     gui_param.display_smoke_layers = false;
     gui_param.display_free_spheres = false;
     gui_param.display_subspheres = false;
@@ -1537,14 +1533,20 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         winds.push_back(wind_structure(0,0));
         this->deg_angle.push_back(0);
     }
-    calculate_avg_wind_dir();
-    
+
     is_wind = false;
     linear_wind_base = 15.;
     selected = 0;
     wind_alt = 0;
 
     stagnation_speed = 50;
+
+    // Direction tracker setup
+    direction_tracker_step = 1000.0f;
+    direction_tracker_step_size = 15;
+    direction_tracker.initialize(max_altitude, direction_tracker_step);
+    direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
+    calculate_avg_wind_dir();
 
     // coeff init
     air_incorporation_coeff = 5.;

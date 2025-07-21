@@ -134,6 +134,9 @@ struct scene_model : scene_base
     float altitude_step;
     int altitude_size;
 
+    int direction_tracker_step_size;
+    float direction_tracker_step;
+
     // Data structures
     std::vector<smoke_layer> smoke_layers;
     std::vector<free_sphere_params> free_spheres;
