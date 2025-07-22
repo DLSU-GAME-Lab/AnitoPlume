@@ -175,12 +175,12 @@ void camera_control_glfw::update_move(terrain_structure& terrain_struct, camera_
 {
     assert(window != nullptr);
 
-    const bool upward = (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS);
-    const bool downward = (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS);
-    const bool rightward = (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-    const bool leftward = (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
-    const bool forward = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-    const bool backward = (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+    const bool upward = (glfwGetKey(window, GLFW_KEY_E) != GLFW_RELEASE);
+    const bool downward = (glfwGetKey(window, GLFW_KEY_Q) != GLFW_RELEASE);
+    const bool rightward = (glfwGetKey(window, GLFW_KEY_D) != GLFW_RELEASE);
+    const bool leftward = (glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE);
+    const bool forward = (glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE);
+    const bool backward = (glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE);
 
     
     if (update == false || camera.mode == view_mode::orbital)

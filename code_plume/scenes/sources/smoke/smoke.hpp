@@ -69,6 +69,10 @@ struct scene_model : scene_base
     float avg_wind_dir_degrees;
     std::vector<std::string> tooltip_names;
     std::vector<std::string> landmark_names;
+
+    unsigned short free_sphere_id;
+    unsigned short falling_sphere_id;
+
     // Meshes
     vcl::mesh mesh_terrain;
 
@@ -120,6 +124,7 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
+    float min_lifetime;
     float max_lifetime;
 
     float tooltip_dist;

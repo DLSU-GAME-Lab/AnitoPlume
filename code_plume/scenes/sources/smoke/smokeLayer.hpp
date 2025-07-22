@@ -23,6 +23,7 @@ struct subsphere_params
 struct free_sphere_params
 {
     // characteristics
+    unsigned short id;
     vcl::vec3 center;
     float r;
 
@@ -61,7 +62,7 @@ struct free_sphere_params
 
     free_sphere_params() {}
     // constructor used for spheres attached to newly emitted slice
-    free_sphere_params(vcl::vec3 ring_center, float angle_on_ring, float r, float speed, bool sec_column=false) : r(r), speed({0,0,speed}), secondary_column(sec_column)
+    free_sphere_params(unsigned short sphere_id, vcl::vec3 ring_center, float angle_on_ring, float r, float speed, bool sec_column=false) : id(sphere_id), r(r), speed({0,0,speed}), secondary_column(sec_column)
     {
         vcl::vec3 angle_normal = {cos(angle_on_ring), sin(angle_on_ring),0};
         angle_vector = angle_normal;
@@ -77,7 +78,7 @@ struct free_sphere_params
         falling_disappeared = false;
     }
     // constructor used for falling spheres
-    free_sphere_params(vcl::vec3 center, float r, float rho) : r(r), center(center), rho(rho), speed({ 0,0,0 }), angular_speed(0), rotation_axis({ 1,0,0 }), current_angle(0),
+    free_sphere_params(unsigned short sphere_id, vcl::vec3 center, float r, float rho) : id(sphere_id), r(r), center(center), rho(rho), speed({ 0,0,0 }), angular_speed(0), rotation_axis({ 1,0,0 }), current_angle(0),
         angle_vector({ 0,1,0 }), mass(rho * 4. / 3. * 3.14 * r * r * r), size_factor(1.), falling_under_atm_rho(false), stagnate(false), stagnate_long(false), falling(true), falling_disappeared(false)
     {
         lifetime = 0;

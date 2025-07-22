@@ -110,7 +110,8 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     if (!replay)
     {
         sim_time += t_step;
-        //remove_smoke_layers();
+        remove_smoke_layers();
+
         for (int i = 0; i < transition_lifetime.size(); i++)
         {
             transition_lifetime[i] += t_step;
@@ -227,9 +228,7 @@ void scene_model::calculate_avg_wind_dir()
     vcl::vec3 winds_vec = { 0,0,0 };
     for (int i = 0; i < winds.size(); i++)
     {
-        winds_vec.x += winds[i].wind_vector.x;
-        winds_vec.y += winds[i].wind_vector.y;
-        winds_vec.z += winds[i].wind_vector.z;
+        winds_vec += winds[i].wind_vector;
     }
 
     float winds_squared_x = winds_vec.x * winds_vec.x;
@@ -437,32 +436,21 @@ void scene_model::remove_smoke_layers()
     * erase the layer that's over max lifetime and repeat
     * do the same for sphere params
     */
-    if (sim_time > max_lifetime)
+    if (!smoke_layers.empty())
     {
-        if (!smoke_layers.empty())
+        while (smoke_layers[0].lifetime > max_lifetime)
         {
-            int size = smoke_layers.size();
-            while (smoke_layers[0].lifetime > max_lifetime)
-                smoke_layers.erase(smoke_layers.begin());
-            std::cout << "Size difference: " << size - smoke_layers.size() << "\n";
-        }
+            smoke_layers.erase(smoke_layers.begin());
 
-        if (!free_spheres.empty())
-        {
-            while (free_spheres[0].lifetime > max_lifetime)
+            for (int i = 0; i < free_spheres.size(); i++)
+            {
+                free_spheres[i].closest_layer_idx--;
+            }
+
+            while (free_spheres[0].closest_layer_idx < 0)
+            {
                 free_spheres.erase(free_spheres.begin());
-        }
-
-        if (!s2_spheres.empty())
-        {
-            while (s2_spheres[0].lifetime > max_lifetime)
-                s2_spheres.erase(s2_spheres.begin());
-        }
-
-        if (!s3_spheres.empty())
-        {
-            while (s3_spheres[0].lifetime > max_lifetime)
-                s3_spheres.erase(s3_spheres.begin());
+            }
         }
     }
 }
@@ -732,7 +720,8 @@ void scene_model::falling_spheres_update(unsigned int frame_nb)
 
 void scene_model::add_free_sphere(unsigned int i, float angle, float size_fac)
 {
-    free_sphere_params sphere(smoke_layers[i].center, angle, size_fac * smoke_layers[i].r, smoke_layers[i].v.z);
+    free_sphere_params sphere(free_sphere_id, smoke_layers[i].center, angle, size_fac * smoke_layers[i].r, smoke_layers[i].v.z);
+    free_sphere_id++;
     sphere.size_factor = size_fac;
     sphere.rho = smoke_layers[i].rho;
     float volume = 4.0/3.0 * 3.14 * sphere.r*sphere.r*sphere.r;
@@ -825,7 +814,8 @@ void scene_model::subdivide_and_make_falling(unsigned int i)
     {
         if (s2_spheres[j].parent_id == i)
         {
-            free_sphere_params sphere = free_sphere_params(s2_spheres[j].center, s2_spheres[j].r, free_spheres[i].rho);
+            free_sphere_params sphere = free_sphere_params(falling_sphere_id, s2_spheres[j].center, s2_spheres[j].r, free_spheres[i].rho);
+            falling_sphere_id++;
             sphere.falling = true;
             sphere.stagnate = false;
             falling_spheres.push_back(sphere);
@@ -843,8 +833,9 @@ void scene_model::subdivide_and_make_falling(unsigned int i)
             float rand_theta = 2*3.14 * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             vec3 rand_vec(sin(rand_theta)*cos(rand_phi), sin(rand_theta)*sin(rand_phi), cos(rand_theta));
             vec3 new_center = free_spheres[i].center + rand_r * rand_vec; //random position inside free sphere
-            free_sphere_params sphere = free_sphere_params(new_center, falling_ray, free_spheres[i].rho);
+            free_sphere_params sphere = free_sphere_params(falling_sphere_id, new_center, falling_ray, free_spheres[i].rho);
             falling_spheres.push_back(sphere);
+            falling_sphere_id++;
         }
     }
 
@@ -874,6 +865,7 @@ void scene_model::update_free_spheres()
                     closest_layer_id = j;
                 }
             }
+
             if (sphere_i.secondary_column) closest_layer_id = sphere_i.closest_layer_idx;
             if (sphere_i.stagnate || sphere_i.stagnate_long) closest_layer_id = sphere_i.closest_layer_idx;
             closest_layer_id = sphere_i.closest_layer_idx;
@@ -1242,7 +1234,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     nb_of_iterations = 0;
     frame_count = 0;
     sim_time = 0;
-    max_lifetime = 10;
+    min_lifetime = 140.0f;
+    max_lifetime = 200.0f;
     export_data = false;
     state = engine_state::stopped;
     all_angles = false;
@@ -1279,7 +1272,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     scene.camera.set_scale(scene.camera_control.orbit_distance);
     scene.camera.translation = { 0.0f, 0.0f, -10.0f };
     scene.camera.apply_rotation_absolute(0.0f, 1.0f);
-    scene.camera.last_translation = { 0.0f, 50.0f, -10.0f };
+    scene.camera.last_translation = { 0.0f, 100.0f, -10.0f };
 
 
     // Meshes setup
@@ -1551,7 +1544,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // coeff init
     air_incorporation_coeff = 5.;
 
-    subspheres_number = 200;
+    subspheres_number = 0;
     subsubspheres_number = 0;
 
     // Parameters : to be chosen by user
@@ -1639,18 +1632,23 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             generic_sphere_mesh.uniform.transform.rotation = R;
             generic_sphere_mesh.uniform.color = {1,1,1};
 
-            float var = vcl::perlin(j,2);
+            float var = vcl::perlin(free_spheres[j].id,2);
 
             //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, scene.camera.orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * scene.camera.orientation;
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), j * var) * scene.camera.orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].id * var) * scene.camera.orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
-            quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
+            quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
            
             float l = (free_spheres[j].lifetime / 120) + 0.3f;
             if (l > 1) l = 1;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l});
+            float end_fade = 1.0f;
+            if (free_spheres[j].lifetime >= min_lifetime)
+                end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
+            end_fade *= quad.uniform.color_alpha;
+
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
         }
         glDepthMask(true);
     }
