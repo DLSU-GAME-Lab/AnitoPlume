@@ -4,14 +4,14 @@ using namespace vcl;
 
 void terrain_loader::load_all_textures()
 {
-    const char* years[]{ "2023", "2021", "2019", "2016", "2015" };
-    for (int i = 0; i < 5; i++)
+    const char* years[]{ "2023", "2021", "2019", "2016" };
+    for (int i = 0; i < 4; i++)
     {
         std::string year = years[i];
         std::string texture_path = "../scenes/sources/smoke/textures/Taal_Texture_" + year + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
     }
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 4; i++)
     {
         std::string year = years[i];
         std::string normal_path = "../scenes/sources/smoke/textures/Taal_Normal_" + year + ".png";
@@ -27,7 +27,7 @@ void terrain_loader::show_gui(bool* show)
     ImGui::Begin("Terrain", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
     *show = enabled;
 
-    static const char* labels[]{ "2023", "2021", "2019", "2016", "2015" };
+    static const char* labels[]{ "2023", "2021", "2019", "2016" };
     if (ImGui::Combo("Year", &current_tex, labels, IM_ARRAYSIZE(labels)))
     {
         current_tex_id = texture_id[current_tex];

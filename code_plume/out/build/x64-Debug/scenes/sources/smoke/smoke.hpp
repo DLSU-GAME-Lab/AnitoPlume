@@ -97,15 +97,15 @@ struct scene_model : scene_base
     vcl::mesh_drawable subspheres_display;
 
     // Parameters : to be chosen by user
-    float T_0; // initial temp
-    float theta_0; // initial angle
-    float U_0; // initial speed
-    float n_0; // initial gas mass fraction
-    float z_0; // initial altitude
-    float r_0; // initial radius
-    float rho_0; // initial density
-    float air_incorporation_coeff;
-    float stagnation_speed;
+    double T_0; // initial temp
+    double theta_0; // initial angle
+    double U_0; // initial speed
+    double n_0; // initial gas mass fraction
+    double z_0; // initial altitude
+    double r_0; // initial radius
+    double rho_0; // initial density
+    double air_incorporation_coeff;
+    double stagnation_speed;
 
     unsigned int subspheres_number;
     unsigned int subsubspheres_number;

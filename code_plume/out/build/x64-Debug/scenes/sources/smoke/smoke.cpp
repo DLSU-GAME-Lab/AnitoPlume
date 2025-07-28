@@ -1935,11 +1935,14 @@ void scene_model::setup_terrain_preemptive()
 
 void scene_model::set_gui(gui_structure& gui)
 {
-    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_NoResize);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
-    float indent_width = 5;
+    ImGui::PushItemWidth(200);
+
+    const float indent_width = 5;
+    const float child_width = 380;
     
     // Can set the speed of the animation
     float scale_min = 0.05f;
@@ -1950,10 +1953,12 @@ void scene_model::set_gui(gui_structure& gui)
     unsigned int spheres_min = 0, spheres_max = 500;
     ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max);
     ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max);
+    ImGui::PopItemWidth();
 
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 5));
+        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 5.25f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
 
         ImGui::Checkbox("Display billboards", &gui_param.display_billboards);
@@ -1974,18 +1979,21 @@ void scene_model::set_gui(gui_structure& gui)
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 2));
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
+        ImGui::PushItemWidth(200);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        //float initial_density_min = 150., initial_density_max = 250.;
-        //ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
-     /*   float vent_ray_min = 50., vent_ray_max = 200.;*/
-        //ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        float initial_density_min = 150., initial_density_max = 250.;
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        float vent_ray_min = 50., vent_ray_max = 200.;
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
         ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
 
+        ImGui::PopItemWidth();
         ImGui::Unindent();
         ImGui::EndChild();
 
@@ -1993,8 +2001,117 @@ void scene_model::set_gui(gui_structure& gui)
     // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Wind", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 14));
+        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 12.25f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
+        ImGui::PushItemWidth(200);
+
+        const int wind_alt_step = 4000;
+        const int wind_size = 6;
+        bool altitude_selected = false;
+
+        int alt_min = 0, alt_max = wind_alt_step * (wind_size - 1);
+        int wind_min = 0, wind_max = 300;
+        int angle_min = 0, angle_max = 360;
+
+        const float indent_w = 33;
+        const float slider_width = 25;
+        const float plot_width = 335;
+        const float plot_height = 100;
+
+        ImGui::Indent(indent_w);
+        ImGui::PushItemWidth(plot_width);
+
+        if (ImGui::SliderScalar("##Altitude", ImGuiDataType_S32, &wind_alt, &alt_min, &alt_max, "%d meters in altitude"))
+        {
+            for (int i = 0; i < wind_size && !altitude_selected; i++)
+            {
+                if (wind_altitudes[i] == wind_alt)
+                {
+                    altitude_selected = true;
+                    selected = i;
+                }
+            }
+
+            if (!altitude_selected)
+            {
+                selected = clamp(((float)wind_alt / wind_alt_step) + 0.5f, 0, wind_size - 1);
+                wind_alt = wind_altitudes[selected];
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::Unindent(indent_w);
+
+        float intensity[wind_size] = {};
+        float angle[wind_size] = {};
+
+        for (int i = 0; i < wind_size; i++)
+        {
+            intensity[i] = winds[i].intensity;
+            angle[i] = this->deg_angle[i];
+        }
+
+        const int x_offset = ImGui::GetCursorScreenPos().x;
+        const int plot_start = ImGui::GetCursorScreenPos().y;
+
+        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
+        {
+            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+            winds[selected].recalc_wind_vector();
+            calculate_avg_wind_dir();
+        }
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
+        ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity (m/s)", wind_min, wind_max, ImVec2(plot_width, plot_height));
+        ImGui::PopStyleColor();
+
+        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
+        {
+            if (all_angles)
+            {
+                for (int i = 0; i < wind_size; i++)
+                {
+                    this->deg_angle[i] = this->deg_angle[selected];
+                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                    winds[i].recalc_wind_vector();
+                }
+            }
+            else
+            {
+                winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+                winds[selected].recalc_wind_vector();
+            }
+
+            if (winds[selected].intensity != 0) calculate_avg_wind_dir();
+        }
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
+        ImGui::PlotLines("##Wind Angle", angle, wind_size, 0, "Wind Angle (degrees)", angle_min, angle_max, ImVec2(plot_width, plot_height));
+        ImGui::PopStyleColor();
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        const float plot_grid_offset = x_offset + slider_width + 11;
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 1; j < wind_size - 1; j++)
+            {
+                float plot_division = (float)j / (wind_size - 1);
+                float plot_grid = (plot_division * (plot_width - 8)) + plot_grid_offset;
+
+                ImVec2 start = ImVec2(plot_grid, plot_start + (plot_height * i) + (i * 3));
+                ImVec2 end = ImVec2(plot_grid, plot_start + (plot_height * (i + 1)) + (i * 3));
+                draw_list->AddLine(start, end, IM_COL32(255, 255, 255, 100), 1.0f);
+            }
+        }
+
+        float plot_div = (float)selected / (wind_size - 1);
+        float plot_x = (plot_div * (plot_width - 8)) + plot_grid_offset;
+
+        ImVec2 start = ImVec2(plot_x, plot_start);
+        ImVec2 end = ImVec2(plot_x, plot_start + (plot_height * 2) + 3);
+        draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 3.0f);
 
         if (ImGui::Button("No wind"))
         {
@@ -2031,7 +2148,7 @@ void scene_model::set_gui(gui_structure& gui)
                 winds[i].intensity = 300;
                 winds[i].recalc_wind_vector();
             }
-                
+
 
             calculate_avg_wind_dir();
         }
@@ -2040,7 +2157,6 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::Checkbox("All Angles", &all_angles);
 
         // Wind
-
         float lin_windbase_min = 0., lin_windbase_max = 35.;
         if (ImGui::SliderScalar("Linear wind speed", ImGuiDataType_Float, &linear_wind_base, &lin_windbase_min, &lin_windbase_max, "%1.f m/s"))
         {
@@ -2056,123 +2172,12 @@ void scene_model::set_gui(gui_structure& gui)
                 }
             }
         }
-
-        int wind_min = 0;
-        int wind_max = 300;
-        int angle_min = 0, angle_max = 360;
-
-        //for (int i = 0; i < wind_altitudes.size(); i++)
-        //{
-        //    std::string alti = "Intensity (" + std::to_string(wind_altitudes[i]) + "m)";
-        //    std::string angl = "Angle (" + std::to_string(wind_altitudes[i]) + "m)";
-        //    if (ImGui::SliderScalar(alti.c_str(), ImGuiDataType_S32, &winds[i].intensity, &wind_min, &wind_max))
-        //        winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle),0);
-        //    if (ImGui::SliderScalar(angl.c_str(), ImGuiDataType_S32, &winds[i].angle, &angle_min, &angle_max))
-        //        winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle),0);
-        //}
-
-        const int wind_alt_step = 4000;
-        const int wind_size = 6;
-        bool altitude_selected = false;
-
-        if (ImGui::InputInt("Wind Altitude", &wind_alt, wind_alt_step, wind_alt_step * 2))
-        {
-            for (int i = 0; i < wind_size && !altitude_selected; i++)
-            {
-                if (wind_altitudes[i] == wind_alt)
-                {
-                    altitude_selected = true;
-                    selected = i;
-                }
-            }
-
-            if (!altitude_selected)
-            {
-                selected = clamp(wind_alt / wind_alt_step, 0, wind_size - 1);
-                wind_alt = wind_altitudes[selected];
-            }
-        }
-
-        //if (ImGui::BeginCombo("Wind Altitude", std::to_string(wind_altitudes[selected]).c_str()))
-        //{
-        //    for (int i = 0; i < wind_altitudes.size(); i++)
-        //    {
-        //        const bool is_selected = selected == i;
-        //        if (ImGui::Selectable(std::to_string(wind_altitudes[i]).c_str(), is_selected))
-        //        {
-        //            selected = i;
-        //            std::cout << "selected: " << i << "\n";
-        //        }
-
-        //        if (is_selected) ImGui::SetItemDefaultFocus();
-        //    }
-        //    ImGui::EndCombo();
-        //}
-
-        if (ImGui::SliderScalar("Intensity", ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
-        {
-            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
-            winds[selected].recalc_wind_vector();
-            calculate_avg_wind_dir();
-        }
-           
-        if (ImGui::SliderScalar("Angle", ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
-        {
-            if (all_angles)
-            {
-                for (int i = 0; i < wind_size; i++)
-                {
-                    this->deg_angle[i] = this->deg_angle[selected];
-                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
-                    winds[i].recalc_wind_vector();
-                }
-            }
-            else
-            {
-                winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
-                winds[selected].recalc_wind_vector();
-            }
-            
-            if (winds[selected].intensity != 0) calculate_avg_wind_dir();
-       
-        }
-           
-
-        float intensity[wind_size] = {};
-        float angle[wind_size] = {};
-
-        for (int i = 0; i < wind_size; i++)
-        {
-            intensity[i] = winds[i].intensity;
-            angle[i] = this->deg_angle[i];
-        }
-
-
-        const int x_offset = ImGui::GetCursorScreenPos().x;
-        const int plot_start = ImGui::GetCursorScreenPos().y;
-
-        float plot_width = 360;
-        float plot_height = 100;
-        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
-        ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity", wind_min, wind_max, ImVec2(plot_width, plot_height));
-        ImGui::PopStyleColor();
-
-        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
-        ImGui::PlotLines("##Wind Angle", angle, wind_size, 0, "Wind Angle", angle_min, angle_max, ImVec2(plot_width, plot_height));
-        ImGui::PopStyleColor();
-
-        float plot_div = (float)selected / (wind_size - 1);
-        float plot_x = (plot_div * plot_width) + x_offset;
-
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 start = ImVec2(plot_x, plot_start);
-        ImVec2 end = ImVec2(plot_x, plot_start + (plot_height * 2) + 3);
-        draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 2.0f);
+        ImGui::PopItemWidth();
 
         ImGui::Unindent();
         ImGui::EndChild();
     }
-    
+
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     ImGui::End();
@@ -2180,7 +2185,7 @@ void scene_model::set_gui(gui_structure& gui)
 
 void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 78), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 73), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
