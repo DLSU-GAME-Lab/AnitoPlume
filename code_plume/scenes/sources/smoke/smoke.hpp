@@ -124,8 +124,8 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
-    float min_lifetime;
-    float max_lifetime;
+    double min_lifetime;
+    double max_lifetime;
 
     float tooltip_dist;
     float landmark_min_dist;

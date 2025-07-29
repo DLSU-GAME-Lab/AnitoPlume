@@ -1234,8 +1234,9 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     nb_of_iterations = 0;
     frame_count = 0;
     sim_time = 0;
-    min_lifetime = 140.0f;
-    max_lifetime = 200.0f;
+    min_lifetime = 150.0;
+    //May not work at higher lifetimes
+    max_lifetime = 180.0;
     export_data = false;
     state = engine_state::stopped;
     all_angles = false;
