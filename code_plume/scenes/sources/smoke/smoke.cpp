@@ -110,6 +110,7 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     if (!replay)
     {
         sim_time += t_step;
+        //remove_colliding_smoke();
         remove_smoke_layers();
 
         for (int i = 0; i < transition_lifetime.size(); i++)
@@ -278,8 +279,6 @@ void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     float rho_new = mass_new/volume_new;
     float r_new = cbrt(volume_new/3.14);
     smoke_layers[i].thickness = r_new;
-    smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
-
 
     // new speed due to conservation of energy (old)
     //float energy = 0.5 * total_smoke_mass * smoke_layers[i].v.z * smoke_layers[i].v.z;
@@ -411,6 +410,8 @@ void scene_model::sedimentation(unsigned int i, float& d_mass)
 void scene_model::smoke_layer_update(unsigned int i)
 {
     float d_mass = 0; // to track mass change for equation of dynamics
+    smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
+
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass);
@@ -419,11 +420,29 @@ void scene_model::smoke_layer_update(unsigned int i)
 
 void scene_model::check_smoke_position(unsigned int i)
 {
+    float max_layer_altitude = smoke_layers[0].center.z;
+    direction_tracker_step = direction_tracker_step < 100.0f ? 100.0f : max_layer_altitude / direction_tracker_step_size;
+    direction_tracker.set_altitude_step(direction_tracker_step);
     for (int j = 0; j < direction_tracker_step_size; j++)
     {
         if (int(smoke_layers[i].center.z) == int(j * direction_tracker_step) + 1)
         {
             direction_tracker.set_plume_positions(j, smoke_layers[i].center, smoke_layers[i].r);
+        }
+    }
+}
+
+void scene_model::remove_colliding_smoke()
+{
+    if (!free_spheres.empty())
+    {
+        float ratio = 100.0f;
+        float crater_r = 20.0f;
+        float y_offset = -10.0f;
+        for (int i = free_spheres.size() - 1; i >= 0; i--)
+        {
+            if (abs(free_spheres[i].center.x / ratio) > crater_r && free_spheres[i].center.y - (free_spheres[i].r / ratio) + y_offset < 0)
+                free_spheres.erase(free_spheres.begin() + i);
         }
     }
 }
@@ -438,6 +457,7 @@ void scene_model::remove_smoke_layers()
     */
     if (!smoke_layers.empty())
     {
+        //std::cout << "lifetime: " << smoke_layers[0].lifetime << " max: " << max_lifetime << " t_step: " << t_step << "\n";
         while (smoke_layers[0].lifetime > max_lifetime)
         {
             smoke_layers.erase(smoke_layers.begin());
@@ -849,6 +869,7 @@ void scene_model::update_free_spheres()
     for (int i = free_spheres.size()-1; i>=0; i--)
     {
         free_sphere_params& sphere_i = free_spheres[i];
+        sphere_i.lifetime = sphere_i.lifetime + t_step;
 
         if (!sphere_i.stagnate_long && !sphere_i.falling)
         {
@@ -932,7 +953,6 @@ void scene_model::update_free_spheres()
                 sphere_i.r = new_r;
                 sphere_i.relative_distance = norm(sphere_i.center-smoke_layers[closest_layer_id].center);
                 sphere_i.rho = smoke_layers[closest_layer_id].rho;
-                sphere_i.lifetime = sphere_i.lifetime + t_step;
 
                 if (!sphere_i.stagnate && smoke_layers[closest_layer_id].theta >1)
                 {
@@ -1234,9 +1254,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     nb_of_iterations = 0;
     frame_count = 0;
     sim_time = 0;
-    min_lifetime = 150.0;
-    //May not work at higher lifetimes
-    max_lifetime = 180.0;
+    min_lifetime = 180.0;
+    max_lifetime = 240.0;
     export_data = false;
     state = engine_state::stopped;
     all_angles = false;
@@ -1537,8 +1556,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Direction tracker setup
     direction_tracker_step = 1000.0f;
-    direction_tracker_step_size = 15;
-    direction_tracker.initialize(max_altitude, direction_tracker_step);
+    direction_tracker_step_size = 20;
+    direction_tracker.initialize(max_altitude, direction_tracker_step_size);
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     calculate_avg_wind_dir();
 
@@ -2074,7 +2093,7 @@ void scene_model::set_gui(gui_structure& gui)
         bool altitude_selected = false;
 
         int alt_min = 0, alt_max = max_altitude;
-        int wind_min = 0, wind_max = 300;
+        int wind_min = 0, wind_max = 200;
         int angle_min = 0, angle_max = 360;
 
         const float indent_w = 29;
@@ -2185,8 +2204,8 @@ void scene_model::set_gui(gui_structure& gui)
             is_wind = false;
             for (unsigned int i = 0; i < winds.size(); i++)
             {
-                this->deg_angle[i] = 0;
-                winds[i] = wind_structure(0, this->deg_angle[i]);
+                this->deg_angle[i] = angle_min;
+                winds[i] = wind_structure(wind_min, this->deg_angle[i]);
                 winds[i].recalc_wind_vector();
             }
             calculate_avg_wind_dir();
@@ -2200,7 +2219,7 @@ void scene_model::set_gui(gui_structure& gui)
             {
                 winds[i].intensity = i * linear_wind_base;
                 if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                if (winds[i].intensity == 0) winds[i].intensity = 1;
+                if (winds[i].intensity == wind_min) winds[i].intensity = 1;
                 winds[i].recalc_wind_vector();
             }
             calculate_avg_wind_dir();
@@ -2212,7 +2231,7 @@ void scene_model::set_gui(gui_structure& gui)
             is_wind = true;
             for (unsigned int i = 0; i < winds.size(); i++)
             {
-                winds[i].intensity = 300;
+                winds[i].intensity = wind_max;
                 winds[i].recalc_wind_vector();
             }
             calculate_avg_wind_dir();
@@ -2231,7 +2250,7 @@ void scene_model::set_gui(gui_structure& gui)
                 {
                     winds[i].intensity = i * linear_wind_base;
                     if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                    if (winds[i].intensity == 0) winds[i].intensity = 1;
+                    if (winds[i].intensity == wind_min) winds[i].intensity = 1;
                     winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
                     winds[i].recalc_wind_vector();
                 }
