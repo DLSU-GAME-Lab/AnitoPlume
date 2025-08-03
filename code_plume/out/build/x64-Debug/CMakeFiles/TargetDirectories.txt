@@ -1,3 +1,0 @@
-D:/GitHub Desktop/AnitoPlume PGDX/code_plume/out/build/x64-Debug/CMakeFiles/pgm.dir
-D:/GitHub Desktop/AnitoPlume PGDX/code_plume/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-D:/GitHub Desktop/AnitoPlume PGDX/code_plume/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir

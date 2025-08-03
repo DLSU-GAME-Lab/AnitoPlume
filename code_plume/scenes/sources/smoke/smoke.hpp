@@ -49,8 +49,8 @@ struct scene_model : scene_base
     unsigned int frame_count;
     vcl::timer_event timer;
     float dt;
-    bool debug_mode;
     float t_step;
+    bool debug_mode;
     bool replay;
     size_t frame_replay;
     bool export_data;
@@ -124,8 +124,8 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
-    float min_lifetime;
-    float max_lifetime;
+    double min_lifetime;
+    double max_lifetime;
 
     float tooltip_dist;
     float landmark_min_dist;
@@ -205,6 +205,7 @@ struct scene_model : scene_base
     void complete_plume_layer_properties_update(unsigned int i);
     void smoke_layer_update(unsigned int i);
     void check_smoke_position(unsigned int i);
+    void remove_colliding_smoke();
     void remove_smoke_layers();
 
     // Pyroclastic flow : falling spheres

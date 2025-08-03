@@ -11,6 +11,7 @@ class direction_tracker
 private:
 	float max_altitude;
 	float altitude_step;
+	int steps;
 	GLuint danger_zone_image;
 	std::vector<float> arc_start;
 	std::vector<float> arc_end;
@@ -34,7 +35,8 @@ private:
 	void show_affected_areas(float image_size);
 
 public:
-	void initialize(float max_altitude, float altitude_step);
+	void initialize(float max_altitude, int steps);
+	void set_altitude_step(float altitude_step);
 	void load_data(std::string filePath);
 
 	void set_wind_direction(vcl::vec3 wind_vector);

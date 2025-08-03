@@ -4,9 +4,14 @@
 #include <fstream>
 #include <sstream>
 
-void direction_tracker::initialize(float max_altitude, float altitude_step)
+void direction_tracker::initialize(float max_altitude, int steps)
 {
     this->max_altitude = max_altitude;
+    this->steps = steps;
+}
+
+void direction_tracker::set_altitude_step(float altitude_step)
+{
     this->altitude_step = altitude_step;
 }
 
@@ -165,10 +170,12 @@ void direction_tracker::show_gui(bool* show)
             {
                 ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
                 float radius = radii[i] / ratio;
-                if (int(i * altitude_step) + 1 >= int(positions[i].z))
+
+                if (int(positions[i].z) >= int(max_altitude) + 1)
                     radius *= ((i * altitude_step) / max_altitude) + 0.1f;
 
-                float col = 64 + (192 * (i / 15.0f));
+                int col = 64 + (192 * (i / (steps * 0.75f)));
+                if (col > 255) col = 255;
                 draw_list->AddCircleFilled(center, radius, IM_COL32(col, col, col, 200));
             }
         }
