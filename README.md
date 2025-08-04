@@ -1,5 +1,4 @@
-# Interactive simulation of plume and pyroclastic volcanic ejections
-
+# Interactive Simulation of Taal Volcano’s Eruption Plumes in a Customized 3D Scene Editor
 - [Introduction](#Introduction)
 - [Instructions](#Instructions)
 
