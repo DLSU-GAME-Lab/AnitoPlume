@@ -5,6 +5,27 @@ title: Home
 
 <!DOCTYPE html>
 <html lang ="en">
+  <style>
+  .flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  .flex-item {
+    flex: 1 1 48%; /* Two items per row with some spacing */
+  }
+
+  .flex-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+</style>
+
+<body>
 <img src="assets/images/banner.png" alt="AnitoPlume Banner" style="width:100%; height:auto;">
 
 <h1>About AnitoPlume</h1>
@@ -51,3 +72,17 @@ title: Home
   <source src="assets/videos/AP_InputAndPlayback.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
+
+<h1>Supplementary media and Results</h1>
+<div class="flex-container">
+  <div class="flex-item"><img src="assets/images/Plume.png"></div>
+  <div class="flex-item"><img src="assets/images/TaalTexture.png"></div>
+  <div class="flex-item"><img src="assets/images/Surland.png"></div>
+  <div class="flex-item"><img src="assets/images/Surland2.png"></div>
+  <div class="flex-item"><img src="assets/images/SSIM.png"></div>
+  <div class="flex-item"><img src="assets/images/RMSE.png"></div>
+  <div class="flex-item"><img src="assets/images/RMSE2.png"></div>
+  <div class="flex-item"><img src="assets/images/Comparison.png"></div>
+</div>
+</body>
+</html>
