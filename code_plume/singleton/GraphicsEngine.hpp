@@ -16,10 +16,11 @@ private:
 
 public:
 	static GraphicsEngine* getInstance();
-	void initialize();
-	void destroy();
+	static void initialize();
+	static void destroy();
 
-	void createWindow();
+	void createWindow(std::string window_title);
+	void openglDebugInformation();
 	void clearScreen();
 
 	GLFWwindow* getWindow();

@@ -10,6 +10,7 @@ GraphicsEngine::GraphicsEngine()
 	std::cout << "*** Init GLFW ***" << std::endl;
 	vcl::glfw_init();
 	std::cout << "\t [OK] GLFW Initialized" << std::endl;
+
 }
 
 GraphicsEngine::~GraphicsEngine()
@@ -32,18 +33,31 @@ void GraphicsEngine::destroy()
 	delete sharedInstance;
 }
 
-void GraphicsEngine::createWindow()
+void GraphicsEngine::createWindow(std::string window_title)
 {
 	std::cout << "*** Create window ***" << std::endl;
-	this->window_title = "AnitoPlume";
+	this->window_title = window_title;
 
-	GLFWwindow* window = vcl::glfw_create_window(
+	this->window = vcl::glfw_create_window(
 		WINDOW_WIDTH,
 		WINDOW_HEIGHT,
 		this->window_title,
 		OPENGL_VERSION_MAJOR,
 		OPENGL_VERSION_MINOR);
 	std::cout << "\t [OK] Window Created" << std::endl;
+
+	std::cout << "*** Init GLAD ***" << std::endl;
+	vcl::glad_init();
+	std::cout << "\t [OK] GLAD Initialized" << std::endl;
+}
+
+void GraphicsEngine::openglDebugInformation()
+{
+	std::cout << "*** OPENGL Information ***" << std::endl;
+	std::cout << "=======================================================" << std::endl;
+	vcl::opengl_debug_print_version();
+	std::cout << "=======================================================" << std::endl;
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }
 
 void GraphicsEngine::clearScreen()

@@ -1,5 +1,10 @@
 #include "AnitoPlume.hpp"
 
+#include "singleton/GraphicsEngine.hpp"
+#include "singleton/ShaderManager.hpp"
+#include "singleton/MeshManager.hpp"
+#include "singleton/GUIManager.hpp"
+
 // ************************************** //
 // Global data declaration
 // ************************************** //
@@ -51,58 +56,51 @@ AnitoPlume::AnitoPlume()
     // Initialization and data setup
     // ************************************** //
 
-    // Initialize external libraries and window
-    std::cout << "*** Init GLFW ***" << std::endl;
-    vcl::glfw_init();
-    std::cout << "\t [OK] GLFW Initialized" << std::endl;
+    std::cout << "*** Init systems ***" << std::endl;
+    GraphicsEngine::initialize();
+    ShaderManager::initialize();
+    MeshManager::initialize();
+    GUIManager::initialize();
+    std::cout << "\t [OK] systems Initialized" << std::endl;
 
-    std::cout << "*** Create window ***" << std::endl;
-    gui.window_title = "AnitoPlume";
-    const int opengl_version_major = 3;
-    const int opengl_version_minor = 3;
-    const int window_width = 1920;
-    const int window_height = 1080;
+    GraphicsEngine::getInstance()->createWindow("AnitoPlume");
+    gui.window = GraphicsEngine::getInstance()->getWindow();
 
-    gui.window = vcl::glfw_create_window(
-        window_width,
-        window_height,
-        gui.window_title,
-        opengl_version_major,
-        opengl_version_minor);
-    std::cout << "\t [OK] Window Created" << std::endl;
-
-    std::cout << "*** Init GLAD ***" << std::endl;
-    vcl::glad_init();
-    std::cout << "\t [OK] GLAD Initialized" << std::endl;
-
-    std::cout << "*** OPENGL Information ***" << std::endl;
-    std::cout << "=======================================================" << std::endl;
-    vcl::opengl_debug_print_version();
-    std::cout << "=======================================================" << std::endl;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    GraphicsEngine::getInstance()->openglDebugInformation();
 
     std::cout << "*** Init imgui ***" << std::endl;
-    vcl::imgui_init(gui.window);
+    vcl::imgui_init(GraphicsEngine::getInstance()->getWindow());
     std::cout << "\t [OK] imgui Initialized" << std::endl;
 
     // Set GLFW events listener
-    glfwSetCursorPosCallback(gui.window, cursor_position_callback);
-    glfwSetMouseButtonCallback(gui.window, mouse_click_callback);
-    glfwSetScrollCallback(gui.window, mouse_scroll_callback);
-    glfwSetKeyCallback(gui.window, keyboard_input_callback);
-    glfwSetWindowSizeCallback(gui.window, window_size_callback);
+    glfwSetCursorPosCallback(GraphicsEngine::getInstance()->getWindow(), cursor_position_callback);
+    glfwSetMouseButtonCallback(GraphicsEngine::getInstance()->getWindow(), mouse_click_callback);
+    glfwSetScrollCallback(GraphicsEngine::getInstance()->getWindow(), mouse_scroll_callback);
+    glfwSetKeyCallback(GraphicsEngine::getInstance()->getWindow(), keyboard_input_callback);
+    glfwSetWindowSizeCallback(GraphicsEngine::getInstance()->getWindow(), window_size_callback);
 
     std::cout << "*** Setup Shader ***" << std::endl;
-    shaders["mesh"] = vcl::create_shader_program("scenes/shared_assets/shaders/mesh/shader.vert.glsl", "scenes/shared_assets/shaders/mesh/shader.frag.glsl");
-    shaders["mesh_bf"] = vcl::create_shader_program("scenes/shared_assets/shaders/mesh_back_illumination/mesh.vert.glsl", "scenes/shared_assets/shaders/mesh_back_illumination/mesh.frag.glsl");
-    shaders["wireframe"] = vcl::create_shader_program("scenes/shared_assets/shaders/wireframe/shader.vert.glsl", "scenes/shared_assets/shaders/wireframe/shader.geom.glsl", "scenes/shared_assets/shaders/wireframe/shader.frag.glsl");
-    shaders["wireframe_quads"] = vcl::create_shader_program("scenes/shared_assets/shaders/wireframe_quads/shader.vert.glsl", "scenes/shared_assets/shaders/wireframe_quads/shader.geom.glsl", "scenes/shared_assets/shaders/wireframe_quads/shader.frag.glsl");
-    shaders["curve"] = vcl::create_shader_program("scenes/shared_assets/shaders/curve/shader.vert.glsl", "scenes/shared_assets/shaders/curve/shader.frag.glsl");
-    shaders["segment_im"] = vcl::create_shader_program("scenes/shared_assets/shaders/segment_immediate_mode/shader.vert.glsl", "scenes/shared_assets/shaders/segment_immediate_mode/shader.frag.glsl");
-    shaders["normals"] = vcl::create_shader_program("scenes/shared_assets/shaders/normals/shader.vert.glsl", "scenes/shared_assets/shaders/normals/shader.geom.glsl", "scenes/shared_assets/shaders/normals/shader.frag.glsl");
-    shaders["skybox"] = vcl::create_shader_program("scenes/shared_assets/shaders/skybox/shader.vert.glsl", "scenes/shared_assets/shaders/skybox/shader.frag.glsl");
-    shaders["mesh_mix"] = vcl::create_shader_program("scenes/shared_assets/shaders/mesh_mix/shader.vert.glsl", "scenes/shared_assets/shaders/mesh_mix/shader.frag.glsl");
-    shaders["sky_mesh"] = vcl::create_shader_program("scenes/shared_assets/shaders/sky_mesh/shader.vert.glsl", "scenes/shared_assets/shaders/sky_mesh/shader.frag.glsl");
+    ShaderManager::getInstance()->load("mesh", "mesh");
+    ShaderManager::getInstance()->load("mesh_back_illumination", "mesh_bf");
+    ShaderManager::getInstance()->load("wireframe", "wireframe", true);
+    ShaderManager::getInstance()->load("wireframe_quads", "mewireframe_quads", true);
+    ShaderManager::getInstance()->load("curve", "curve");
+    ShaderManager::getInstance()->load("segment_immediate_mode", "segment_im");
+    ShaderManager::getInstance()->load("normals", "normals", true);
+    ShaderManager::getInstance()->load("skybox", "skybox");
+    ShaderManager::getInstance()->load("mesh_mix", "mesh_mix");
+    ShaderManager::getInstance()->load("sky_mesh", "sky_mesh");
+
+    shaders["mesh"] = ShaderManager::getInstance()->getShader("mesh");
+    shaders["mesh_bf"] = ShaderManager::getInstance()->getShader("mesh_bf");
+    shaders["wireframe"] = ShaderManager::getInstance()->getShader("wireframe");
+    shaders["wireframe_quads"] = ShaderManager::getInstance()->getShader("wireframe_quads");
+    shaders["curve"] = ShaderManager::getInstance()->getShader("curve");
+    shaders["segment_im"] = ShaderManager::getInstance()->getShader("segment_im");
+    shaders["normals"] = ShaderManager::getInstance()->getShader("normals");
+    shaders["skybox"] = ShaderManager::getInstance()->getShader("skybox");
+    shaders["mesh_mix"] = ShaderManager::getInstance()->getShader("mesh_mix");
+    shaders["sky_mesh"] = ShaderManager::getInstance()->getShader("sky_mesh");
     std::cout << "\t [OK] Shader loaded" << std::endl;
 
 
@@ -118,7 +116,7 @@ AnitoPlume::AnitoPlume()
     scene.frame_worldspace.shader = shaders.at("mesh");
 
     int width = 0, height = 0;
-    glfwGetWindowSize(gui.window, &width, &height);
+    glfwGetWindowSize(GraphicsEngine::getInstance()->getWindow(), &width, &height);
     const float aspect_ratio = width / static_cast<float>(height);
     scene.camera.perspective = vcl::perspective_structure(40 * 3.14f / 180, aspect_ratio, 0.01f, 3000.0f);
 
@@ -126,7 +124,7 @@ AnitoPlume::AnitoPlume()
     scene.clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
     const vcl::image_raw white{ 1,1,vcl::image_color_type::rgba,{255,255,255,255} };
     scene.texture_white = vcl::create_texture_gpu(white);
-    gui.enabled["Camera Settings"] = true;
+    //gui.enabled["Camera Settings"] = true;
 
 
     opengl_debug();
@@ -138,7 +136,10 @@ AnitoPlume::AnitoPlume()
 
 AnitoPlume::~AnitoPlume()
 {
-
+    GUIManager::destroy();
+    MeshManager::destroy();
+    ShaderManager::destroy();
+    GraphicsEngine::destroy();
 }
 
 void AnitoPlume::run()
@@ -154,7 +155,7 @@ void AnitoPlume::run()
 
     vcl::glfw_fps_counter fps_counter;
 
-    while (!glfwWindowShouldClose(gui.window))
+    while (!glfwWindowShouldClose(GraphicsEngine::getInstance()->getWindow()))
     {
         auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -166,8 +167,9 @@ void AnitoPlume::run()
 
         if (fps_counter.update())
         {
-            const std::string new_window_title = gui.window_title + " (" + std::to_string(fps_counter.fps()) + " fps)";
-            glfwSetWindowTitle(gui.window, new_window_title.c_str());
+            std::string window_title = GraphicsEngine::getInstance()->getWindowTitle();
+            const std::string new_window_title = window_title + " (" + std::to_string(fps_counter.fps()) + " fps)";
+            glfwSetWindowTitle(GraphicsEngine::getInstance()->getWindow(), new_window_title.c_str());
             fps_counter.reset();
         }
 
@@ -185,7 +187,7 @@ void AnitoPlume::run()
     // Cleanup ImGui and GLFW
     vcl::imgui_cleanup();
 
-    glfwDestroyWindow(gui.window);
+    glfwDestroyWindow(GraphicsEngine::getInstance()->getWindow());
     glfwTerminate();
 }
 
@@ -225,7 +227,7 @@ void AnitoPlume::render()
 
     // Render GUI and update window
     scene.camera_control.update = !(ImGui::IsAnyWindowFocused());
-    vcl::imgui_render_frame(gui.window);
+    vcl::imgui_render_frame(GraphicsEngine::getInstance()->getWindow());
 
-    glfwSwapBuffers(gui.window);
+    glfwSwapBuffers(GraphicsEngine::getInstance()->getWindow());
 }

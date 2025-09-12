@@ -4,8 +4,6 @@
 
 #include "mesh_buffer.hpp"
 
-#include "vcl/base/base.hpp"
-
 #include <map>
 
 #include <fstream>

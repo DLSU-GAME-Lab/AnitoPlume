@@ -29,7 +29,6 @@ file(
     vcl/*.[ch]pp
     vcl/*/.[ch]pp
     singleton/*.[ch]pp
-    resources/*.[ch]pp
     main/*.[ch]pp
     third_party/*.[ch]pp
     third_party/*.[ch]

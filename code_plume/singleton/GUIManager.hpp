@@ -4,8 +4,8 @@ class GUIManager
 {
 public:
 	static GUIManager* getInstance();
-	void initialize();
-	void destroy();
+	static void initialize();
+	static void destroy();
 
 private:
 	GUIManager();

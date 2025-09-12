@@ -1,4 +1,5 @@
 #include "GUIManager.hpp"
+#include "vcl/opengl/opengl.hpp"
 
 GUIManager* GUIManager::sharedInstance = nullptr;
 

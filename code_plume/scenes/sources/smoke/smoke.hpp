@@ -1,6 +1,5 @@
 #pragma once
 
-#include "scenes/base/base.hpp"
 #include "scenes/sources/smoke/smokeLayer.hpp"
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
