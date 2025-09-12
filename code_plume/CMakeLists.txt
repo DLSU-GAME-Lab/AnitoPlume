@@ -7,13 +7,14 @@ add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLAD -DNDEBUG)
 
 # Add G++ Warning on Unix
 if(UNIX)
-    add_definitions(-g -Ofast -std=c++11 -Wall -Wextra -fopenmp)
+    add_definitions(-g -Ofast -std=c++17 -Wall -Wextra -fopenmp)
     set(CMAKE_CXX_COMPILER g++)
     find_package(glfw3 REQUIRED) #Expect glfw3 to be installed on your system
 endif()
 
 # In Window set directory to precompiled version of glfw3
 if(WIN32)
+    set(CMAKE_CXX_STANDARD 17)
     set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/lib_windows/glfw3_win/include")
     include_directories(${GLFW_INCLUDE_DIRS})
     set(GLFW_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib_windows/glfw3_win/lib/glfw3.lib")
@@ -27,13 +28,15 @@ file(
     source_files
     vcl/*.[ch]pp
     vcl/*/.[ch]pp
+    singleton/*.[ch]pp
+    resources/*.[ch]pp
     main/*.[ch]pp
     third_party/*.[ch]pp
     third_party/*.[ch]
     scenes/*.[ch]pp
     scenes/*.glsl
     )
-add_executable(pgm ${source_files} "scenes/sources/smoke/landmark_loader/landmark_loader.cpp")
+add_executable(pgm ${source_files})
 
 
 if(UNIX)
