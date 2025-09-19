@@ -21,30 +21,30 @@ gui_structure gui;
 // Part specific data - you will specify this object in the corresponding exercise part
 scene_model scene_current;
 
-void window_size_callback(GLFWwindow* window, int width, int height)
+void windowSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
     scene.camera.perspective.image_aspect = width / static_cast<float>(height);;
 }
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
     scene.camera_control.update_rotate(scene.camera, window, float(xpos), float(ypos));
     scene_current.mouse_move(scene, window);
 }
-void mouse_click_callback(GLFWwindow* window, int button, int action, int mods)
+void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)) ImGui::SetWindowFocus(nullptr);
 
     scene.camera_control.update_mouse_click(scene.camera, window, button, action, mods);
     scene_current.mouse_click(scene, window, button, action, mods);
 }
-void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     scene.camera_control.update_mouse_scroll(scene.camera, window, float(xoffset), float(yoffset));
     scene_current.mouse_scroll(scene, window, float(xoffset), float(yoffset));
 }
-void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void keyboardInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     scene.camera_control.update_move(scene_current.terrain_struct, scene.camera, window, key, scancode, action, mods);
     scene_current.keyboard_input(scene, window, key, scancode, action, mods);
@@ -60,7 +60,6 @@ AnitoPlume::AnitoPlume()
     GraphicsEngine::initialize();
     ShaderManager::initialize();
     MeshManager::initialize();
-    GUIManager::initialize();
     std::cout << "\t [OK] systems Initialized" << std::endl;
 
     GraphicsEngine::getInstance()->createWindow("AnitoPlume");
@@ -69,15 +68,15 @@ AnitoPlume::AnitoPlume()
     GraphicsEngine::getInstance()->openglDebugInformation();
 
     std::cout << "*** Init imgui ***" << std::endl;
-    vcl::imgui_init(GraphicsEngine::getInstance()->getWindow());
+    GUIManager::initialize(GraphicsEngine::getInstance()->getWindow());
     std::cout << "\t [OK] imgui Initialized" << std::endl;
 
     // Set GLFW events listener
-    glfwSetCursorPosCallback(GraphicsEngine::getInstance()->getWindow(), cursor_position_callback);
-    glfwSetMouseButtonCallback(GraphicsEngine::getInstance()->getWindow(), mouse_click_callback);
-    glfwSetScrollCallback(GraphicsEngine::getInstance()->getWindow(), mouse_scroll_callback);
-    glfwSetKeyCallback(GraphicsEngine::getInstance()->getWindow(), keyboard_input_callback);
-    glfwSetWindowSizeCallback(GraphicsEngine::getInstance()->getWindow(), window_size_callback);
+    glfwSetCursorPosCallback(GraphicsEngine::getInstance()->getWindow(), cursorPositionCallback);
+    glfwSetMouseButtonCallback(GraphicsEngine::getInstance()->getWindow(), mouseClickCallback);
+    glfwSetScrollCallback(GraphicsEngine::getInstance()->getWindow(), mouseScrollCallback);
+    glfwSetKeyCallback(GraphicsEngine::getInstance()->getWindow(), keyboardInputCallback);
+    glfwSetWindowSizeCallback(GraphicsEngine::getInstance()->getWindow(), windowSizeCallback);
 
     std::cout << "*** Setup Shader ***" << std::endl;
     ShaderManager::getInstance()->load("mesh", "mesh");
@@ -183,12 +182,7 @@ void AnitoPlume::run()
         }
     }
     std::cout << "*** Stop GLFW loop ***" << std::endl;
-
-    // Cleanup ImGui and GLFW
-    vcl::imgui_cleanup();
-
-    glfwDestroyWindow(GraphicsEngine::getInstance()->getWindow());
-    glfwTerminate();
+    GraphicsEngine::getInstance()->destroyWindow();
 }
 
 void AnitoPlume::processInput()
@@ -205,29 +199,24 @@ void AnitoPlume::update()
 void AnitoPlume::render()
 {
     // Clear all color and zbuffer information before drawing on the screen
-    glClearColor(scene.clear_color[0], scene.clear_color[1], scene.clear_color[2], scene.clear_color[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    opengl_debug();
+    GraphicsEngine::getInstance()->clearScreen();
 
     // Set a white image texture by default
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
 
     // Create the basic gui structure with ImGui
-    vcl::imgui_create_frame();
+    GUIManager::getInstance()->newFrame();
+
+    // Perform computation and draw calls for each iteration loop
+    scene_current.frame_draw(shaders, scene, gui);
+    opengl_debug();
 
     gui_main_menu_bar(gui, scene);
     gui_camera_settings(gui, scene);
 
-    // Perform computation and draw calls for each iteration loop
-    scene_current.frame_draw(shaders, scene, gui);
-
-    opengl_debug();
-
     // Render GUI and update window
-    scene.camera_control.update = !(ImGui::IsAnyWindowFocused());
-    vcl::imgui_render_frame(GraphicsEngine::getInstance()->getWindow());
+    //scene.camera_control.update = !(ImGui::IsAnyWindowFocused());
+    GUIManager::getInstance()->drawAllGUI(GraphicsEngine::getInstance()->getWindow());
 
-    glfwSwapBuffers(GraphicsEngine::getInstance()->getWindow());
+    GraphicsEngine::getInstance()->swapBuffers();
 }

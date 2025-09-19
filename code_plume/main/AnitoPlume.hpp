@@ -13,11 +13,11 @@
 // GLFW event listeners
 // ************************************** //
 
-void window_size_callback(GLFWwindow* window, int width, int height);
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-void mouse_click_callback(GLFWwindow* window, int button, int action, int mods);
-void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void keyboard_input_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void windowSizeCallback(GLFWwindow* window, int width, int height);
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseClickCallback(GLFWwindow* window, int button, int action, int mods);
+void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void keyboardInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 class AnitoPlume
 {

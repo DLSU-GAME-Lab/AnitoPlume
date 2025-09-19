@@ -20,8 +20,10 @@ public:
 	static void destroy();
 
 	void createWindow(std::string window_title);
+	void destroyWindow();
 	void openglDebugInformation();
 	void clearScreen();
+	void swapBuffers();
 
 	GLFWwindow* getWindow();
 	std::string getWindowTitle();

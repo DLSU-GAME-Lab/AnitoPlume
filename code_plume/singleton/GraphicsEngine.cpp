@@ -15,7 +15,7 @@ GraphicsEngine::GraphicsEngine()
 
 GraphicsEngine::~GraphicsEngine()
 {
-
+	glfwTerminate();
 }
 
 GraphicsEngine* GraphicsEngine::getInstance()
@@ -51,6 +51,11 @@ void GraphicsEngine::createWindow(std::string window_title)
 	std::cout << "\t [OK] GLAD Initialized" << std::endl;
 }
 
+void GraphicsEngine::destroyWindow()
+{
+	glfwDestroyWindow(this->window);
+}
+
 void GraphicsEngine::openglDebugInformation()
 {
 	std::cout << "*** OPENGL Information ***" << std::endl;
@@ -67,6 +72,11 @@ void GraphicsEngine::clearScreen()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	opengl_debug();
+}
+
+void GraphicsEngine::swapBuffers()
+{
+	glfwSwapBuffers(this->window);
 }
 
 GLFWwindow* GraphicsEngine::getWindow()
