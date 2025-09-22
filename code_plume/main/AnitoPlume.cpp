@@ -146,6 +146,7 @@ AnitoPlume::AnitoPlume()
 
 AnitoPlume::~AnitoPlume()
 {
+    CameraManager::destroy();
     GUIManager::destroy();
     MeshManager::destroy();
     ShaderManager::destroy();
