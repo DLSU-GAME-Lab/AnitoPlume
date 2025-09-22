@@ -1,8 +1,6 @@
 #include "GUIManager.hpp"
-
-#include "third_party/imgui/imgui.h"
-#include "third_party/imgui/imgui_impl_glfw.h"
-#include "third_party/imgui/imgui_impl_opengl3.h"
+#include"gui/MenuScreen.hpp"
+#include "gui/CameraSettingsScreen.hpp"
 
 void GUIManager::newFrame()
 {
@@ -55,10 +53,24 @@ GUIManager::GUIManager(GLFWwindow* window)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");
     ImGui::StyleColorsDark();
+
+    MenuScreen* menuScreen = new MenuScreen();
+    this->guiTable["MENU_SCREEN"] = menuScreen;
+    this->guiList.push_back(menuScreen);
+
+    CameraSettingsScreen* camScreen = new CameraSettingsScreen();
+    this->guiTable["CAMERA_SETTINGS_SCREEN"] = camScreen;
+    this->guiList.push_back(camScreen);
+
 }
 
 GUIManager::~GUIManager()
 {
+    for (int i = this->guiList.size() - 1; i >= 0; i--)
+    {
+        delete this->guiList[i];
+    }
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

@@ -24,9 +24,9 @@ mat4 perspective_structure::matrix() const
 
     return {
         fx,0,0,0,
-                0,fy,0,0,
-                0,0,C,D,
-                0,0,-1,0
+        0,fy,0,0,
+        0,0,C,D,
+        0,0,-1,0
     };
 }
 

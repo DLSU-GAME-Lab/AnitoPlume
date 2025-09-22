@@ -1,5 +1,5 @@
 #include "smoke.hpp"
-
+#include "singleton/CameraManager.hpp"
 
 using namespace vcl;
 
@@ -93,13 +93,15 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     terrain_display.norm_tex_id = t_loader.current_norm_id;
     //std::cout << terrain_display.texture_id << std::endl;
     //std::cout << t_loader.current_tex_id << std::endl;
+
+    camera_scene* camera = CameraManager::getInstance()->getCamera();
     for (int i = 0; i < 4; i++)
     {
-        tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
+        tooltip_display[i].uniform.transform.rotation = camera->orientation;
     }
     for (int i = 0; i < 11; i++)
     {
-        landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
+        landmark_display[i].uniform.transform.rotation = camera->orientation;
     }
 
 
@@ -1288,13 +1290,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     gui.enabled["Profiler"] = true;
     gui.enabled["Terrain"] = true;
 
-    // camera setup
-    scene.camera.set_scale(scene.camera_control.orbit_distance);
-    scene.camera.translation = { 0.0f, 0.0f, -10.0f };
-    scene.camera.apply_rotation_absolute(0.0f, 1.0f);
-    scene.camera.last_translation = { 0.0f, 100.0f, -10.0f };
-
-
     // Meshes setup
     layer_mesh = mesh_drawable( mesh_primitive_cylinder(0.1f, {0,0,0}, {0,0,0.01}));
     layer_mesh.shader = shaders["mesh"];
@@ -1586,16 +1581,18 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    if (scene.sky_enabled)
-        draw_sky(skysphere, scene.camera, shaders["sky_mesh"], skysphere.texture_id);
-        //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
+    camera_scene* camera = CameraManager::getInstance()->getCamera();
+
+    if (camera->sky_enabled)
+        draw_sky(skysphere, *camera, shaders["sky_mesh"], skysphere.texture_id);
+        //draw_sky(sky_sphere, *camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
-        //draw(terrain_display, scene.camera, shaders["mesh"], true);
-        draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        //draw(terrain_display, *camera, shaders["mesh"], true);
+        draw_mix(terrain_display, *camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
-    //draw(terrain, scene.camera, shaders["wireframe"]);
+    //draw(terrain, *camera, shaders["wireframe"]);
 
     float ratio = 100;
 
@@ -1610,7 +1607,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
+        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, *camera);
     }
 
 //    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
@@ -1631,12 +1628,12 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
             float var = vcl::perlin(j, 2);
 
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), transition_speed * transition_lifetime[j] * var) * scene.camera.orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), transition_speed * transition_lifetime[j] * var) * camera->orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling * 1.3;
             quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+            draw(quad, *camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
         }
 
 
@@ -1654,8 +1651,8 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
             float var = vcl::perlin(free_spheres[j].id,2);
 
-            //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, scene.camera.orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * scene.camera.orientation;
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].id * var) * scene.camera.orientation;
+            //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].id * var) * camera->orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
@@ -1668,7 +1665,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
             end_fade *= quad.uniform.color_alpha;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
+            draw(quad, *camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
         }
         glDepthMask(true);
     }
@@ -1694,7 +1691,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.transform.rotation = R;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+                if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
             }
         }
     }
@@ -1720,7 +1717,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 subspheres_display.uniform.transform.rotation = R;
                 subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
 
-                draw(subspheres_display, scene.camera, shaders["mesh"], subspheres.texture_id);
+                draw(subspheres_display, *camera, shaders["mesh"], subspheres.texture_id);
             }
         }
     }
@@ -1742,7 +1739,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 generic_sphere_mesh.uniform.transform.translation = t;
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+                if(gui_param.display_subspheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
             }
         }
     }
@@ -1757,7 +1754,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
         if (falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
         else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
     }
     // buffer falling spheres display
     for (unsigned int k = 0; k<falling_spheres_buffers.size(); k++)
@@ -1771,18 +1768,18 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
             if (falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
             else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
         }
     }
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
 
-    if (gui_param.display_tooltips == true  && scene.camera.mode != view_mode::orbital )
+    if (gui_param.display_tooltips == true  && camera->mode != view_mode::orbital )
     {
         glDepthMask(false);
         for (int i = 0; i < 4; i++)
         {
-            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + scene.camera.translation;
+            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + camera->translation;
             float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
             
             if (sqr_mag <= tooltip_dist * tooltip_dist)
@@ -1790,7 +1787,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             else
                 tooltip_display[i].texture_id = tip_loader.texture_id[4];
 
-            draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+            draw(tooltip_display[i], *camera, shaders["mesh"], false);
 
         }
        
@@ -1801,7 +1798,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     glDepthMask(false);
     for (int i = 0; i < 11; i++)
     {
-        vec3 lm_vec = landmark_display[i].uniform.transform.translation + scene.camera.translation;
+        vec3 lm_vec = landmark_display[i].uniform.transform.translation + camera->translation;
         float sqr_mag = (lm_vec.x * lm_vec.x) + (lm_vec.y * lm_vec.y) + (lm_vec.z * lm_vec.z);
         float alpha = 1.0f;
 
@@ -1811,15 +1808,16 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             if (alpha < 0.0f) alpha = 0.0f;
         }
         
-        draw(landmark_display[i], scene.camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+        draw(landmark_display[i], *camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
     }
     glDepthMask(true);
 }
 
 void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame)
 {
+    camera_scene* camera = CameraManager::getInstance()->getCamera();
     if (terrain_display.data.number_triangles > 0)
-        draw(terrain_display, scene.camera, shaders["mesh"]);
+        draw(terrain_display, *camera, shaders["mesh"]);
 
     float ratio = 100.0;
 
@@ -1834,7 +1832,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio, lay.center.y/ratio, lay.center.z/ratio);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
+        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, *camera);
     }
 
 
@@ -1845,8 +1843,6 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
     // billboards
     if(gui_param.display_billboards)
     {
-       
-        std::cout << "randomNum" << std::endl;
         glDepthMask(false);
         for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
         {
@@ -1861,12 +1857,12 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
 
             float var = vcl::perlin(j,2);
 
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres_frames[frame][j].current_angle * dot(free_spheres_frames[frame][j].rotation_axis,scene.camera.orientation.col(2)) * 1.5f *(1+0.3*var)   + 2.2145*j*j) * scene.camera.orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres_frames[frame][j].current_angle * dot(free_spheres_frames[frame][j].rotation_axis,camera->orientation.col(2)) * 1.5f *(1+0.3*var)   + 2.2145*j*j) * camera->orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
             
-            draw(quad, scene.camera, shaders["mesh"]);
+            draw(quad, *camera, shaders["mesh"]);
         }
         glDepthMask(true);
     }
@@ -1887,7 +1883,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
             generic_sphere_mesh.uniform.transform.scaling = r;
             generic_sphere_mesh.uniform.transform.rotation = R;
             generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
         }
     }
 
@@ -1910,7 +1906,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
                 subspheres_display.uniform.transform.rotation = R;
                 subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
 
-                draw(subspheres_display, scene.camera, shaders["mesh"]);
+                draw(subspheres_display, *camera, shaders["mesh"]);
             }
         }
     }
@@ -1931,7 +1927,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
                 generic_sphere_mesh.uniform.transform.translation = t;
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+                if(gui_param.display_subspheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
             }
         }
     }
@@ -1946,7 +1942,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
         if (falling_spheres_frames[frame][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
         else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
     }
     // buffer falling spheres display
     for (unsigned int k = 0; k<falling_spheres_buffers_frames[frame].size(); k++)
@@ -1960,7 +1956,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
             if (falling_spheres_buffers_frames[frame][k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
             else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, scene.camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
         }
     }
 

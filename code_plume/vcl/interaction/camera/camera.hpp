@@ -50,6 +50,8 @@ struct camera_scene
     camera_control_type camera_type = camera_control_spherical_coordinates;
     vec2 spherical_coordinates = {0,0};
 
+    bool sky_enabled = true;
+    vec4 clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     view_mode mode = view_mode::orbital;
     vec3 last_translation = {};

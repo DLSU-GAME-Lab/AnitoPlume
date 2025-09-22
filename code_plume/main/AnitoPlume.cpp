@@ -4,6 +4,7 @@
 #include "singleton/ShaderManager.hpp"
 #include "singleton/MeshManager.hpp"
 #include "singleton/GUIManager.hpp"
+#include "singleton/CameraManager.hpp"
 
 // ************************************** //
 // Global data declaration
@@ -24,29 +25,37 @@ scene_model scene_current;
 void windowSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    scene.camera.perspective.image_aspect = width / static_cast<float>(height);;
+    CameraManager::getInstance()->getCamera()->perspective.image_aspect = width / static_cast<float>(height);
 }
 
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    scene.camera_control.update_rotate(scene.camera, window, float(xpos), float(ypos));
+    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
+    controller->update_rotate(camera, window, float(xpos), float(ypos));
     scene_current.mouse_move(scene, window);
 }
 void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)) ImGui::SetWindowFocus(nullptr);
 
-    scene.camera_control.update_mouse_click(scene.camera, window, button, action, mods);
+    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
+    controller->update_mouse_click(camera, window, button, action, mods);
     scene_current.mouse_click(scene, window, button, action, mods);
 }
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    scene.camera_control.update_mouse_scroll(scene.camera, window, float(xoffset), float(yoffset));
+    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
+    CameraManager::getInstance()->getController()->update_mouse_scroll(camera, window, float(xoffset), float(yoffset));
     scene_current.mouse_scroll(scene, window, float(xoffset), float(yoffset));
 }
 void keyboardInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    scene.camera_control.update_move(scene_current.terrain_struct, scene.camera, window, key, scancode, action, mods);
+    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
+    CameraManager::getInstance()->getController()->update_move(camera, window, key, scancode, action, mods);
     scene_current.keyboard_input(scene, window, key, scancode, action, mods);
 }
 
@@ -64,6 +73,8 @@ AnitoPlume::AnitoPlume()
 
     GraphicsEngine::getInstance()->createWindow("AnitoPlume");
     gui.window = GraphicsEngine::getInstance()->getWindow();
+
+    CameraManager::initialize(GraphicsEngine::getInstance()->getWindow());
 
     GraphicsEngine::getInstance()->openglDebugInformation();
 
@@ -193,7 +204,7 @@ void AnitoPlume::processInput()
 
 void AnitoPlume::update()
 {
-    scene.camera_control.update_timer();
+    CameraManager::getInstance()->getController()->update_timer();
 }
 
 void AnitoPlume::render()
@@ -210,9 +221,6 @@ void AnitoPlume::render()
     // Perform computation and draw calls for each iteration loop
     scene_current.frame_draw(shaders, scene, gui);
     opengl_debug();
-
-    gui_main_menu_bar(gui, scene);
-    gui_camera_settings(gui, scene);
 
     // Render GUI and update window
     //scene.camera_control.update = !(ImGui::IsAnyWindowFocused());

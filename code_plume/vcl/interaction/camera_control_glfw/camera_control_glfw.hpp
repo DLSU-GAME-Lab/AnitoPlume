@@ -2,7 +2,6 @@
 
 #include "../camera/camera.hpp"
 #include "../time_slider/time_slider.hpp"
-#include "scenes/sources/smoke/terrain_structure.hpp"
 #include <GLFW/glfw3.h>
 
 
@@ -13,13 +12,13 @@ class camera_control_glfw
 {
 public:
 
-    void update_mouse_move(camera_scene& camera, GLFWwindow* window, float x1, float y1);
-    void update_mouse_click(camera_scene& camera, GLFWwindow* window,  int button, int action, int mods);
-    void update_mouse_scroll(camera_scene& camera, GLFWwindow* window, float xoffset, float yoffset);
+    void update_mouse_move(camera_scene* camera, GLFWwindow* window, float x1, float y1);
+    void update_mouse_click(camera_scene* camera, GLFWwindow* window,  int button, int action, int mods);
+    void update_mouse_scroll(camera_scene* camera, GLFWwindow* window, float xoffset, float yoffset);
 
     void update_timer();
-    void update_rotate(camera_scene& camera, GLFWwindow* window, float x1, float y1);
-    void update_move(terrain_structure& terrain_struct, camera_scene& camera, GLFWwindow* window, int key, int scancode, int action, int mods);
+    void update_rotate(camera_scene* camera, GLFWwindow* window, float x1, float y1);
+    void update_move(camera_scene* camera, GLFWwindow* window, int key, int scancode, int action, int mods);
 
     bool update = true;
 
