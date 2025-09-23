@@ -37,6 +37,13 @@ public:
     void update_normal(const vcl::buffer<vec3>& new_normal);
 
 
+    void draw(const camera_scene& camera);
+    void draw(const camera_scene& camera, GLuint shader, bool hasNormal = false);
+    void draw(const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color = { 1, 1, 1 }, float alpha = 1.0f);
+    void draw(const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id);
+    void draw_sky(const camera_scene& camera, GLuint shader, GLuint texture_id);
+    void draw_mix(const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float decal_prog);
+
     /** Data attributes: VAO and VBO as well as the number of triangle */
     mesh_drawable_gpu_data data;
     mesh_drawable_uniform uniform;
@@ -45,11 +52,4 @@ public:
     GLuint norm_tex_id;
     float decal_progress = 0.f;
 };
-
-void draw(const mesh_drawable& drawable, const camera_scene& camera);
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, bool hasNormal = false);
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color = { 1, 1, 1 }, float alpha = 1.0f);
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id);
-void draw_sky(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id);
-void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float decal_prog );
 }

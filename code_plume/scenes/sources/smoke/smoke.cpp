@@ -1584,13 +1584,13 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     camera_scene* camera = CameraManager::getInstance()->getCamera();
 
     if (camera->sky_enabled)
-        draw_sky(skysphere, *camera, shaders["sky_mesh"], skysphere.texture_id);
+        skysphere.draw_sky(*camera, shaders["sky_mesh"], skysphere.texture_id);
         //draw_sky(sky_sphere, *camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, *camera, shaders["mesh"], true);
-        draw_mix(terrain_display, *camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        terrain_display.draw_mix(*camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, *camera, shaders["wireframe"]);
 
@@ -1607,7 +1607,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, *camera);
+        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
     }
 
 //    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
@@ -1633,7 +1633,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.scaling = new_scaling * 1.3;
             quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
 
-            draw(quad, *camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+            quad.draw(*camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
         }
 
 
@@ -1665,7 +1665,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
             end_fade *= quad.uniform.color_alpha;
 
-            draw(quad, *camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
+            quad.draw(*camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
         }
         glDepthMask(true);
     }
@@ -1691,7 +1691,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.transform.rotation = R;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+                if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
             }
         }
     }
@@ -1717,7 +1717,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 subspheres_display.uniform.transform.rotation = R;
                 subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
 
-                draw(subspheres_display, *camera, shaders["mesh"], subspheres.texture_id);
+                subspheres_display.draw(*camera, shaders["mesh"], subspheres.texture_id);
             }
         }
     }
@@ -1739,7 +1739,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 generic_sphere_mesh.uniform.transform.translation = t;
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+                if(gui_param.display_subspheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
             }
         }
     }
@@ -1754,7 +1754,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
         if (falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
         else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+        if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
     }
     // buffer falling spheres display
     for (unsigned int k = 0; k<falling_spheres_buffers.size(); k++)
@@ -1768,7 +1768,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
             if (falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
             else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
         }
     }
 
@@ -1787,7 +1787,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             else
                 tooltip_display[i].texture_id = tip_loader.texture_id[4];
 
-            draw(tooltip_display[i], *camera, shaders["mesh"], false);
+            tooltip_display[i].draw(*camera, shaders["mesh"], false);
 
         }
        
@@ -1808,7 +1808,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             if (alpha < 0.0f) alpha = 0.0f;
         }
         
-        draw(landmark_display[i], *camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+        landmark_display[i].draw(*camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
     }
     glDepthMask(true);
 }
@@ -1817,7 +1817,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     if (terrain_display.data.number_triangles > 0)
-        draw(terrain_display, *camera, shaders["mesh"]);
+        terrain_display.draw(*camera, shaders["mesh"]);
 
     float ratio = 100.0;
 
@@ -1832,7 +1832,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio, lay.center.y/ratio, lay.center.z/ratio);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) draw(generic_torus_mesh, *camera);
+        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
     }
 
 
@@ -1862,7 +1862,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
             quad.uniform.transform.scaling = new_scaling;
             quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
             
-            draw(quad, *camera, shaders["mesh"]);
+            quad.draw(*camera, shaders["mesh"]);
         }
         glDepthMask(true);
     }
@@ -1883,7 +1883,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
             generic_sphere_mesh.uniform.transform.scaling = r;
             generic_sphere_mesh.uniform.transform.rotation = R;
             generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
         }
     }
 
@@ -1906,7 +1906,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
                 subspheres_display.uniform.transform.rotation = R;
                 subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
 
-                draw(subspheres_display, *camera, shaders["mesh"]);
+                subspheres_display.draw(*camera, shaders["mesh"]);
             }
         }
     }
@@ -1927,7 +1927,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
                 generic_sphere_mesh.uniform.transform.translation = t;
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+                if(gui_param.display_subspheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
             }
         }
     }
@@ -1942,7 +1942,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
         if (falling_spheres_frames[frame][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
         else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+        if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
     }
     // buffer falling spheres display
     for (unsigned int k = 0; k<falling_spheres_buffers_frames[frame].size(); k++)
@@ -1956,7 +1956,7 @@ void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_st
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
             if (falling_spheres_buffers_frames[frame][k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
             else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) draw(generic_sphere_mesh, *camera, shaders["mesh"]);
+            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
         }
     }
 

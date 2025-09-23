@@ -35,15 +35,15 @@ void draw(const segments_drawable& shape, const camera_scene& camera, GLuint sha
     if(shader!=GLuint(current_shader))
         glUseProgram(shader);                                             opengl_debug();
 
-    uniform(shader, "rotation", shape.uniform.transform.rotation);        opengl_debug();
-    uniform(shader, "translation", shape.uniform.transform.translation);  opengl_debug();
-    uniform(shader, "scaling", shape.uniform.transform.scaling);          opengl_debug();
+    set_uniform(shader, "rotation", shape.uniform.transform.rotation);        opengl_debug();
+    set_uniform(shader, "translation", shape.uniform.transform.translation);  opengl_debug();
+    set_uniform(shader, "scaling", shape.uniform.transform.scaling);          opengl_debug();
 
-    uniform(shader, "color", shape.uniform.color);                        opengl_debug();
+    set_uniform(shader, "color", shape.uniform.color);                        opengl_debug();
 
 
-    uniform(shader,"perspective",camera.perspective.matrix());            opengl_debug();
-    uniform(shader,"view",camera.view_matrix());                          opengl_debug();
+    set_uniform(shader,"perspective",camera.perspective.matrix());            opengl_debug();
+    set_uniform(shader,"view",camera.view_matrix());                          opengl_debug();
 
     vcl::draw(shape.data);                                                opengl_debug();
 }
