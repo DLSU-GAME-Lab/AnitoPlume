@@ -34,6 +34,31 @@ void CameraManager::destroy()
 	delete sharedInstance;
 }
 
+void CameraManager::setImageAspect(float imageAspect)
+{
+	camera.perspective.image_aspect = imageAspect;
+}
+
+void CameraManager::update_rotate(GLFWwindow* window, float xpos, float ypos)
+{
+	controller.update_rotate(&camera, window, xpos, ypos);
+}
+
+void CameraManager::update_mouse_click(GLFWwindow* window, int button, int action, int mods)
+{
+	controller.update_mouse_click(&camera, window, button, action, mods);
+}
+
+void CameraManager::update_mouse_scroll(GLFWwindow* window, float xoffset, float yoffset)
+{
+	controller.update_mouse_scroll(&camera, window, xoffset, yoffset);
+}
+
+void CameraManager::update_move(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	controller.update_move(&camera, window, key, scancode, action, mods);
+}
+
 vcl::camera_scene* CameraManager::getCamera()
 {
 	return &camera;

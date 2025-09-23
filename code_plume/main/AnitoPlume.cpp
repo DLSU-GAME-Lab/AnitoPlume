@@ -31,32 +31,24 @@ void windowSizeCallback(GLFWwindow* window, int width, int height)
 
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
-    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
-    controller->update_rotate(camera, window, float(xpos), float(ypos));
+    CameraManager::getInstance()->update_rotate(window, float(xpos), float(ypos));
     scene_current.mouse_move(scene, window);
 }
 void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)) ImGui::SetWindowFocus(nullptr);
 
-    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
-    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
-    controller->update_mouse_click(camera, window, button, action, mods);
+    CameraManager::getInstance()->update_mouse_click(window, button, action, mods);
     scene_current.mouse_click(scene, window, button, action, mods);
 }
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
-    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
-    CameraManager::getInstance()->getController()->update_mouse_scroll(camera, window, float(xoffset), float(yoffset));
+    CameraManager::getInstance()->update_mouse_scroll(window, float(xoffset), float(yoffset));
     scene_current.mouse_scroll(scene, window, float(xoffset), float(yoffset));
 }
 void keyboardInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    vcl::camera_scene* camera = CameraManager::getInstance()->getCamera();
-    vcl::camera_control_glfw* controller = CameraManager::getInstance()->getController();
-    CameraManager::getInstance()->getController()->update_move(camera, window, key, scancode, action, mods);
+    CameraManager::getInstance()->update_move(window, key, scancode, action, mods);
     scene_current.keyboard_input(scene, window, key, scancode, action, mods);
 }
 

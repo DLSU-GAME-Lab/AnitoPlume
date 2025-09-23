@@ -15,6 +15,12 @@ public:
 	static void initialize(GLFWwindow* window);
 	static void destroy();
 
+	void setImageAspect(float imageAspect);
+	void update_rotate(GLFWwindow* window, float xpos, float ypos);
+	void update_mouse_click(GLFWwindow* window, int button, int action, int mods);
+	void update_mouse_scroll(GLFWwindow* window, float xoffset, float yoffset);
+	void update_move(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 	vcl::camera_scene* getCamera();
 	vcl::camera_control_glfw* getController();
 
