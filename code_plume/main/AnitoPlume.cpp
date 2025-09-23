@@ -5,6 +5,7 @@
 #include "singleton/MeshManager.hpp"
 #include "singleton/GUIManager.hpp"
 #include "singleton/CameraManager.hpp"
+#include "singleton/EngineTime.hpp"
 
 // ************************************** //
 // Global data declaration
@@ -66,6 +67,7 @@ AnitoPlume::AnitoPlume()
     // ************************************** //
 
     std::cout << "*** Init systems ***" << std::endl;
+    EngineTime::initialize();
     GraphicsEngine::initialize();
     ShaderManager::initialize();
     MeshManager::initialize();
@@ -144,6 +146,7 @@ AnitoPlume::~AnitoPlume()
     MeshManager::destroy();
     ShaderManager::destroy();
     GraphicsEngine::destroy();
+    EngineTime::destroy();
 }
 
 void AnitoPlume::run()
@@ -161,6 +164,7 @@ void AnitoPlume::run()
 
     while (!glfwWindowShouldClose(GraphicsEngine::getInstance()->getWindow()))
     {
+        EngineTime::getInstance()->logFrame();
         auto startTime = std::chrono::high_resolution_clock::now();
 
         this->processInput();
@@ -185,6 +189,7 @@ void AnitoPlume::run()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepTime)));
         }
+
     }
     std::cout << "*** Stop GLFW loop ***" << std::endl;
     GraphicsEngine::getInstance()->destroyWindow();
