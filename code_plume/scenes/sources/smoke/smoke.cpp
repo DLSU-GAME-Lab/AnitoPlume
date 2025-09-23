@@ -1,6 +1,6 @@
 #include "smoke.hpp"
 #include "singleton/CameraManager.hpp"
-
+#include "singleton/PlumeManager.hpp"
 using namespace vcl;
 
 
@@ -106,66 +106,66 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
 
 
     // Force constant time step
-    t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
-    new_layer_delay += t_step;
+
 
     if (!replay)
     {
-        sim_time += t_step;
-        //remove_colliding_smoke();
-        remove_smoke_layers();
+          PlumeManager::getInstance()->update(dt);
+    //    sim_time += t_step;
+    //    //remove_colliding_smoke();
+    //    remove_smoke_layers();
 
-        for (int i = 0; i < transition_lifetime.size(); i++)
-        {
-            transition_lifetime[i] += t_step;
-        }
+    //    for (int i = 0; i < transition_lifetime.size(); i++)
+    //    {
+    //        transition_lifetime[i] += t_step;
+    //    }
 
-        for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
-        {
-            // add smoke layer each x seconds
-            if (smoke_layers.size() == 0 || (new_layer_delay >= r_0/(2*U_0) && smoke_layers.size() < 1000000000000000))
-            {
-                add_smoke_layer(U_0, rho_0, r_0, vec3(2500,0,z_0), false);
-                add_free_spheres_for_one_layer(smoke_layers.size()-1);
+    //    for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
+    //    {
+    //        // add smoke layer each x seconds
+    //        if (smoke_layers.size() == 0 || (new_layer_delay >= r_0/(2*U_0) && smoke_layers.size() < 1000000000000000))
+    //        {
+    //            add_smoke_layer(U_0, rho_0, r_0, vec3(2500,0,z_0), false);
+    //            add_free_spheres_for_one_layer(smoke_layers.size()-1);
 
-                new_layer_delay = 0;
-                total_layers_ejected++;
-                std::cout << smoke_layers.size() << std::endl;
-                if (debug_mode) std::cout << "LAYER ADDED OK" << std::endl;
-            }
+    //            new_layer_delay = 0;
+    //            total_layers_ejected++;
+    //            std::cout << smoke_layers.size() << std::endl;
+    //            if (debug_mode) std::cout << "LAYER ADDED OK" << std::endl;
+    //        }
 
-            // update of layer and spheres
-            for (unsigned int id=0; id<smoke_layers.size(); id++)
-            {
-                smoke_layer_update(id);
-            }
-            update_free_spheres();
-            if (frame_count %100 == 0) falling_spheres_update(100);
-            update_stagnation_spheres();
+    //        // update of layer and spheres
+    //        for (unsigned int id=0; id<smoke_layers.size(); id++)
+    //        {
+    //            smoke_layer_update(id);
+    //        }
+    //        update_free_spheres();
+    //        if (frame_count %100 == 0) falling_spheres_update(100);
+    //        update_stagnation_spheres();
 
-            // update subspheres
-            //if (frame_count %50 == 0) update_subspheres_params();
+    //        // update subspheres
+    //        //if (frame_count %50 == 0) update_subspheres_params();
 
-            // export (comment or uncomment)
-            if (export_data && frame_count % 50 == 0) export_spheres();
+    //        // export (comment or uncomment)
+    //        if (export_data && frame_count % 50 == 0) export_spheres();
 
-            // store data for replay
-            if (!export_data && frame_count %50 == 0)
-            {
-                smoke_layers_frames.push_back(smoke_layers);
-                free_spheres_frames.push_back(free_spheres);
-                stagnate_spheres_frames.push_back(stagnate_spheres);
-                falling_spheres_frames.push_back(falling_spheres);
-                falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
-            }
+    //        // store data for replay
+    //        if (!export_data && frame_count %50 == 0)
+    //        {
+    //            smoke_layers_frames.push_back(smoke_layers);
+    //            free_spheres_frames.push_back(free_spheres);
+    //            stagnate_spheres_frames.push_back(stagnate_spheres);
+    //            falling_spheres_frames.push_back(falling_spheres);
+    //            falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
+    //        }
 
-            
-    /*        if (decal_progress > 0)
-            {
-                decal_progress -= .01 * t_step;
-            }*/
-            frame_count++;
-        }
+    //        
+    ///*        if (decal_progress > 0)
+    //        {
+    //            decal_progress -= .01 * t_step;
+    //        }*/
+    //        frame_count++;
+    //    }
     }
 
     if (replay)
@@ -1295,19 +1295,21 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     layer_mesh.shader = shaders["mesh"];
     layer_mesh.uniform.color = {0,0.5,1};
 
-    mesh cyl = vcl::mesh_primitive_cylinder(2.5f, {0,0,1.5}, {0,0,-1.5}, 30, 30);
-    mesh d1 = vcl::mesh_primitive_disc(2.5f, {0,0,1.5});
-    mesh d2 = vcl::mesh_primitive_disc(2.5f, {0,0,-1.5});
-    mesh t = cyl;t.push_back(d1); t.push_back(d2);
+    //mesh cyl = vcl::mesh_primitive_cylinder(2.5f, {0,0,1.5}, {0,0,-1.5}, 30, 30);
+    //mesh d1 = vcl::mesh_primitive_disc(2.5f, {0,0,1.5});
+    //mesh d2 = vcl::mesh_primitive_disc(2.5f, {0,0,-1.5});
+    //mesh t = cyl;
+    //t.push_back(d1); t.push_back(d2);
 
     generic_sphere_mesh = vcl::mesh_primitive_sphere();
     generic_sphere_mesh.texture_id = scene.texture_white;
     //generic_torus_mesh = vcl::mesh_primitive_torus(1.,1.,{0,0,0}, {0,0,-1});
-    generic_torus_mesh = t;
-    generic_torus_mesh.uniform.color = {1,0.5,0};
-    generic_torus_mesh.shader = shaders["mesh"];
-    generic_torus_mesh.texture_id = scene.texture_white;
-    generic_torus_mesh.uniform.color_alpha = 0.6f;
+    //generic_torus_mesh = t;
+    //generic_torus_mesh.uniform.color = {1,0.5,0};
+    //generic_torus_mesh.shader = shaders["mesh"];
+    //generic_torus_mesh.texture_id = scene.texture_white;
+    //generic_torus_mesh.uniform.color_alpha = 0.6f;
+    PlumeManager::getInstance()->torusSetup(scene);
     //texture_smoke_id = create_texture_gpu( image_load_png("../scenes/sources/smoke/images/texture_panache.png") );
     pauseIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/pause_icon.png"));
     playIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/play_icon.png"));
@@ -1600,16 +1602,8 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    for (unsigned int i=0; i<smoke_layers.size(); i++)
-    {
-        smoke_layer lay = smoke_layers[i];
 
-        generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
-        generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
-    }
-
+    PlumeManager::getInstance()->drawTorus(gui_param.display_smoke_layers, camera);
 //    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -1637,32 +1631,32 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         }
 
 
-        for (unsigned int j = 0; j<free_spheres.size(); j++)
+        for (unsigned int j = 0; j<PlumeManager::getInstance()->getFreeSpheres().size(); j++)
         {
 
-            mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
-            float new_scaling = free_spheres[j].r/ratio;
+            mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
+            float new_scaling = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
             //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
+            vec3 new_translation = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x/ratio-25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio  - 2);
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = R;
             generic_sphere_mesh.uniform.color = {1,1,1};
 
-            float var = vcl::perlin(free_spheres[j].id,2);
+            float var = vcl::perlin(PlumeManager::getInstance()->getFreeSpheres()[j].id,2);
 
             //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].id * var) * camera->orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), PlumeManager::getInstance()->getFreeSpheres()[j].id * var) * camera->orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
             quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
            
-            float l = (free_spheres[j].lifetime / 120) + 0.3f;
+            float l = (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime / 120) + 0.3f;
             if (l > 1) l = 1;
 
             float end_fade = 1.0f;
-            if (free_spheres[j].lifetime >= min_lifetime)
-                end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
+            if (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime >= min_lifetime)
+                end_fade -= (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
             end_fade *= quad.uniform.color_alpha;
 
             quad.draw(*camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
@@ -1674,15 +1668,15 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     // free + stagnation spheres display
     if(gui_param.display_free_spheres)
     {
-        for (unsigned int j = 0; j<free_spheres.size(); j++)
+        for (unsigned int j = 0; j< PlumeManager::getInstance()->getFreeSpheres().size(); j++)
         {
             //if (!free_spheres[j].falling)
             if(true)
             {
-                mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
-                float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
-                float rho = free_spheres[j].rho;
+                mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
+                float r = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
+                vec3 t = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x / ratio - 25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio  - 2);
+                float rho = PlumeManager::getInstance()->getFreeSpheres()[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
                 disp_rho = 1.;
@@ -1699,15 +1693,15 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     // spheres+subspheres display (lighter)
     if(gui_param.display_spheres_with_subspheres)
     {
-        for (unsigned int j = 0; j<free_spheres.size(); j++)
+        for (unsigned int j = 0; j< PlumeManager::getInstance()->getFreeSpheres().size(); j++)
         {
             //if (!free_spheres[j].falling)
             if (true)
             {
-                mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
-                float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
-                float rho = free_spheres[j].rho;
+                mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
+                float r = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
+                vec3 t = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x / ratio - 25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio - 2);
+                float rho = PlumeManager::getInstance()->getFreeSpheres()[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
                 disp_rho = 1.;

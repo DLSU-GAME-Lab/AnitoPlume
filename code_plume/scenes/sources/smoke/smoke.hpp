@@ -6,6 +6,7 @@
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
 #include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
+#include "singleton/PlumeManager.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -17,18 +18,7 @@
 #include <thread>
 #include <future>
 
-struct wind_structure
-{
-    int intensity;
-    float angle;
-    vcl::vec3 wind_vector; // horizontal
 
-    wind_structure() : intensity(0), angle(0), wind_vector(1,0,0) {}
-    wind_structure(int intensity, int angle) : intensity(intensity), angle(angle * (3.14159 / 180))
-    {
-    }
-    void recalc_wind_vector();
-};
 
 // User parameters available in the GUI
 struct gui_parameters
@@ -123,7 +113,7 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
-    double min_lifetime;
+    float min_lifetime;
     double max_lifetime;
 
     float tooltip_dist;

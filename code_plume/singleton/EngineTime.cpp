@@ -1,4 +1,5 @@
 #include "EngineTime.hpp"
+#include "EngineTime.hpp"
 
 EngineTime* EngineTime::sharedInstance = NULL;
 
@@ -40,6 +41,11 @@ double EngineTime::getUnscaledDeltaTime() const
 void EngineTime::setTimeScale(double timeScale)
 {
     this->timeScale = timeScale;
+}
+
+double EngineTime::getTimeScale()
+{
+    return this->timeScale;
 }
 
 EngineTime::EngineTime()

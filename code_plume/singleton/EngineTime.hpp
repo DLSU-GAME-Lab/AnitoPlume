@@ -17,6 +17,7 @@ public:
 	double getUnscaledTime() const;
 	double getUnscaledDeltaTime() const;
 	void setTimeScale(double timeScale);
+	double getTimeScale();
 
 private:
 	EngineTime();
