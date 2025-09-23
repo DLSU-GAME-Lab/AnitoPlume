@@ -1301,8 +1301,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //mesh t = cyl;
     //t.push_back(d1); t.push_back(d2);
 
-    generic_sphere_mesh = vcl::mesh_primitive_sphere();
-    generic_sphere_mesh.texture_id = scene.texture_white;
+    //generic_sphere_mesh = vcl::mesh_primitive_sphere();
+    //generic_sphere_mesh.texture_id = scene.texture_white;
     //generic_torus_mesh = vcl::mesh_primitive_torus(1.,1.,{0,0,0}, {0,0,-1});
     //generic_torus_mesh = t;
     //generic_torus_mesh.uniform.color = {1,0.5,0};
@@ -1310,33 +1310,23 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //generic_torus_mesh.texture_id = scene.texture_white;
     //generic_torus_mesh.uniform.color_alpha = 0.6f;
     PlumeManager::getInstance()->torusSetup(scene);
+    PlumeManager::getInstance()->billboardSetup(scene);
     //texture_smoke_id = create_texture_gpu( image_load_png("../scenes/sources/smoke/images/texture_panache.png") );
     pauseIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/pause_icon.png"));
     playIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/play_icon.png"));
     resetIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/undo_icon.png"));
 
-    sphere = mesh_drawable( mesh_primitive_sphere(0.1f));
-    sphere.shader = shaders["mesh"];
-    sphere.uniform.color = {0,0.5,1};
-    sphere.texture_id = scene.texture_white;
+    //smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
+    //quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
+    //quad.uniform.shading.ambiant = 1.0;
+    //quad.uniform.shading.diffuse = 0.0;
+    //quad.uniform.shading.specular = 0.0;
 
-    subspheres = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 10 ,20);
-    subspheres.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/IMG_2765.png"));
-    subspheres.uniform.color = {0.6,0.5,0.5};
-    subspheres.uniform.shading.diffuse = 0.8f;
-    subspheres.uniform.shading.specular = 0.0f;
-
-    smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
-    quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
-    quad.uniform.shading.ambiant = 1.0;
-    quad.uniform.shading.diffuse = 0.0;
-    quad.uniform.shading.specular = 0.0;
-
-    max_smoke = 20;
-    transition_speed = 5.0f;
-    transition_delay = 0.2f;
-    for (int i = 0; i < max_smoke; i++)
-        transition_lifetime.push_back(transition_delay * i);
+    //max_smoke = 20;
+    //transition_speed = 5.0f;
+    //transition_delay = 0.2f;
+    //for (int i = 0; i < max_smoke; i++)
+    //    transition_lifetime.push_back(transition_delay * i);
 
     //sky mesh setup
     sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
@@ -1373,90 +1363,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     //sphere_circle.uniform.color = {1,0,0};
 
     //sampling subpheres
-    {
-        int N = 60;
-        for (int k = 0; k < N; ++k)
-        {
-            //uniform sampling on sphere
-            float theta = 2*3.14f*vcl::rand_interval();
-            float phi   = std::acos(1-2.0f*vcl::rand_interval());
-
-
-            float x = std::sin(phi)*std::cos(theta);
-            float y = std::sin(phi)*std::sin(theta);
-            float z = std::cos(phi);
-
-            vec3 p = {x,y,z};
-            bool add = true;
-            for (int k2 = 0; add==true && k2 < k; ++k2)
-                if(norm(p-samples_subspheres[k2])<0.18f)
-                    add=false;
-            samples_subspheres.push_back({x,y,z});
-        }
-    } 
-
-    {
-        mesh m0 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 5 ,5);
-        mesh m1 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 8 ,8);
-        mesh m2 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 10 , 10);
-
-        int N = 60;
-        for (int k = 0; k < N; ++k)
-        {
-            //uniform sampling on sphere
-            float theta = 2*3.14f*vcl::rand_interval();
-            float phi   = std::acos(1-2.0f*vcl::rand_interval());
-            float r = vcl::rand_interval(0.8f,1.0f);
-
-            float x = r*std::sin(phi)*std::cos(theta);
-            float y = r*std::sin(phi)*std::sin(theta);
-            float z = r*std::cos(phi);
-
-            vec3 p = {x,y,z};
-            bool add = true;
-            for (int k2 = 0; add==true && k2 < k; ++k2)
-                if(norm(p-samples_subspheres[k2])<0.18f)
-                    add=false;
-            samples_subspheres.push_back({x,y,z});
-        }
-
-        mesh m;
-        m.push_back(m0);
-        for (int sub = 0; sub < samples_subspheres.size(); ++sub) {
-            mesh temp = m1;
-            float r = vcl::rand_interval(0.18f,0.2f);
-
-            // subspheres
-            for (int k = 0; k < temp.position.size(); ++k)
-            {
-                vec3 p = r*temp.position[k] + samples_subspheres[sub];
-
-                vec3 n0 = temp.normal[k];
-                vec3 n1 = normalize(p);
-
-                float d = norm(p);
-                float alpha = 0.0;
-                if(d>1.0f && d<1.2f)
-                    alpha = (d-1.0f)/0.2f;
-                if(d>1.2f)
-                    alpha = 1.0f;
-
-                vec3 n = (1-alpha)*n1 + alpha*n0; // hack normals
-                temp.normal[k] = n;
-                temp.position[k] = p;
-            }
-
-            m.push_back(temp);
-        }
-
-        subspheres_display = mesh_drawable(m) ;
-
-        subspheres_display.texture_id = scene.texture_white;
-        subspheres_display.uniform.color = {0.6,0.6,0.55};
-        subspheres_display.uniform.shading.ambiant = 0.7f;
-        subspheres_display.uniform.shading.diffuse = 0.3f;
-        subspheres_display.uniform.shading.specular = 0.0f;
-    }
+    PlumeManager::getInstance()->subSphereSetup(scene);
     // tooltip names
     tooltip_names.push_back("Tooltip-Balantoc") ;
     tooltip_names.push_back("Tooltip-Malaki") ;
@@ -1611,109 +1518,22 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     // billboards
     if(gui_param.display_billboards)
     {
-        glDepthMask(false);
-
-        // transition smoke
-        for (int j = 0; j < transition_lifetime.size(); j++)
-        {
-            float animation = fmax(0, sinf(transition_speed * transition_lifetime[j]));
-            float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
-            float offset = terrain_display.uniform.transform.translation.z;
-            vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
-            float var = vcl::perlin(j, 2);
-
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), transition_speed * transition_lifetime[j] * var) * camera->orientation;
-            quad.uniform.transform.translation = new_translation;
-            quad.uniform.transform.scaling = new_scaling * 1.3;
-            quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
-
-            quad.draw(*camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
-        }
-
-
-        for (unsigned int j = 0; j<PlumeManager::getInstance()->getFreeSpheres().size(); j++)
-        {
-
-            mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
-            float new_scaling = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
-            //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x/ratio-25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio  - 2);
-            generic_sphere_mesh.uniform.transform.translation = new_translation;
-            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-            generic_sphere_mesh.uniform.transform.rotation = R;
-            generic_sphere_mesh.uniform.color = {1,1,1};
-
-            float var = vcl::perlin(PlumeManager::getInstance()->getFreeSpheres()[j].id,2);
-
-            //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), PlumeManager::getInstance()->getFreeSpheres()[j].id * var) * camera->orientation;
-            quad.uniform.transform.translation = new_translation;
-            quad.uniform.transform.scaling = new_scaling*1.3;
-            quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
-           
-            float l = (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime / 120) + 0.3f;
-            if (l > 1) l = 1;
-
-            float end_fade = 1.0f;
-            if (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime >= min_lifetime)
-                end_fade -= (PlumeManager::getInstance()->getFreeSpheres()[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
-            end_fade *= quad.uniform.color_alpha;
-
-            quad.draw(*camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
-        }
-        glDepthMask(true);
+        
+        PlumeManager::getInstance()->drawBillboards(camera, terrain_display);
     }
 
 
     // free + stagnation spheres display
     if(gui_param.display_free_spheres)
     {
-        for (unsigned int j = 0; j< PlumeManager::getInstance()->getFreeSpheres().size(); j++)
-        {
-            //if (!free_spheres[j].falling)
-            if(true)
-            {
-                mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
-                float r = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
-                vec3 t = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x / ratio - 25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio  - 2);
-                float rho = PlumeManager::getInstance()->getFreeSpheres()[j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-                disp_rho = 1.;
+        PlumeManager::getInstance()->drawSubspheres(camera);
 
-                generic_sphere_mesh.uniform.transform.translation = t;
-                generic_sphere_mesh.uniform.transform.scaling = r;
-                generic_sphere_mesh.uniform.transform.rotation = R;
-                generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-            }
-        }
     }
 
     // spheres+subspheres display (lighter)
     if(gui_param.display_spheres_with_subspheres)
     {
-        for (unsigned int j = 0; j< PlumeManager::getInstance()->getFreeSpheres().size(); j++)
-        {
-            //if (!free_spheres[j].falling)
-            if (true)
-            {
-                mat3 const R = rotation_from_axis_angle_mat3(PlumeManager::getInstance()->getFreeSpheres()[j].rotation_axis, PlumeManager::getInstance()->getFreeSpheres()[j].current_angle);
-                float r = PlumeManager::getInstance()->getFreeSpheres()[j].r/ratio;
-                vec3 t = vec3(PlumeManager::getInstance()->getFreeSpheres()[j].center.x / ratio - 25, PlumeManager::getInstance()->getFreeSpheres()[j].center.y / ratio, PlumeManager::getInstance()->getFreeSpheres()[j].center.z / ratio - 2);
-                float rho = PlumeManager::getInstance()->getFreeSpheres()[j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-                disp_rho = 1.;
-
-                subspheres_display.uniform.transform.translation = t;
-                subspheres_display.uniform.transform.scaling = r;
-                subspheres_display.uniform.transform.rotation = R;
-                subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
-
-                subspheres_display.draw(*camera, shaders["mesh"], subspheres.texture_id);
-            }
-        }
+        PlumeManager::getInstance()->drawSpheresWithSubspheres(camera);
     }
 
     // subspheres display

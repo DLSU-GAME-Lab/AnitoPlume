@@ -50,18 +50,115 @@ void PlumeManager::torusSetup(scene_structure scene)
     mesh d2 = vcl::mesh_primitive_disc(2.5f, { 0,0,-1.5 });
     mesh t = cyl;
     t.push_back(d1); t.push_back(d2);
-    torusMesh = t;
-    torusMesh.uniform.color = { 1,0.5,0 };
-    torusMesh.shader = ShaderManager::getInstance()->getShader("mesh");
-    torusMesh.texture_id = scene.texture_white;
-    torusMesh.uniform.color_alpha = 0.6f;
+    this->torusMesh = t;
+    this->torusMesh.uniform.color = { 1,0.5,0 };
+    this->torusMesh.shader = ShaderManager::getInstance()->getShader("mesh");
+    this->torusMesh.texture_id = scene.texture_white;
+    this->torusMesh.uniform.color_alpha = 0.6f;
 }
-void PlumeManager::sphereSetup(scene_structure scene)
+void PlumeManager::billboardSetup(scene_structure scene)
 {
+    this->sphereMesh = vcl::mesh_primitive_sphere();
+    this->sphereMesh.texture_id = scene.texture_white;
 
-    sphereMesh = vcl::mesh_primitive_sphere();
-    sphereMesh.texture_id = scene.texture_white;
+    this->smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
+    this->quad = mesh_drawable(mesh_primitive_quad({ -1,-1,0 }, { 1,-1,0 }, { 1,1,0 }, { -1,1,0 }));
+    this->quad.uniform.shading.ambiant = 1.0;
+    this->quad.uniform.shading.diffuse = 0.0;
+    this->quad.uniform.shading.specular = 0.0;
+
+    this->dMaxSmoke = 20;
+    this->fTransitionSpeed = 5.0f;
+    this->fTransitionDelay = 0.2f;
+    for (int i = 0; i < this->dMaxSmoke; i++)
+        this->fTransitionLifetime.push_back(this->fTransitionDelay * i);
+
 }
+
+void PlumeManager::subSphereSetup(scene_structure scene)
+{
+    {
+        int N = 60;
+        for (int k = 0; k < N; ++k)
+        {
+            //uniform sampling on sphere
+            float theta = 2 * 3.14f * vcl::rand_interval();
+            float phi = std::acos(1 - 2.0f * vcl::rand_interval());
+
+
+            float x = std::sin(phi) * std::cos(theta);
+            float y = std::sin(phi) * std::sin(theta);
+            float z = std::cos(phi);
+
+            vec3 p = { x,y,z };
+            bool add = true;
+            for (int k2 = 0; add == true && k2 < k; ++k2)
+                if (norm(p - sampleSubspheres[k2]) < 0.18f)
+                    add = false;
+            sampleSubspheres.push_back({ x,y,z });
+        }
+    }
+    mesh m0 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 5, 5);
+    mesh m1 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 8, 8);
+    mesh m2 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 10, 10);
+
+    int N = 60;
+    for (int k = 0; k < N; ++k)
+    {
+        //uniform sampling on sphere
+        float theta = 2 * 3.14f * vcl::rand_interval();
+        float phi = std::acos(1 - 2.0f * vcl::rand_interval());
+        float r = vcl::rand_interval(0.8f, 1.0f);
+
+        float x = r * std::sin(phi) * std::cos(theta);
+        float y = r * std::sin(phi) * std::sin(theta);
+        float z = r * std::cos(phi);
+
+        vec3 p = { x,y,z };
+        bool add = true;
+        for (int k2 = 0; add == true && k2 < k; ++k2)
+            if (norm(p - sampleSubspheres[k2]) < 0.18f)
+                add = false;
+        sampleSubspheres.push_back({ x,y,z });
+    }
+    mesh m;
+    m.push_back(m0);
+    for (int sub = 0; sub < sampleSubspheres.size(); ++sub) {
+        mesh temp = m1;
+        float r = vcl::rand_interval(0.18f, 0.2f);
+
+        // subspheres
+        for (int k = 0; k < temp.position.size(); ++k)
+        {
+            vec3 p = r * temp.position[k] + sampleSubspheres[sub];
+
+            vec3 n0 = temp.normal[k];
+            vec3 n1 = normalize(p);
+
+            float d = norm(p);
+            float alpha = 0.0;
+            if (d > 1.0f && d < 1.2f)
+                alpha = (d - 1.0f) / 0.2f;
+            if (d > 1.2f)
+                alpha = 1.0f;
+
+            vec3 n = (1 - alpha) * n1 + alpha * n0; // hack normals
+            temp.normal[k] = n;
+            temp.position[k] = p;
+        }
+
+        m.push_back(temp);
+    }
+
+    subspheresDisplay = mesh_drawable(m);
+
+    subspheresDisplay.texture_id = scene.texture_white;
+    subspheresDisplay.uniform.color = { 0.6,0.6,0.55 };
+    subspheresDisplay.uniform.shading.ambiant = 0.7f;
+    subspheresDisplay.uniform.shading.diffuse = 0.3f;
+    subspheresDisplay.uniform.shading.specular = 0.0f;
+}
+
 void PlumeManager::removeSmokeLayers()
 {
     if (!this->vecSmokeLayers.empty())
@@ -534,17 +631,17 @@ void PlumeManager::update(float fDelta)
         if (this->vecSmokeLayers.size() == 0 || (this->fLayerDelay >= this->fInitialRadius / (2 * this->fInitialSpeed) && this->vecSmokeLayers.size() < 1000000000000000))
         {
             this->addSmokeLayer(this->fInitialSpeed, this->fInitialDensity, this->fInitialRadius, vec3(2500, 0, this->fInitialAltitude), false);
-            this->addFreeSphereLayer(PlumeManager::getInstance()->getSmokeLayer().size() - 1);
+            this->addFreeSphereLayer(this->vecSmokeLayers.size() - 1);
             this->fLayerDelay = 0;
             this->dTotalLayerEjected++;
             std::cout << this->getSmokeLayer().size() << std::endl;
             std::cout << "LAYER ADDED OK" << std::endl;
         }
-        for (unsigned int id = 0; id < PlumeManager::getInstance()->getSmokeLayer().size(); id++)
+        for (unsigned int id = 0; id < vecSmokeLayers.size(); id++)
         {
-            PlumeManager::getInstance()->smokeLayerUpdate(id, fConstantTimeStep);
+            smokeLayerUpdate(id, fConstantTimeStep);
         }
-        PlumeManager::getInstance()->freeSphereUpdate(fConstantTimeStep);
+        freeSphereUpdate(fConstantTimeStep);
         //if (frame_count % 100 == 0) falling_spheres_update(100);
         //update_stagnation_spheres();
         this->dFrameCount++;
@@ -556,7 +653,7 @@ void PlumeManager::drawTorus(bool bDisplay, camera_scene* camera)
 {
     for (unsigned int i = 0; i <this->vecSmokeLayers.size(); i++)
     {
-        smoke_layer lay = PlumeManager::getInstance()->getSmokeLayer()[i];
+        smoke_layer lay = vecSmokeLayers[i];
 
         torusMesh.uniform.transform.scaling = lay.r / fRatio;
         torusMesh.uniform.transform.translation = vec3(lay.center.x / fRatio - 25, lay.center.y / fRatio, lay.center.z / fRatio - 2);
@@ -564,6 +661,110 @@ void PlumeManager::drawTorus(bool bDisplay, camera_scene* camera)
         if(bDisplay) torusMesh.draw(*camera);
 
     }
+}
+
+void PlumeManager::drawSubspheres(camera_scene* camera)
+{
+    for (unsigned int j = 0; j < this->vecFreeSpheres.size(); j++)
+    {
+        //if (!free_spheres[j].falling)
+        if (true)
+        {
+            mat3 const R = rotation_from_axis_angle_mat3(this->vecFreeSpheres[j].rotation_axis, this->vecFreeSpheres[j].current_angle);
+            float r = this->vecFreeSpheres[j].r / fRatio;
+            vec3 t = vec3(this->vecFreeSpheres[j].center.x / fRatio - 25, this->vecFreeSpheres[j].center.y / fRatio, this->vecFreeSpheres[j].center.z / fRatio - 2);
+            float rho = this->vecFreeSpheres[j].rho;
+            float disp_rho = 1. - rho;
+            if (disp_rho < 0) disp_rho = 0.;
+            disp_rho = 1.;
+
+            sphereMesh.uniform.transform.translation = t;
+            sphereMesh.uniform.transform.scaling = r;
+            sphereMesh.uniform.transform.rotation = R;
+            sphereMesh.uniform.color = { disp_rho,disp_rho,disp_rho };
+            sphereMesh.draw(*camera, ShaderManager::getInstance()->getShader("mesh"));
+        }
+    }
+
+}
+
+void PlumeManager::drawSpheresWithSubspheres(camera_scene* camera)
+{
+    for (unsigned int j = 0; j < this->vecFreeSpheres.size(); j++)
+    {
+        //if (!free_spheres[j].falling)
+        if (true)
+        {
+            mat3 const R = rotation_from_axis_angle_mat3(this->vecFreeSpheres[j].rotation_axis, this->vecFreeSpheres[j].current_angle);
+            float r = this->vecFreeSpheres[j].r / fRatio;
+            vec3 t = vec3(this->vecFreeSpheres[j].center.x / fRatio - 25, this->vecFreeSpheres[j].center.y / fRatio, this->vecFreeSpheres[j].center.z / fRatio - 2);
+            float rho = this->vecFreeSpheres[j].rho;
+            float disp_rho = 1. - rho;
+            if (disp_rho < 0) disp_rho = 0.;
+            disp_rho = 1.;
+
+            subspheresDisplay.uniform.transform.translation = t;
+            subspheresDisplay.uniform.transform.scaling = r;
+            subspheresDisplay.uniform.transform.rotation = R;
+            subspheresDisplay.uniform.color = { disp_rho,disp_rho,disp_rho };
+
+            subspheresDisplay.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), sphereMesh.texture_id);
+        }
+    }
+}
+
+void PlumeManager::drawBillboards(camera_scene* camera,mesh_drawable terrain_display)
+{
+    glDepthMask(false);
+
+    // transition smoke
+    for (int j = 0; j < fTransitionLifetime.size(); j++)
+    {
+        float animation = fmax(0, sinf(fTransitionSpeed * fTransitionLifetime[j]));
+        float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
+        float offset = terrain_display.uniform.transform.translation.z;
+        vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
+        float var = vcl::perlin(j, 2);
+
+        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), fTransitionSpeed * fTransitionLifetime[j] * var) * camera->orientation;
+        quad.uniform.transform.translation = new_translation;
+        quad.uniform.transform.scaling = new_scaling * 1.3;
+        quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
+
+        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, { 0.3f,0.3f,0.3f });
+    }
+
+
+    for (unsigned int j = 0; j < this->vecFreeSpheres.size(); j++)
+    {
+
+        mat3 const R = rotation_from_axis_angle_mat3(this->vecFreeSpheres[j].rotation_axis, this->vecFreeSpheres[j].current_angle);
+        float new_scaling = this->vecFreeSpheres[j].r / fRatio;
+
+        vec3 new_translation = vec3(this->vecFreeSpheres[j].center.x / fRatio - 25, this->vecFreeSpheres[j].center.y / fRatio, this->vecFreeSpheres[j].center.z / fRatio - 2);
+        sphereMesh.uniform.transform.translation = new_translation;
+        sphereMesh.uniform.transform.scaling = new_scaling;
+        sphereMesh.uniform.transform.rotation = R;
+        sphereMesh.uniform.color = { 1,1,1 };
+
+        float var = vcl::perlin(this->vecFreeSpheres[j].id, 2);
+
+        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), this->vecFreeSpheres[j].id * var) * camera->orientation;
+        quad.uniform.transform.translation = new_translation;
+        quad.uniform.transform.scaling = new_scaling * 1.3;
+        quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
+
+        float l = (this->vecFreeSpheres[j].lifetime / 120) + 0.3f;
+        if (l > 1) l = 1;
+
+        float end_fade = 1.0f;
+        if (this->vecFreeSpheres[j].lifetime >= fMinLifeTime)
+            end_fade -= (this->vecFreeSpheres[j].lifetime - fMinLifeTime) / (fMaxLifetime - fMinLifeTime);
+        end_fade *= quad.uniform.color_alpha;
+
+        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, { l,l,l }, end_fade);
+    }
+    glDepthMask(true);
 }
 
 

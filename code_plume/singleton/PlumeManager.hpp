@@ -9,9 +9,16 @@ class PlumeManager
 private:
 	vcl::mesh_drawable torusMesh;
 	vcl::mesh_drawable sphereMesh;
+	vcl::mesh_drawable quad;
+	vcl::mesh_drawable subspheresDisplay;
+
+	GLuint smoke_texture;
+
 
 	std::vector<int> vecWindAlts;
 	std::vector<int> vecWindAngles;
+	std::vector<float> fTransitionLifetime;
+	std::vector<vcl::vec3> sampleSubspheres;
 	std::vector<wind_structure> vecHoriWinds;
 	std::vector<smoke_layer> vecSmokeLayers;
 	std::vector<free_sphere_params> vecFreeSpheres;
@@ -23,6 +30,7 @@ private:
 	unsigned int dTotalLayerEjected = 0;
 	unsigned int dFrameCount = 0;
 	int dDirectionTrackerStepSize = 20;
+	int dMaxSmoke;
 	float fDirectionTrackerStep = 1000.f;
 	unsigned short freeSphereID;
 	float fGrav = 9.81;
@@ -32,6 +40,8 @@ private:
 	float fLayerDelay = 0;
 	float fConstantTimeStep = 0.f;
 	float fRatio = 100;
+	float fTransitionSpeed;
+	float fTransitionDelay;
 
 	//inital values
 	double fInitialSpeed = 150.f;
@@ -44,7 +54,12 @@ private:
 public:
 	//mesh Init functions
 	void torusSetup(scene_structure scene);
-	void sphereSetup(scene_structure scene);
+	void billboardSetup(scene_structure scene);
+	void subSphereSetup(scene_structure scene);
+	void drawTorus(bool bDisplay, camera_scene* camera);
+	void drawBillboards(camera_scene* camera, mesh_drawable terrain_display);
+	void drawSubspheres(camera_scene* camera);
+	void drawSpheresWithSubspheres(camera_scene* camera);
 public:
 	void removeSmokeLayers();
 	void smokeLayerUpdate(int dId, float fDelta);
@@ -61,7 +76,7 @@ public:
 	float computeAtmTemp(float fHeight);
 	float computeGaussianSpeedInLayer(float fVelZ, float maxR, float r);
 	void update(float fDelta);
-	void drawTorus(bool bDisplay, camera_scene* camera);
+
 	void resetValues();
 public:
 	std::vector<smoke_layer> getSmokeLayer();
