@@ -26,6 +26,3 @@ struct gui_structure
     bool show_frame_worldspace = false;
     bool show_file_explorer = false;
 };
-
-void gui_main_menu_bar(gui_structure& gui, scene_structure& scene);
-void gui_camera_settings(gui_structure& gui, scene_structure& scene);

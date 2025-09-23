@@ -125,13 +125,6 @@ AnitoPlume::AnitoPlume()
     scene.frame_worldspace = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.05f, 0.015f, 0.05f, 0.1f));
     scene.frame_worldspace.shader = shaders.at("mesh");
 
-    int width = 0, height = 0;
-    glfwGetWindowSize(GraphicsEngine::getInstance()->getWindow(), &width, &height);
-    const float aspect_ratio = width / static_cast<float>(height);
-    scene.camera.perspective = vcl::perspective_structure(40 * 3.14f / 180, aspect_ratio, 0.01f, 3000.0f);
-
-    scene.sky_enabled = true;
-    scene.clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
     const vcl::image_raw white{ 1,1,vcl::image_color_type::rgba,{255,255,255,255} };
     scene.texture_white = vcl::create_texture_gpu(white);
     //gui.enabled["Camera Settings"] = true;
