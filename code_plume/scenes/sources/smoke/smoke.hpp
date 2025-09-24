@@ -68,6 +68,8 @@ struct scene_model : scene_base
     float avg_wind_dir_degrees;
     std::vector<std::string> tooltip_names;
     std::vector<std::string> landmark_names;
+    std::vector<vcl::vec3> vent_positions;
+    unsigned short vent_index;
 
     unsigned short free_sphere_id;
     unsigned short falling_sphere_id;

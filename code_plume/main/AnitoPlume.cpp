@@ -26,7 +26,7 @@ scene_model scene_current;
 void windowSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    CameraManager::getInstance()->getCamera()->perspective.image_aspect = width / static_cast<float>(height);
+    CameraManager::getInstance()->setImageAspect(width / static_cast<float>(height));
 }
 
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)

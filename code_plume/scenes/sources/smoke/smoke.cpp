@@ -125,7 +125,7 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
             // add smoke layer each x seconds
             if (smoke_layers.size() == 0 || (new_layer_delay >= r_0/(2*U_0) && smoke_layers.size() < 1000000000000000))
             {
-                add_smoke_layer(U_0, rho_0, r_0, vec3(2500,0,z_0), false);
+                add_smoke_layer(U_0, rho_0, r_0, vent_positions[vent_index], false);
                 add_free_spheres_for_one_layer(smoke_layers.size()-1);
 
                 new_layer_delay = 0;
@@ -1289,6 +1289,13 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     gui.enabled["Playback"] = true;
     gui.enabled["Profiler"] = true;
     gui.enabled["Terrain"] = true;
+
+    // Vent positions setup
+    vent_index = 0;
+    vent_positions.push_back(vec3(2500, 0, z_0));
+    vent_positions.push_back(vec3(5850, 5950, z_0));
+    vent_positions.push_back(vec3(-2000, -6000, z_0));
+    vent_positions.push_back(vec3(-3000, 5800, z_0));
 
     // Meshes setup
     layer_mesh = mesh_drawable( mesh_primitive_cylinder(0.1f, {0,0,0}, {0,0,0.01}));
