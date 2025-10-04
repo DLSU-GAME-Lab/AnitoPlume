@@ -5,7 +5,7 @@
 struct tooltip_loader
 {
 	//mesh mesh_terrain;
-	vcl::mesh_drawable tooltip;
+	vcl::mesh_drawable* tooltip;
 	GLuint mesh_shader;
 	GLuint current_tex_id;
 	GLuint texture_id[5];

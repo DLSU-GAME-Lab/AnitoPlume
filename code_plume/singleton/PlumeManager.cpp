@@ -651,15 +651,18 @@ void PlumeManager::update(float fDelta)
 
 void PlumeManager::drawTorus(bool bDisplay, camera_scene* camera)
 {
-    for (unsigned int i = 0; i <this->vecSmokeLayers.size(); i++)
+    if (bDisplay)
     {
-        smoke_layer lay = vecSmokeLayers[i];
+        for (unsigned int i = 0; i < this->vecSmokeLayers.size(); i++)
+        {
+            smoke_layer lay = vecSmokeLayers[i];
 
-        torusMesh.uniform.transform.scaling = lay.r / fRatio;
-        torusMesh.uniform.transform.translation = vec3(lay.center.x / fRatio - 25, lay.center.y / fRatio, lay.center.z / fRatio - 2);
-        torusMesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
-        if(bDisplay) torusMesh.draw(*camera);
+            torusMesh.uniform.transform.scaling = lay.r / fRatio;
+            torusMesh.uniform.transform.translation = vec3(lay.center.x / fRatio - 25, lay.center.y / fRatio, lay.center.z / fRatio - 2);
+            torusMesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
+            torusMesh.draw(*camera, torusMesh.shader, torusMesh.texture_id, torusMesh.norm_tex_id);
 
+        }
     }
 }
 
@@ -682,7 +685,7 @@ void PlumeManager::drawSubspheres(camera_scene* camera)
             sphereMesh.uniform.transform.scaling = r;
             sphereMesh.uniform.transform.rotation = R;
             sphereMesh.uniform.color = { disp_rho,disp_rho,disp_rho };
-            sphereMesh.draw(*camera, ShaderManager::getInstance()->getShader("mesh"));
+            sphereMesh.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), sphereMesh.texture_id, sphereMesh.norm_tex_id);
         }
     }
 
@@ -708,7 +711,12 @@ void PlumeManager::drawSpheresWithSubspheres(camera_scene* camera)
             subspheresDisplay.uniform.transform.rotation = R;
             subspheresDisplay.uniform.color = { disp_rho,disp_rho,disp_rho };
 
-            subspheresDisplay.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), sphereMesh.texture_id);
+            subspheresDisplay.draw(
+                *camera,
+                ShaderManager::getInstance()->getShader("mesh"),
+                sphereMesh.texture_id,
+                sphereMesh.norm_tex_id
+            );
         }
     }
 }
@@ -729,9 +737,10 @@ void PlumeManager::drawBillboards(camera_scene* camera,mesh_drawable terrain_dis
         quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), fTransitionSpeed * fTransitionLifetime[j] * var) * camera->orientation;
         quad.uniform.transform.translation = new_translation;
         quad.uniform.transform.scaling = new_scaling * 1.3;
+        quad.uniform.color = { 0.3f,0.3f,0.3f };
         quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
 
-        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, { 0.3f,0.3f,0.3f });
+        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, 0);
     }
 
 
@@ -756,13 +765,14 @@ void PlumeManager::drawBillboards(camera_scene* camera,mesh_drawable terrain_dis
 
         float l = (this->vecFreeSpheres[j].lifetime / 120) + 0.3f;
         if (l > 1) l = 1;
+        quad.uniform.color = {l,l,l};
 
         float end_fade = 1.0f;
         if (this->vecFreeSpheres[j].lifetime >= fMinLifeTime)
             end_fade -= (this->vecFreeSpheres[j].lifetime - fMinLifeTime) / (fMaxLifetime - fMinLifeTime);
-        end_fade *= quad.uniform.color_alpha;
+        quad.uniform.color_alpha *= end_fade;
 
-        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, { l,l,l }, end_fade);
+        quad.draw(*camera, ShaderManager::getInstance()->getShader("mesh"), smoke_texture, 0);
     }
     glDepthMask(true);
 }

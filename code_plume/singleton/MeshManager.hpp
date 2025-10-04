@@ -8,6 +8,7 @@ using namespace vcl;
 class MeshManager
 {
 private:
+	std::vector<mesh_drawable*> meshList;
 	std::unordered_map<std::string, mesh_drawable*> meshMap;
 
 public:
@@ -15,8 +16,9 @@ public:
 	static void initialize();
 	static void destroy();
 
-	void load(std::string& filePath, std::string& name);
-	mesh_drawable* getMesh(std::string& name);
+	void load(std::string name, std::string filePath);
+	void loadPrimitive(std::string name, mesh& primitive);
+	mesh_drawable* getMesh(std::string name);
 
 private:
 	MeshManager();

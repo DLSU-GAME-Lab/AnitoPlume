@@ -125,7 +125,7 @@ void draw(const hierarchy_mesh_drawable& hierarchy, const camera_scene& camera)
         visual_element.uniform.transform.translation = T.translation + visual_element.uniform.transform.translation;
 
 
-        visual_element.draw(camera);
+        visual_element.draw(camera, visual_element.shader, visual_element.texture_id, visual_element.norm_tex_id);
     }
 }
 
