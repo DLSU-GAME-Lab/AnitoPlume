@@ -27,13 +27,18 @@ void MeshManager::destroy()
 	delete sharedInstance;
 }
 
-void MeshManager::load(std::string& filePath, std::string& name)
+void MeshManager::load(std::string name, std::string filePath)
 {
 	mesh mesh = vcl::mesh_load_file_obj(filePath);
 	this->meshMap[name] = new mesh_drawable(mesh);
 }
 
-mesh_drawable* MeshManager::getMesh(std::string& name)
+void MeshManager::loadPrimitive(std::string name, mesh& primitive)
+{
+	this->meshMap[name] = new mesh_drawable(primitive);
+}
+
+mesh_drawable* MeshManager::getMesh(std::string name)
 {
 	return this->meshMap[name];
 }

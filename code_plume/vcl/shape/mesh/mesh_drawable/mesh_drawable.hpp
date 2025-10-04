@@ -36,11 +36,7 @@ public:
      * Warning: new_normal is expected to have the same size (or less) than the initialized one */
     void update_normal(const vcl::buffer<vec3>& new_normal);
 
-
     void draw(const camera_scene& camera);
-    void draw(const camera_scene& camera, GLuint shader, bool hasNormal = false);
-    void draw(const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color = { 1, 1, 1 }, float alpha = 1.0f);
-    void draw(const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id);
     void draw_sky(const camera_scene& camera, GLuint shader, GLuint texture_id);
     void draw_mix(const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float decal_prog);
 
@@ -50,6 +46,5 @@ public:
     GLuint shader;
     GLuint texture_id;
     GLuint norm_tex_id;
-    float decal_progress = 0.f;
 };
 }

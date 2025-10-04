@@ -1,7 +1,6 @@
 #pragma once
 
-#include "scenes/sources/smoke/smokeLayer.hpp"
-#include "scenes/sources/smoke/terrain_structure.hpp"
+#include "scenes/sources/smoke/Plume.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
@@ -16,19 +15,6 @@
 #include <chrono>
 #include <thread>
 #include <future>
-
-struct wind_structure
-{
-    int intensity;
-    float angle;
-    vcl::vec3 wind_vector; // horizontal
-
-    wind_structure() : intensity(0), angle(0), wind_vector(1,0,0) {}
-    wind_structure(int intensity, int angle) : intensity(intensity), angle(angle * (3.14159 / 180))
-    {
-    }
-    void recalc_wind_vector();
-};
 
 // User parameters available in the GUI
 struct gui_parameters
@@ -54,9 +40,8 @@ struct scene_model : scene_base
     size_t frame_replay;
     bool export_data;
     engine_state state;
-    std::vector<int> deg_angle;
-    bool all_angles;
-    int gui_index;
+    std::vector<int> deg_angle; // UI wind angles
+    bool all_angles; // UI toggle
 
     // Trackers
     float sim_time;
@@ -64,12 +49,10 @@ struct scene_model : scene_base
     unsigned int total_layers_ejected;
     unsigned int nb_of_iterations;
     unsigned int last_ppe_layer_idx;
-    float decal_progress = 1.f;
+    
     float avg_wind_dir_degrees;
     std::vector<std::string> tooltip_names;
     std::vector<std::string> landmark_names;
-    std::vector<vcl::vec3> vent_positions;
-    unsigned short vent_index;
 
     unsigned short free_sphere_id;
     unsigned short falling_sphere_id;
@@ -113,8 +96,8 @@ struct scene_model : scene_base
     double air_incorporation_coeff;
     double stagnation_speed;
 
-    unsigned int subspheres_number;
-    unsigned int subsubspheres_number;
+    unsigned int subspheres_number; // IU subsphere count
+    unsigned int subsubspheres_number; // IU subsubsphere count
 
     std::vector<int> wind_altitudes;
     std::vector<wind_structure> winds;
@@ -125,6 +108,7 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
+
     double min_lifetime;
     double max_lifetime;
 
@@ -132,10 +116,12 @@ struct scene_model : scene_base
     float landmark_min_dist;
     float landmark_max_dist;
 
+    // smoke transition animation
     int max_smoke;
     float transition_speed;
     float transition_delay;
 
+    //Wind settings ui
     float max_altitude;
     float altitude_step;
     int altitude_size;
@@ -150,9 +136,12 @@ struct scene_model : scene_base
     std::vector<subsphere_params> s3_spheres;
     std::vector<free_sphere_params> stagnate_spheres;
     std::vector<free_sphere_params> falling_spheres;
-    std::vector< std::vector<free_sphere_params> > falling_spheres_buffers;
+    std::vector< std::vector<free_sphere_params>> falling_spheres_buffers;
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
+
+    std::vector<vcl::vec3> vent_positions;
+    unsigned short vent_index;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
@@ -160,13 +149,13 @@ struct scene_model : scene_base
     tooltip_loader tip_loader;
     landmark_loader mark_loader;
 
-    // For replay feature
-    std::vector< std::vector<smoke_layer> > smoke_layers_frames;
-    std::vector< std::vector<free_sphere_params> > free_spheres_frames;
-    std::vector< std::vector<subsphere_params> > s2_spheres_frames;
-    std::vector< std::vector<free_sphere_params> > stagnate_spheres_frames;
-    std::vector< std::vector<free_sphere_params> > falling_spheres_frames;
-    std::vector< std::vector< std::vector<free_sphere_params> > > falling_spheres_buffers_frames;
+    //// For replay feature
+    //std::vector< std::vector<smoke_layer> > smoke_layers_frames;
+    //std::vector< std::vector<free_sphere_params> > free_spheres_frames;
+    //std::vector< std::vector<subsphere_params> > s2_spheres_frames;
+    //std::vector< std::vector<free_sphere_params> > stagnate_spheres_frames;
+    //std::vector< std::vector<free_sphere_params> > falling_spheres_frames;
+    //std::vector< std::vector< std::vector<free_sphere_params> > > falling_spheres_buffers_frames;
 
     // Export structures
     std::string const altitude_file = "../output/altitude.txt";
@@ -208,6 +197,10 @@ struct scene_model : scene_base
     void check_smoke_position(unsigned int i);
     void remove_colliding_smoke();
     void remove_smoke_layers();
+
+    float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
+    float compute_atm_temperature(float height);
+    float compute_atm_density(float height);
 
     // Pyroclastic flow : falling spheres
     float field_height_at(float x, float y);

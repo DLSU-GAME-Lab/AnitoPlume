@@ -149,15 +149,15 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
             // export (comment or uncomment)
             if (export_data && frame_count % 50 == 0) export_spheres();
 
-            // store data for replay
-            if (!export_data && frame_count %50 == 0)
-            {
-                smoke_layers_frames.push_back(smoke_layers);
-                free_spheres_frames.push_back(free_spheres);
-                stagnate_spheres_frames.push_back(stagnate_spheres);
-                falling_spheres_frames.push_back(falling_spheres);
-                falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
-            }
+            //// store data for replay
+            //if (!export_data && frame_count %50 == 0)
+            //{
+            //    smoke_layers_frames.push_back(smoke_layers);
+            //    free_spheres_frames.push_back(free_spheres);
+            //    stagnate_spheres_frames.push_back(stagnate_spheres);
+            //    falling_spheres_frames.push_back(falling_spheres);
+            //    falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
+            //}
 
             
     /*        if (decal_progress > 0)
@@ -170,12 +170,16 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
 
     if (replay)
     {
-        display_replay(shaders, scene, gui, frame_replay);
-        std::cout << frame_replay << std::endl;
-        frame_replay++;
-        frame_replay = frame_replay % smoke_layers_frames.size();
+
+        //display_replay(shaders, scene, gui, frame_replay);
+        //std::cout << frame_replay << std::endl;
+        //frame_replay++;
+        //frame_replay = frame_replay % smoke_layers_frames.size();
+
     }
     else display(shaders, scene, gui);
+
+    display(shaders, scene, gui);
 }
 
 
@@ -189,12 +193,12 @@ void scene_model::add_smoke_layer(float v, float d, float r, vec3 position, bool
     smoke_layers.push_back(layer);
 }
 
-float compute_atm_temperature(float height) //(K) cf https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_normalis%C3%A9e
+float scene_model::compute_atm_temperature(float height) //(K) cf https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_normalis%C3%A9e
 {
     return 288.15 - 6.5*height/1000.0;
 }
 
-float compute_atm_density(float height) //(kg.m-3) cf https://www.deleze.name/marcel/sec2/applmaths/pression-altitude/masse_volumique.pdf
+float scene_model::compute_atm_density(float height) //(kg.m-3) cf https://www.deleze.name/marcel/sec2/applmaths/pression-altitude/masse_volumique.pdf
 {
     return 352.995 * pow(1 - 0.0000225577*height, 5.25516) / (288.15 - 0.0065*height);
 }
@@ -813,7 +817,7 @@ void scene_model::add_free_spheres_for_one_layer(unsigned int i)
     }
 }
 
-float compute_gaussian_speed_in_layer(float v_z, float max_r, float r)
+float scene_model::compute_gaussian_speed_in_layer(float v_z, float max_r, float r)
 {
     float A = max_r/(2.*sqrt(log(2)));
     return 2. * v_z * exp(-r*r/(A*A));
@@ -1494,7 +1498,7 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     for (int i = 0; i < tooltip_names.size(); i++)
     {
         tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
-        tooltip_display[i] = tip_loader.tooltip;
+        tooltip_display[i] = *tip_loader.tooltip;
         tooltip_display[i].uniform.transform.scaling = 4.f;
         tooltip_display[i].uniform.shading.ambiant = 1.f;
     }
@@ -1597,7 +1601,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, *camera, shaders["mesh"], true);
-        terrain_display.draw_mix(*camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        terrain_display.draw_mix(*camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, 1);
     }
     //draw(terrain, *camera, shaders["wireframe"]);
 
@@ -1607,14 +1611,17 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    for (unsigned int i=0; i<smoke_layers.size(); i++)
+    if (gui_param.display_smoke_layers)
     {
-        smoke_layer lay = smoke_layers[i];
+        for (unsigned int i = 0; i < smoke_layers.size(); i++)
+        {
+            smoke_layer lay = smoke_layers[i];
 
-        generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
-        generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
+            generic_torus_mesh.uniform.transform.scaling = lay.r / ratio;
+            generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
+            generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
+            generic_torus_mesh.draw(*camera);
+        }
     }
 
 //    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
@@ -1638,9 +1645,12 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), transition_speed * transition_lifetime[j] * var) * camera->orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling * 1.3;
+            quad.uniform.color = { 0.3f,0.3f,0.3f };
             quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
+            quad.shader = shaders["mesh"];
+            quad.texture_id = smoke_texture;
 
-            quad.draw(*camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+            quad.draw(*camera);
         }
 
 
@@ -1666,13 +1676,14 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
            
             float l = (free_spheres[j].lifetime / 120) + 0.3f;
             if (l > 1) l = 1;
+            quad.uniform.color = {l,l,l};
 
             float end_fade = 1.0f;
             if (free_spheres[j].lifetime >= min_lifetime)
                 end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
-            end_fade *= quad.uniform.color_alpha;
+            quad.uniform.color_alpha *= end_fade;
 
-            quad.draw(*camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
+            quad.draw(*camera);
         }
         glDepthMask(true);
     }
@@ -1684,22 +1695,20 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         for (unsigned int j = 0; j<free_spheres.size(); j++)
         {
             //if (!free_spheres[j].falling)
-            if(true)
-            {
-                mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
-                float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
-                float rho = free_spheres[j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-                disp_rho = 1.;
+            mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
+            float r = free_spheres[j].r / ratio;
+            vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
+            float rho = free_spheres[j].rho;
+            float disp_rho = 1. - rho;
+            if (disp_rho < 0) disp_rho = 0.;
+            disp_rho = 1.;
 
-                generic_sphere_mesh.uniform.transform.translation = t;
-                generic_sphere_mesh.uniform.transform.scaling = r;
-                generic_sphere_mesh.uniform.transform.rotation = R;
-                generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-            }
+            generic_sphere_mesh.uniform.transform.translation = t;
+            generic_sphere_mesh.uniform.transform.scaling = r;
+            generic_sphere_mesh.uniform.transform.rotation = R;
+            generic_sphere_mesh.uniform.color = { disp_rho,disp_rho,disp_rho };
+            generic_sphere_mesh.shader = shaders["mesh"];
+            generic_sphere_mesh.draw(*camera);
         }
     }
 
@@ -1709,23 +1718,21 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         for (unsigned int j = 0; j<free_spheres.size(); j++)
         {
             //if (!free_spheres[j].falling)
-            if (true)
-            {
-                mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
-                float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
-                float rho = free_spheres[j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-                disp_rho = 1.;
+            mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
+            float r = free_spheres[j].r / ratio;
+            vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
+            float rho = free_spheres[j].rho;
+            float disp_rho = 1. - rho;
+            if (disp_rho < 0) disp_rho = 0.;
+            disp_rho = 1.;
 
-                subspheres_display.uniform.transform.translation = t;
-                subspheres_display.uniform.transform.scaling = r;
-                subspheres_display.uniform.transform.rotation = R;
-                subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
+            subspheres_display.uniform.transform.translation = t;
+            subspheres_display.uniform.transform.scaling = r;
+            subspheres_display.uniform.transform.rotation = R;
+            subspheres_display.uniform.color = { disp_rho,disp_rho,disp_rho };
+            subspheres_display.shader = shaders["mesh"];
 
-                subspheres_display.draw(*camera, shaders["mesh"], subspheres.texture_id);
-            }
+            subspheres_display.draw(*camera);
         }
     }
 
@@ -1746,36 +1753,46 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
                 generic_sphere_mesh.uniform.transform.translation = t;
                 generic_sphere_mesh.uniform.transform.scaling = r;
                 generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
+                generic_sphere_mesh.shader = shaders["mesh"];
+                generic_sphere_mesh.draw(*camera);
             }
         }
     }
 
     // falling spheres display
-    for (unsigned int j = 0; j<falling_spheres.size(); j++)
+    if (gui_param.display_free_spheres)
     {
-        float new_scaling = falling_spheres[j].r/ratio;
-        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio - 2 };
-        generic_sphere_mesh.uniform.transform.translation = new_translation;
-        generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-        generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-        if (falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
-        else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-    }
-    // buffer falling spheres display
-    for (unsigned int k = 0; k<falling_spheres_buffers.size(); k++)
-    {
-        for (unsigned int j = 0; j<falling_spheres_buffers[k].size(); j++)
+        for (unsigned int j = 0; j < falling_spheres.size(); j++)
         {
-            float new_scaling = falling_spheres_buffers[k][j].r/ratio;
-            vec3 new_translation = {falling_spheres_buffers[k][j].center.x/ratio, falling_spheres_buffers[k][j].center.y/ratio, falling_spheres_buffers[k][j].center.z/ratio + 5};
+            float new_scaling = falling_spheres[j].r / ratio;
+            vec3 new_translation = { falling_spheres[j].center.x / ratio, falling_spheres[j].center.y / ratio, falling_spheres[j].center.z / ratio - 2 };
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-            if (falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
-            else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
+            if (falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+            else generic_sphere_mesh.uniform.color = { 1,1,1 };
+            generic_sphere_mesh.shader = shaders["mesh"];
+            generic_sphere_mesh.draw(*camera);
+        }
+    }
+
+    // buffer falling spheres display
+    if (gui_param.display_free_spheres)
+    {
+        for (unsigned int k = 0; k < falling_spheres_buffers.size(); k++)
+        {
+            for (unsigned int j = 0; j < falling_spheres_buffers[k].size(); j++)
+            {
+                float new_scaling = falling_spheres_buffers[k][j].r / ratio;
+                vec3 new_translation = { falling_spheres_buffers[k][j].center.x / ratio, falling_spheres_buffers[k][j].center.y / ratio, falling_spheres_buffers[k][j].center.z / ratio + 5 };
+                generic_sphere_mesh.uniform.transform.translation = new_translation;
+                generic_sphere_mesh.uniform.transform.scaling = new_scaling;
+                generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
+                if (falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+                else generic_sphere_mesh.uniform.color = { 1,1,1 };
+                generic_sphere_mesh.shader = shaders["mesh"];
+                generic_sphere_mesh.draw(*camera);
+            }
         }
     }
 
@@ -1794,7 +1811,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             else
                 tooltip_display[i].texture_id = tip_loader.texture_id[4];
 
-            tooltip_display[i].draw(*camera, shaders["mesh"], false);
+            tooltip_display[i].draw(*camera);
 
         }
        
@@ -1814,161 +1831,174 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             alpha = (sqr_mag - (landmark_max_dist * landmark_max_dist)) / (landmark_min_dist * landmark_min_dist);
             if (alpha < 0.0f) alpha = 0.0f;
         }
+        landmark_display[i].uniform.color_alpha = alpha;
         
-        landmark_display[i].draw(*camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+        landmark_display[i].draw(*camera);
     }
     glDepthMask(true);
 }
-
-void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame)
-{
-    camera_scene* camera = CameraManager::getInstance()->getCamera();
-    if (terrain_display.data.number_triangles > 0)
-        terrain_display.draw(*camera, shaders["mesh"]);
-
-    float ratio = 100.0;
-
-    // Display torus
-    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    for (unsigned int i=0; i<smoke_layers_frames[frame].size(); i++)
-    {
-        smoke_layer lay = smoke_layers_frames[frame][i];
-
-        generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio, lay.center.y/ratio, lay.center.z/ratio);
-        generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
-        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
-    }
-
-
-//    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    // billboards
-    if(gui_param.display_billboards)
-    {
-        glDepthMask(false);
-        for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
-        {
-           
-            mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
-            float new_scaling = free_spheres_frames[frame][j].r/ratio;
-            vec3 new_translation = free_spheres_frames[frame][j].center/ratio;
-            generic_sphere_mesh.uniform.transform.translation = new_translation;
-            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-            generic_sphere_mesh.uniform.transform.rotation = R;
-            generic_sphere_mesh.uniform.color = {1,1,1};
-
-            float var = vcl::perlin(j,2);
-
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres_frames[frame][j].current_angle * dot(free_spheres_frames[frame][j].rotation_axis,camera->orientation.col(2)) * 1.5f *(1+0.3*var)   + 2.2145*j*j) * camera->orientation;
-            quad.uniform.transform.translation = new_translation;
-            quad.uniform.transform.scaling = new_scaling;
-            quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
-            
-            quad.draw(*camera, shaders["mesh"]);
-        }
-        glDepthMask(true);
-    }
-
-    // free + stagnation spheres display NEW
-    for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
-    {
-        if (!free_spheres_frames[frame][j].falling)
-        {
-            mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
-            float r = free_spheres_frames[frame][j].r/ratio;
-            vec3 t = free_spheres_frames[frame][j].center/ratio;
-            float rho = free_spheres_frames[frame][j].rho;
-            float disp_rho = 1. - rho;
-            if (disp_rho < 0) disp_rho = 0.;
-
-            generic_sphere_mesh.uniform.transform.translation = t;
-            generic_sphere_mesh.uniform.transform.scaling = r;
-            generic_sphere_mesh.uniform.transform.rotation = R;
-            generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-        }
-    }
-
-    // spheres+subspheres display (lighter)
-    if(gui_param.display_spheres_with_subspheres)
-    {
-        for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
-        {
-            if (!free_spheres_frames[frame][j].falling)
-            {
-                mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
-                float r = free_spheres_frames[frame][j].r/ratio;
-                vec3 t = free_spheres_frames[frame][j].center/ratio;
-                float rho = free_spheres_frames[frame][j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-
-                subspheres_display.uniform.transform.translation = t;
-                subspheres_display.uniform.transform.scaling = r;
-                subspheres_display.uniform.transform.rotation = R;
-                subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
-
-                subspheres_display.draw(*camera, shaders["mesh"]);
-            }
-        }
-    }
-
-    // subspheres display NEW
-    if(gui_param.display_subspheres)
-    {
-        for (unsigned int j = 0; j<s2_spheres_frames[frame].size(); j++)
-        {
-            if (!free_spheres[s2_spheres_frames[frame][j].parent_id].falling)
-            {
-                float r = free_spheres_frames[frame][j].r/ratio;
-                vec3 t = free_spheres_frames[frame][j].center/ratio;
-                float rho = free_spheres_frames[frame][j].rho;
-                float disp_rho = 1. - rho;
-                if (disp_rho < 0) disp_rho = 0.;
-
-                generic_sphere_mesh.uniform.transform.translation = t;
-                generic_sphere_mesh.uniform.transform.scaling = r;
-                generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
-                if(gui_param.display_subspheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-            }
-        }
-    }
-
-    // falling spheres display
-    for (unsigned int j = 0; j<falling_spheres_frames[frame].size(); j++)
-    {
-        float new_scaling = falling_spheres_frames[frame][j].r/ratio;
-        vec3 new_translation = {falling_spheres_frames[frame][j].center.x/ratio, falling_spheres_frames[frame][j].center.y/ratio, falling_spheres_frames[frame][j].center.z/ratio};
-        generic_sphere_mesh.uniform.transform.translation = new_translation;
-        generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-        generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-        if (falling_spheres_frames[frame][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
-        else generic_sphere_mesh.uniform.color = {1,1,1};
-        if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-    }
-    // buffer falling spheres display
-    for (unsigned int k = 0; k<falling_spheres_buffers_frames[frame].size(); k++)
-    {
-        for (unsigned int j = 0; j<falling_spheres_buffers_frames[frame][k].size(); j++)
-        {
-            float new_scaling = falling_spheres_buffers_frames[frame][k][j].r/ratio;
-            vec3 new_translation = {falling_spheres_buffers_frames[frame][k][j].center.x/ratio, falling_spheres_buffers_frames[frame][k][j].center.y/ratio, falling_spheres_buffers_frames[frame][k][j].center.z/ratio};
-            generic_sphere_mesh.uniform.transform.translation = new_translation;
-            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-            generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-            if (falling_spheres_buffers_frames[frame][k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = {1,0,0};
-            else generic_sphere_mesh.uniform.color = {1,1,1};
-            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera, shaders["mesh"]);
-        }
-    }
-
-    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
-}
+//
+//void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame)
+//{
+//    camera_scene* camera = CameraManager::getInstance()->getCamera();
+//    if (terrain_display.data.number_triangles > 0)
+//        terrain_display.draw(*camera);
+//
+//    float ratio = 100.0;
+//
+//    // Display torus
+//    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    for (unsigned int i=0; i<smoke_layers_frames[frame].size(); i++)
+//    {
+//        smoke_layer lay = smoke_layers_frames[frame][i];
+//
+//        generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
+//        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio, lay.center.y/ratio, lay.center.z/ratio);
+//        generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
+//        if(gui_param.display_smoke_layers) generic_torus_mesh.draw(*camera);
+//    }
+//
+//
+////    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
+////    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+////    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+//
+//    // billboards
+//    if(gui_param.display_billboards)
+//    {
+//        glDepthMask(false);
+//        for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
+//        {
+//           
+//            mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
+//            float new_scaling = free_spheres_frames[frame][j].r/ratio;
+//            vec3 new_translation = free_spheres_frames[frame][j].center/ratio;
+//            generic_sphere_mesh.uniform.transform.translation = new_translation;
+//            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
+//            generic_sphere_mesh.uniform.transform.rotation = R;
+//            generic_sphere_mesh.uniform.color = {1,1,1};
+//
+//            float var = vcl::perlin(j,2);
+//
+//            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres_frames[frame][j].current_angle * dot(free_spheres_frames[frame][j].rotation_axis,camera->orientation.col(2)) * 1.5f *(1+0.3*var)   + 2.2145*j*j) * camera->orientation;
+//            quad.uniform.transform.translation = new_translation;
+//            quad.uniform.transform.scaling = new_scaling;
+//            quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
+//            quad.shader = shaders["mesh"];
+//            
+//            quad.draw(*camera);
+//        }
+//        glDepthMask(true);
+//    }
+//
+//    // free + stagnation spheres display NEW
+//    for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
+//    {
+//        if (!free_spheres_frames[frame][j].falling)
+//        {
+//            mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
+//            float r = free_spheres_frames[frame][j].r/ratio;
+//            vec3 t = free_spheres_frames[frame][j].center/ratio;
+//            float rho = free_spheres_frames[frame][j].rho;
+//            float disp_rho = 1. - rho;
+//            if (disp_rho < 0) disp_rho = 0.;
+//
+//            generic_sphere_mesh.uniform.transform.translation = t;
+//            generic_sphere_mesh.uniform.transform.scaling = r;
+//            generic_sphere_mesh.uniform.transform.rotation = R;
+//            generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
+//            generic_sphere_mesh.shader = shaders["mesh"];
+//            if(gui_param.display_free_spheres) generic_sphere_mesh.draw(*camera);
+//        }
+//    }
+//
+//    // spheres+subspheres display (lighter)
+//    if(gui_param.display_spheres_with_subspheres)
+//    {
+//        for (unsigned int j = 0; j<free_spheres_frames[frame].size(); j++)
+//        {
+//            if (!free_spheres_frames[frame][j].falling)
+//            {
+//                mat3 const R = rotation_from_axis_angle_mat3(free_spheres_frames[frame][j].rotation_axis, free_spheres_frames[frame][j].current_angle);
+//                float r = free_spheres_frames[frame][j].r/ratio;
+//                vec3 t = free_spheres_frames[frame][j].center/ratio;
+//                float rho = free_spheres_frames[frame][j].rho;
+//                float disp_rho = 1. - rho;
+//                if (disp_rho < 0) disp_rho = 0.;
+//
+//                subspheres_display.uniform.transform.translation = t;
+//                subspheres_display.uniform.transform.scaling = r;
+//                subspheres_display.uniform.transform.rotation = R;
+//                subspheres_display.uniform.color = {disp_rho,disp_rho,disp_rho};
+//                subspheres_display.shader = shaders["mesh"];
+//
+//                subspheres_display.draw(*camera);
+//            }
+//        }
+//    }
+//
+//    // subspheres display NEW
+//    if(gui_param.display_subspheres)
+//    {
+//        for (unsigned int j = 0; j<s2_spheres_frames[frame].size(); j++)
+//        {
+//            if (!free_spheres[s2_spheres_frames[frame][j].parent_id].falling)
+//            {
+//                float r = free_spheres_frames[frame][j].r/ratio;
+//                vec3 t = free_spheres_frames[frame][j].center/ratio;
+//                float rho = free_spheres_frames[frame][j].rho;
+//                float disp_rho = 1. - rho;
+//                if (disp_rho < 0) disp_rho = 0.;
+//
+//                generic_sphere_mesh.uniform.transform.translation = t;
+//                generic_sphere_mesh.uniform.transform.scaling = r;
+//                generic_sphere_mesh.uniform.color = {disp_rho,disp_rho,disp_rho};
+//                generic_sphere_mesh.shader = shaders["mesh"];
+//                if(gui_param.display_subspheres) generic_sphere_mesh.draw(*camera);
+//            }
+//        }
+//    }
+//
+//    // falling spheres display
+//    if (gui_param.display_free_spheres)
+//    {
+//        for (unsigned int j = 0; j < falling_spheres_frames[frame].size(); j++)
+//        {
+//            float new_scaling = falling_spheres_frames[frame][j].r / ratio;
+//            vec3 new_translation = { falling_spheres_frames[frame][j].center.x / ratio, falling_spheres_frames[frame][j].center.y / ratio, falling_spheres_frames[frame][j].center.z / ratio };
+//            generic_sphere_mesh.uniform.transform.translation = new_translation;
+//            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
+//            generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
+//            if (falling_spheres_frames[frame][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+//            else generic_sphere_mesh.uniform.color = { 1,1,1 };
+//            generic_sphere_mesh.shader = shaders["mesh"];
+//            generic_sphere_mesh.draw(*camera);
+//        }
+//    }
+//    // buffer falling spheres display
+//    if (gui_param.display_free_spheres)
+//    {
+//        for (unsigned int k = 0; k < falling_spheres_buffers_frames[frame].size(); k++)
+//        {
+//            for (unsigned int j = 0; j < falling_spheres_buffers_frames[frame][k].size(); j++)
+//            {
+//                float new_scaling = falling_spheres_buffers_frames[frame][k][j].r / ratio;
+//                vec3 new_translation = { falling_spheres_buffers_frames[frame][k][j].center.x / ratio, falling_spheres_buffers_frames[frame][k][j].center.y / ratio, falling_spheres_buffers_frames[frame][k][j].center.z / ratio };
+//                generic_sphere_mesh.uniform.transform.translation = new_translation;
+//                generic_sphere_mesh.uniform.transform.scaling = new_scaling;
+//                generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
+//                if (falling_spheres_buffers_frames[frame][k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+//                else generic_sphere_mesh.uniform.color = { 1,1,1 };
+//                generic_sphere_mesh.shader = shaders["mesh"];
+//                generic_sphere_mesh.draw(*camera);
+//            }
+//        }
+//    }
+//
+//    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+//}
 
 void scene_model::reset_simulation()
 {
@@ -1983,18 +2013,18 @@ void scene_model::reset_simulation()
     direction_tracker.reset_plume_positions();
     frame_count = 0;
     sim_time = 0;
-    decal_progress = 1.f;
 
     transition_lifetime.clear();
     for (int i = 0; i < max_smoke; i++)
         transition_lifetime.push_back(transition_delay * i);
 
-    smoke_layers_frames.clear();
-    free_spheres_frames.clear();
-    s2_spheres_frames.clear();
-    stagnate_spheres_frames.clear();
-    falling_spheres_frames.clear();
-    falling_spheres_buffers_frames.clear();
+    //smoke_layers_frames.clear();
+    //free_spheres_frames.clear();
+    //s2_spheres_frames.clear();
+    //stagnate_spheres_frames.clear();
+    //falling_spheres_frames.clear();
+    //falling_spheres_buffers_frames.clear();
+
     frame_replay = 0;
     replay = false;
     export_data = false;
@@ -2375,9 +2405,4 @@ void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int
              state = engine_state::paused;
          }
     }
-}
-
-void wind_structure::recalc_wind_vector()
-{
-    wind_vector = intensity * vcl::vec3(cos(angle), sin(angle), 0);
 }
