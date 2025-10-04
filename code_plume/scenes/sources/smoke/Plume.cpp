@@ -5,6 +5,97 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
+Plume::Plume()
+{
+    reset();
+}
+
+void Plume::reset()
+{
+    subspheres_number = 0;
+    subsubspheres_number = 0;
+
+    free_sphere_id = 0;
+    falling_sphere_id = 0;
+
+    t_step = 0;
+    new_layer_delay = 0;
+    total_layers_ejected = 0;
+    nb_of_iterations = 0;
+    last_ppe_layer_idx = 0;
+    stagnation_speed = 50;
+
+    // Parameters : to be chosen by user
+    T_0 = 1273.; // initial temp (K)
+    theta_0 = 0.; // initial angle (rad)
+    U_0 = 150.; // initial speed (m.s-1)
+    n_0 = 0.03; // initial gas mass fraction
+    z_0 = 0.f; // initial altitude (m)
+    r_0 = 100; // initial radius (m)
+    rho_0 = 200.;
+
+    // Parameters : constants
+    g = 9.81; // (m.s-2)
+    min_lifetime = 180.0;
+    max_lifetime = 240.0;
+    vent_position = { 2500, 0, (float)z_0 };
+
+    // coeff init
+    air_incorporation_coeff = 5.;
+
+    smoke_layers.clear();
+    free_spheres.clear();
+    s2_spheres.clear();
+    s3_spheres.clear();
+    falling_spheres.clear();
+    stagnate_spheres.clear();
+    falling_spheres_buffers.clear();
+}
+
+void Plume::step()
+{
+    // add smoke layer each x seconds
+    if (smoke_layers.size() == 0 || (new_layer_delay >= r_0 / (2 * U_0) && smoke_layers.size() < 1000000000000000))
+    {
+        add_smoke_layer(U_0, rho_0, r_0, vent_position, false);
+        add_free_spheres_for_one_layer(smoke_layers.size() - 1);
+
+        new_layer_delay = 0;
+        total_layers_ejected++;
+        std::cout << smoke_layers.size() << std::endl;
+        std::cout << "LAYER ADDED OK" << std::endl;
+    }
+}
+
+void Plume::update(unsigned int frame_count)
+{
+
+    // update of layer and spheres
+    for (unsigned int id = 0; id < smoke_layers.size(); id++)
+    {
+        smoke_layer_update(id);
+    }
+    update_free_spheres();
+    if (frame_count % 100 == 0) falling_spheres_update(100);
+    update_stagnation_spheres();
+
+    // update subspheres
+    //if (frame_count %50 == 0) update_subspheres_params();
+
+    // export (comment or uncomment)
+    //if (export_data && frame_count % 50 == 0) export_spheres();
+
+    //// store data for replay
+    //if (!export_data && frame_count %50 == 0)
+    //{
+    //    smoke_layers_frames.push_back(smoke_layers);
+    //    free_spheres_frames.push_back(free_spheres);
+    //    stagnate_spheres_frames.push_back(stagnate_spheres);
+    //    falling_spheres_frames.push_back(falling_spheres);
+    //    falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
+    //}
+}
+
 void Plume::add_smoke_layer(float v, float d, float r, vec3 position, bool secondary_plume)
 {
     smoke_layer layer = smoke_layer({ 0,0,v }, d, r, position, secondary_plume);
@@ -200,12 +291,6 @@ void Plume::remove_colliding_smoke()
 
 void Plume::remove_smoke_layers()
 {
-    /*
-    * if sim time is greater than max lifetime
-    * and the beginning of smoke layers vector is less that max lifetime
-    * erase the layer that's over max lifetime and repeat
-    * do the same for sphere params
-    */
     if (!smoke_layers.empty())
     {
         //std::cout << "lifetime: " << smoke_layers[0].lifetime << " max: " << max_lifetime << " t_step: " << t_step << "\n";

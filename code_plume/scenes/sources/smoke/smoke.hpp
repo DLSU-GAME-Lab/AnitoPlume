@@ -40,22 +40,12 @@ struct scene_model : scene_base
     size_t frame_replay;
     bool export_data;
     engine_state state;
-    std::vector<int> deg_angle; // UI wind angles
-    bool all_angles; // UI toggle
 
     // Trackers
     float sim_time;
-    float new_layer_delay;
-    unsigned int total_layers_ejected;
-    unsigned int nb_of_iterations;
-    unsigned int last_ppe_layer_idx;
-    
     float avg_wind_dir_degrees;
     std::vector<std::string> tooltip_names;
     std::vector<std::string> landmark_names;
-
-    unsigned short free_sphere_id;
-    unsigned short falling_sphere_id;
 
     // Meshes
     vcl::mesh mesh_terrain;
@@ -85,32 +75,14 @@ struct scene_model : scene_base
     vcl::mesh_drawable subspheres;
     vcl::mesh_drawable subspheres_display;
 
-    // Parameters : to be chosen by user
-    double T_0; // initial temp
-    double theta_0; // initial angle
-    double U_0; // initial speed
-    double n_0; // initial gas mass fraction
-    double z_0; // initial altitude
-    double r_0; // initial radius
-    double rho_0; // initial density
-    double air_incorporation_coeff;
-    double stagnation_speed;
-
-    unsigned int subspheres_number; // IU subsphere count
-    unsigned int subsubspheres_number; // IU subsubsphere count
-
     std::vector<int> wind_altitudes;
     std::vector<wind_structure> winds;
     float linear_wind_base;
     bool is_wind;
     int selected;
     int wind_alt;
-
-    // Parameters : constants
-    float g;
-
-    double min_lifetime;
-    double max_lifetime;
+    std::vector<int> deg_angle; // UI wind angles
+    bool all_angles; // UI toggle
 
     float tooltip_dist;
     float landmark_min_dist;
@@ -129,6 +101,41 @@ struct scene_model : scene_base
     int direction_tracker_step_size;
     float direction_tracker_step;
 
+    // PLUMES
+    std::vector<Plume*> plumes;
+    std::vector<vcl::vec3> vent_positions;
+    unsigned short vent_index;
+
+    // OLD PLUME PARAMS------------------------------------------------
+    // 
+    // Parameters : constants
+    float g;
+
+    double min_lifetime;
+    double max_lifetime;
+
+    // Parameters : to be chosen by user
+    double T_0; // initial temp
+    double theta_0; // initial angle
+    double U_0; // initial speed
+    double n_0; // initial gas mass fraction
+    double z_0; // initial altitude
+    double r_0; // initial radius
+    double rho_0; // initial density
+    double air_incorporation_coeff;
+    double stagnation_speed;
+
+    unsigned short free_sphere_id;
+    unsigned short falling_sphere_id;
+
+    float new_layer_delay;
+    unsigned int total_layers_ejected;
+    unsigned int nb_of_iterations;
+    unsigned int last_ppe_layer_idx;
+
+    unsigned int subspheres_number; // IU subsphere count
+    unsigned int subsubspheres_number; // IU subsubsphere count
+
     // Data structures
     std::vector<smoke_layer> smoke_layers;
     std::vector<free_sphere_params> free_spheres;
@@ -137,11 +144,11 @@ struct scene_model : scene_base
     std::vector<free_sphere_params> stagnate_spheres;
     std::vector<free_sphere_params> falling_spheres;
     std::vector< std::vector<free_sphere_params>> falling_spheres_buffers;
+    
+    //// -----------------------------------------------------------------
+     
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
-
-    std::vector<vcl::vec3> vent_positions;
-    unsigned short vent_index;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
@@ -184,6 +191,9 @@ struct scene_model : scene_base
     void reset_simulation();
     void setup_terrain_preemptive();
 
+    // Fill structures
+    void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
+                           vcl::mesh_drawable terrain);
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
     void calculate_avg_wind_dir();
@@ -222,11 +232,6 @@ struct scene_model : scene_base
     // Export
     void update_subspheres_params();
     void export_spheres();
-
-    // Fill structures
-    void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
-                           vcl::mesh_drawable terrain);
-
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 

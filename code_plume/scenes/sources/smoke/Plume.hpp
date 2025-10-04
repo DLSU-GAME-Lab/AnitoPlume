@@ -35,6 +35,7 @@ struct Plume
     float g;
     float min_lifetime;
     float max_lifetime;
+    vcl::vec3 vent_position;
 
     // Data structures
     std::vector<smoke_layer> smoke_layers;
@@ -47,6 +48,11 @@ struct Plume
 
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
+
+    Plume();
+    void reset();
+    void step();
+    void update(unsigned int frame_count);
 
     // Smoke layer computation
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);

@@ -8,6 +8,13 @@ private:
 	std::vector<int> wind_altitudes;
 	std::vector<wind_structure> winds;
 
+	float max_altitude;
+	float altitude_step;
+	int altitude_size;
+
+	std::vector<int> deg_angle; // UI wind angles
+	bool all_angles; // UI toggle
+
 public:
 	static WindManager* getInstance();
 	static void initialize();

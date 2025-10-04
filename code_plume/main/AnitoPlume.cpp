@@ -6,6 +6,7 @@
 #include "singleton/GUIManager.hpp"
 #include "singleton/CameraManager.hpp"
 #include "singleton/EngineTime.hpp"
+#include "singleton/WindManager.hpp"
 
 // ************************************** //
 // Global data declaration
@@ -63,6 +64,7 @@ AnitoPlume::AnitoPlume()
     GraphicsEngine::initialize();
     ShaderManager::initialize();
     MeshManager::initialize();
+    WindManager::initialize();
     std::cout << "\t [OK] systems Initialized" << std::endl;
 
     GraphicsEngine::getInstance()->createWindow("AnitoPlume");
@@ -133,6 +135,7 @@ AnitoPlume::AnitoPlume()
 
 AnitoPlume::~AnitoPlume()
 {
+    WindManager::destroy();
     CameraManager::destroy();
     GUIManager::destroy();
     MeshManager::destroy();

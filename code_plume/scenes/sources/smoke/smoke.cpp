@@ -1254,14 +1254,8 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     // begin with timer stopped
     timer.stop();
     replay = false;
-    frame_replay = 0;
-    new_layer_delay = 0;
-    total_layers_ejected = 0;
-    nb_of_iterations = 0;
     frame_count = 0;
     sim_time = 0;
-    min_lifetime = 180.0;
-    max_lifetime = 240.0;
     export_data = false;
     state = engine_state::stopped;
     all_angles = false;
@@ -1296,10 +1290,38 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Vent positions setup
     vent_index = 0;
-    vent_positions.push_back(vec3(2500, 0, z_0));
-    vent_positions.push_back(vec3(5850, 5950, z_0));
-    vent_positions.push_back(vec3(-2000, -6000, z_0));
-    vent_positions.push_back(vec3(-3000, 5800, z_0));
+    vent_positions.push_back(vec3(2500, 0, 0));
+    vent_positions.push_back(vec3(5850, 5950, 0));
+    vent_positions.push_back(vec3(-2000, -6000, 0));
+    vent_positions.push_back(vec3(-3000, 5800, 0));
+
+    min_lifetime = 180.0;
+    max_lifetime = 240.0;
+
+    // coeff init
+    air_incorporation_coeff = 5.;
+
+    subspheres_number = 0;
+    subsubspheres_number = 0;
+
+    //// Parameters : to be chosen by user
+     
+    T_0 = 1273.; // initial temp (K)
+    theta_0 = 0.; // initial angle (rad)
+    U_0 = 150.; // initial speed (m.s-1)
+    n_0 = 0.03; // initial gas mass fraction
+    z_0 = 0.f; // initial altitude (m)
+    r_0 = 100; // initial radius (m)
+    rho_0 = 200.;
+
+    // Parameters : constants
+    g = 9.81; // (m.s-2)
+
+    frame_replay = 0;
+    new_layer_delay = 0;
+    total_layers_ejected = 0;
+    nb_of_iterations = 0;
+    stagnation_speed = 50;
 
     // Meshes setup
     layer_mesh = mesh_drawable( mesh_primitive_cylinder(0.1f, {0,0,0}, {0,0,0.01}));
@@ -1558,8 +1580,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     selected = 0;
     wind_alt = 0;
 
-    stagnation_speed = 50;
-
     // Direction tracker setup
     direction_tracker_step = 1000.0f;
     direction_tracker_step_size = 20;
@@ -1567,23 +1587,6 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     calculate_avg_wind_dir();
 
-    // coeff init
-    air_incorporation_coeff = 5.;
-
-    subspheres_number = 0;
-    subsubspheres_number = 0;
-
-    // Parameters : to be chosen by user
-    T_0 = 1273.; // initial temp (K)
-    theta_0 = 0.; // initial angle (rad)
-    U_0 = 150.; // initial speed (m.s-1)
-    n_0 = 0.03; // initial gas mass fraction
-    z_0 = 0.f; // initial altitude (m)
-    r_0 = 100; // initial radius (m)
-    rho_0 = 200.;
-
-    // Parameters : constants
-    g = 9.81; // (m.s-2)
     tooltip_dist = 100;
     landmark_min_dist = 80;
     landmark_max_dist = 30;

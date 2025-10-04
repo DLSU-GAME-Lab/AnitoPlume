@@ -6,7 +6,15 @@ WindManager* WindManager::sharedInstance = nullptr;
 
 WindManager::WindManager()
 {
-
+    max_altitude = 10000;
+    altitude_step = 2000;
+    altitude_size = int(max_altitude / altitude_step) + 1;
+    for (unsigned int i = 0; i < altitude_size; i++)
+    {
+        wind_altitudes.push_back(i * altitude_step);
+        winds.push_back(wind_structure(0, 0));
+        this->deg_angle.push_back(0);
+    }
 }
 
 WindManager::~WindManager()
