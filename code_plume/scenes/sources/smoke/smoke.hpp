@@ -106,47 +106,8 @@ struct scene_model : scene_base
     std::vector<vcl::vec3> vent_positions;
     unsigned short vent_index;
 
-    // OLD PLUME PARAMS------------------------------------------------
-    // 
-    // Parameters : constants
-    float g;
-
-    double min_lifetime;
-    double max_lifetime;
-
-    // Parameters : to be chosen by user
-    double T_0; // initial temp
-    double theta_0; // initial angle
-    double U_0; // initial speed
-    double n_0; // initial gas mass fraction
-    double z_0; // initial altitude
-    double r_0; // initial radius
-    double rho_0; // initial density
-    double air_incorporation_coeff;
-    double stagnation_speed;
-
-    unsigned short free_sphere_id;
-    unsigned short falling_sphere_id;
-
     float new_layer_delay;
-    unsigned int total_layers_ejected;
-    unsigned int nb_of_iterations;
-    unsigned int last_ppe_layer_idx;
 
-    unsigned int subspheres_number; // IU subsphere count
-    unsigned int subsubspheres_number; // IU subsubsphere count
-
-    // Data structures
-    std::vector<smoke_layer> smoke_layers;
-    std::vector<free_sphere_params> free_spheres;
-    std::vector<subsphere_params> s2_spheres;
-    std::vector<subsphere_params> s3_spheres;
-    std::vector<free_sphere_params> stagnate_spheres;
-    std::vector<free_sphere_params> falling_spheres;
-    std::vector< std::vector<free_sphere_params>> falling_spheres_buffers;
-    
-    //// -----------------------------------------------------------------
-     
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
 
@@ -184,10 +145,20 @@ struct scene_model : scene_base
     std::ofstream seed_ofstream = std::ofstream(seed_file.c_str());
 
     // General functions
-    void setup_data(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui);
-    void frame_draw(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui);
-    void display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui);
-    void display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame);
+    void setup_data(scene_structure& scene, gui_structure& gui);
+    void setup_plume_params();
+
+    void frame_draw(scene_structure& scene, gui_structure& gui);
+    void display(scene_structure& scene);
+
+    void display_smoke_layers(Plume* plume);
+    void display_billboards(Plume* plume);
+    void display_free_spheres(Plume* plume);
+    void display_spheres_with_subspheres(Plume* plume);
+    void display_subspheres(Plume* plume);
+    void display_falling_spheres(Plume* plume);
+    void display_falling_spheres_buffers(Plume* plume);
+
     void reset_simulation();
     void setup_terrain_preemptive();
 
@@ -197,41 +168,6 @@ struct scene_model : scene_base
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
     void calculate_avg_wind_dir();
-    void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);
-    void edit_smoke_layer_properties(unsigned int i, float& d_mass);
-    void apply_forces_to_smoke_layer(unsigned int i, float d_mass);
-    void sedimentation(unsigned int i, float& d_mass);
-    void pyroclastic_flow_computation_step(unsigned int i);
-    void complete_plume_layer_properties_update(unsigned int i);
-    void smoke_layer_update(unsigned int i);
-    void check_smoke_position(unsigned int i);
-    void remove_colliding_smoke();
-    void remove_smoke_layers();
-
-    float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
-    float compute_atm_temperature(float height);
-    float compute_atm_density(float height);
-
-    // Pyroclastic flow : falling spheres
-    float field_height_at(float x, float y);
-    vcl::vec3 field_normal_at(float x, float y);
-    void sphere_ground_collision(free_sphere_params& sphere, int idx, unsigned int frame_nb);
-    void ground_falling_sphere_update(free_sphere_params& sphere, int idx, unsigned int frame_nb);
-    void secondary_columns_creation();
-    void falling_spheres_update(unsigned int frame_nb);
-
-    // Free spheres
-    void add_free_sphere(unsigned int i, float angle, float size_fac);
-    void add_free_spheres_for_one_layer(unsigned int i);
-    void subdivide_and_make_falling(unsigned int i);
-    void update_free_spheres();
-
-    // Stagnation
-    void update_stagnation_spheres();
-
-    // Export
-    void update_subspheres_params();
-    void export_spheres();
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 

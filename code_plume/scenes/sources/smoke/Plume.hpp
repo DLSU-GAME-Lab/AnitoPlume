@@ -4,8 +4,10 @@
 #include "scenes/sources/smoke/wind_structure.hpp"
 #include <vector>
 
-struct Plume
+// TODO: Add getters and setters for encapsulation
+class Plume
 {
+public:
     // User-defined parameters
     double T_0; // initial temp
     double theta_0; // initial angle
@@ -49,11 +51,16 @@ struct Plume
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
 
-    Plume();
+public:
+    Plume(vcl::vec3 vent_position);
     void reset();
     void step();
     void update(unsigned int frame_count);
 
+    void remove_colliding_smoke();
+    void remove_smoke_layers();
+
+private:
     // Smoke layer computation
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);
     void edit_smoke_layer_properties(unsigned int i, float& d_mass);
@@ -62,8 +69,6 @@ struct Plume
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
     void smoke_layer_update(unsigned int i);
-    void remove_colliding_smoke();
-    void remove_smoke_layers();
 
     float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
     float compute_atm_temperature(float height);

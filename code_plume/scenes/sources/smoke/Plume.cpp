@@ -5,8 +5,10 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
-Plume::Plume()
+Plume::Plume(vcl::vec3 vent_position)
 {
+    vent_position.z = (float)z_0;
+    this->vent_position = vent_position;
     reset();
 }
 
@@ -38,7 +40,6 @@ void Plume::reset()
     g = 9.81; // (m.s-2)
     min_lifetime = 180.0;
     max_lifetime = 240.0;
-    vent_position = { 2500, 0, (float)z_0 };
 
     // coeff init
     air_incorporation_coeff = 5.;

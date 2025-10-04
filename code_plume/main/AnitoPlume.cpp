@@ -12,9 +12,6 @@
 // Global data declaration
 // ************************************** //
 
-// Storage for shaders indexed by their names
-std::map<std::string, GLuint> shaders;
-
 // General shared elements of the scene such as camera and its controler, visual elements, etc
 scene_structure scene;
 
@@ -96,17 +93,6 @@ AnitoPlume::AnitoPlume()
     ShaderManager::getInstance()->load("skybox", "skybox");
     ShaderManager::getInstance()->load("mesh_mix", "mesh_mix");
     ShaderManager::getInstance()->load("sky_mesh", "sky_mesh");
-
-    shaders["mesh"] = ShaderManager::getInstance()->getShader("mesh");
-    shaders["mesh_bf"] = ShaderManager::getInstance()->getShader("mesh_bf");
-    shaders["wireframe"] = ShaderManager::getInstance()->getShader("wireframe");
-    shaders["wireframe_quads"] = ShaderManager::getInstance()->getShader("wireframe_quads");
-    shaders["curve"] = ShaderManager::getInstance()->getShader("curve");
-    shaders["segment_im"] = ShaderManager::getInstance()->getShader("segment_im");
-    shaders["normals"] = ShaderManager::getInstance()->getShader("normals");
-    shaders["skybox"] = ShaderManager::getInstance()->getShader("skybox");
-    shaders["mesh_mix"] = ShaderManager::getInstance()->getShader("mesh_mix");
-    shaders["sky_mesh"] = ShaderManager::getInstance()->getShader("sky_mesh");
     std::cout << "\t [OK] Shader loaded" << std::endl;
 
 
@@ -116,10 +102,10 @@ AnitoPlume::AnitoPlume()
 
     scene.frame_camera = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.15f, 0.05f, 0.15f, 0.3f));
     scene.frame_camera.uniform.transform.scaling = 0.2f;
-    scene.frame_camera.shader = shaders.at("mesh");
+    scene.frame_camera.shader = ShaderManager::getInstance()->getShader("mesh");
 
     scene.frame_worldspace = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.05f, 0.015f, 0.05f, 0.1f));
-    scene.frame_worldspace.shader = shaders.at("mesh");
+    scene.frame_worldspace.shader = ShaderManager::getInstance()->getShader("mesh");
 
     const vcl::image_raw white{ 1,1,vcl::image_color_type::rgba,{255,255,255,255} };
     scene.texture_white = vcl::create_texture_gpu(white);
@@ -128,7 +114,7 @@ AnitoPlume::AnitoPlume()
 
     opengl_debug();
     std::cout << "*** Setup Data ***" << std::endl;
-    scene_current.setup_data(shaders, scene, gui);
+    scene_current.setup_data(scene, gui);
     std::cout << "\t [OK] Data setup" << std::endl;
     opengl_debug();
 }
@@ -213,7 +199,7 @@ void AnitoPlume::render()
     GUIManager::getInstance()->newFrame();
 
     // Perform computation and draw calls for each iteration loop
-    scene_current.frame_draw(shaders, scene, gui);
+    scene_current.frame_draw(scene, gui);
     opengl_debug();
 
     // Render GUI and update window
