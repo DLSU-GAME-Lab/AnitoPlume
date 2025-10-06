@@ -44,8 +44,6 @@ struct scene_model : scene_base
     // Trackers
     float sim_time;
     float avg_wind_dir_degrees;
-    std::vector<std::string> tooltip_names;
-    std::vector<std::string> landmark_names;
 
     // Meshes
     vcl::mesh mesh_terrain;
@@ -56,8 +54,6 @@ struct scene_model : scene_base
     vcl::mesh_drawable terrain;
     vcl::mesh_drawable skysphere;
     vcl::mesh_drawable terrain_display;
-    vcl::mesh_drawable tooltip_display[4];
-    vcl::mesh_drawable landmark_display[11];
     vcl::mesh_drawable sphere;
     vcl::mesh_drawable sky_sphere;
     vcl::mesh_drawable quad;
@@ -83,10 +79,6 @@ struct scene_model : scene_base
     int wind_alt;
     std::vector<int> deg_angle; // UI wind angles
     bool all_angles; // UI toggle
-
-    float tooltip_dist;
-    float landmark_min_dist;
-    float landmark_max_dist;
 
     // smoke transition animation
     int max_smoke;

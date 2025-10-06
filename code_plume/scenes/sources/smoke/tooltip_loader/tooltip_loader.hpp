@@ -4,22 +4,13 @@
 #include <thread>
 struct tooltip_loader
 {
-	//mesh mesh_terrain;
 	vcl::mesh_drawable* tooltip;
-	GLuint mesh_shader;
-	GLuint current_tex_id;
+	vcl::mesh_drawable tooltip_display[4];
+
+	GLuint shader;
 	GLuint texture_id[5];
-	bool new_tooltip_loaded = false;
+	float tooltip_dist = 100.0f;
 
-	const int size = 32;
-	std::string current_tooltip = "Tooltip-Balantoc.obj";
-	std::string current_texture = "Tooltip-Balantoc.png";
-
-	char tip_input[32] = "Tooltip-Balantoc.obj";
-	char tex_input[32] = "Tooltip-Balantoc.png";
-
-	int current_tex = 0;
-
-	void load_all_textures();
-	void load_tooltip(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
+	void setup_tooltips();
+	void draw();
 };

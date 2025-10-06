@@ -100,14 +100,20 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
     t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
     new_layer_delay += t_step;
 
-    plumes[0]->t_step = t_step;
-    plumes[0]->new_layer_delay = new_layer_delay;
-
+    for (int i = 0; i < plumes.size(); i++)
+    {
+        plumes[i]->t_step = t_step;
+        plumes[i]->new_layer_delay = new_layer_delay;
+    }
+    
     if (!replay)
     {
         sim_time += t_step;
-        //plumes[0].remove_colliding_smoke();
-        plumes[0]->remove_smoke_layers();
+        for (int i = 0; i < plumes.size(); i++)
+        {
+            //plumes[i].remove_colliding_smoke();
+            plumes[i]->remove_smoke_layers();
+        }
 
         for (int i = 0; i < transition_lifetime.size(); i++)
         {
@@ -116,8 +122,11 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
 
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
         {
-            plumes[0]->step();
-            plumes[0]->update(frame_count);
+            for (int i = 0; i < plumes.size(); i++)
+            {
+                plumes[i]->step();
+                plumes[i]->update(frame_count);
+            }
             frame_count++;
         }
     }
@@ -132,8 +141,6 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
 
     }
     else display(scene);
-
-    display(scene);
 }
 
 
@@ -204,7 +211,6 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
 
     t_loader.mesh_shader = ShaderManager::getInstance()->getShader("mesh");
     t_loader.load_all_textures();
-    tip_loader.load_all_textures();
 
     gui_param.display_smoke_layers = false;
     gui_param.display_free_spheres = false;
@@ -396,25 +402,9 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
         subspheres_display.uniform.shading.diffuse = 0.3f;
         subspheres_display.uniform.shading.specular = 0.0f;
     }
-    // tooltip names
-    tooltip_names.push_back("Tooltip-Balantoc") ;
-    tooltip_names.push_back("Tooltip-Malaki") ;
-    tooltip_names.push_back("Tooltip-Munti") ;
-    tooltip_names.push_back("Tooltip-Piraso") ;
-    //landmark names
-    landmark_names.push_back("Landmark_Lipa");
-    landmark_names.push_back("Landmark_SantaTeresita");
-    landmark_names.push_back("Landmark_Tagaytay");
-    landmark_names.push_back("Landmark_Tanauan");
-    landmark_names.push_back("Landmark-Talisay");
-    landmark_names.push_back("Landmark-Agoncillo");
-    landmark_names.push_back("Landmark-Alitagtag");
-    landmark_names.push_back("Landmark-Balete");
-    landmark_names.push_back("Landmark-Cuenca");
-    landmark_names.push_back("Landmark-Laurel");
-    landmark_names.push_back("Landmark-Mataasnakahoy");
     
-
+    tip_loader.setup_tooltips();
+    mark_loader.setup_landmarks();
 
     //load terrain
     t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
@@ -424,54 +414,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
-    //load tooltips
-    for (int i = 0; i < tooltip_names.size(); i++)
-    {
-        tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
-        tooltip_display[i] = *tip_loader.tooltip;
-        tooltip_display[i].uniform.transform.scaling = 4.f;
-        tooltip_display[i].uniform.shading.ambiant = 1.f;
-        tooltip_display[i].shader = ShaderManager::getInstance()->getShader("mesh");
-    }
 
-    //setup tooltips
-    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
-    tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
-    tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
-    tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
-
-    //load landmark
-    for (int i = 0; i < landmark_names.size(); i++)
-    {
-        mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
-        landmark_display[i] = mark_loader.tooltip;
-        landmark_display[i].uniform.transform.scaling = 10.f;
-        landmark_display[i].uniform.shading.ambiant = 1.f;
-        landmark_display[i].shader = ShaderManager::getInstance()->getShader("mesh");
-    }
-    // lipa
-    landmark_display[0].uniform.transform.translation = { 285.f,-130.f,5.f };
-    // sta terisita
-    landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
-    //tagaytay
-    landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
-    // tanauan
-    landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
-    //talisay
-    landmark_display[4].uniform.transform.translation = { 0,150,5.f };
-    //Agoncillo
-    landmark_display[5].uniform.transform.translation = { -100,0,5.f };
-    //Alitagtag
-    landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
-    //Balete
-    landmark_display[7].uniform.transform.translation = { 255,50,5.f };
-    //Cuenca
-    landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
-    //Laurel
-    landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
-    //Mataas na Kahoy
-    landmark_display[10].uniform.transform.translation = { 225, -50.f,5.f };
-    
     // Params setup
     is_wind = false;
     linear_wind_base = 15.;
@@ -497,9 +440,6 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
     calculate_avg_wind_dir();
 
-    tooltip_dist = 100;
-    landmark_min_dist = 80;
-    landmark_max_dist = 30;
 }
 
 void scene_model::setup_plume_params()
@@ -532,20 +472,15 @@ void scene_model::display(scene_structure& scene)
     }
     //draw(terrain, *camera, shaders["wireframe"]);
 
-    // Display torus
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     for (int i = 0; i < plumes.size(); i++)
     {
+        // Display torus
         if (gui_param.display_smoke_layers) display_smoke_layers(plumes[i]);
-
-        //    glBindTexture(GL_TEXTURE_2D, texture_smoke_id);
-        //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-        //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-            // billboards
+        // billboards
         if (gui_param.display_billboards) display_billboards(plumes[i]);
         // free + stagnation spheres display
         if (gui_param.display_free_spheres) display_free_spheres(plumes[i]);
@@ -559,48 +494,9 @@ void scene_model::display(scene_structure& scene)
         if (gui_param.display_free_spheres) display_falling_spheres_buffers(plumes[i]);
     }
     
-    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+    if (gui_param.display_tooltips == true  && camera->mode != view_mode::orbital) tip_loader.draw();
 
-    if (gui_param.display_tooltips == true  && camera->mode != view_mode::orbital )
-    {
-        glDepthMask(false);
-        for (int i = 0; i < 4; i++)
-        {
-            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + camera->translation;
-            float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
-            tooltip_display[i].uniform.transform.rotation = camera->orientation;
-            
-            if (sqr_mag <= tooltip_dist * tooltip_dist)
-                tooltip_display[i].texture_id =  tip_loader.texture_id[i];
-            else
-                tooltip_display[i].texture_id = tip_loader.texture_id[4];
-
-            tooltip_display[i].draw(*camera);
-
-        }
-       
-
-        glDepthMask(true);
-    }
-
-    glDepthMask(false);
-    for (int i = 0; i < 11; i++)
-    {
-        vec3 lm_vec = landmark_display[i].uniform.transform.translation + camera->translation;
-        float sqr_mag = (lm_vec.x * lm_vec.x) + (lm_vec.y * lm_vec.y) + (lm_vec.z * lm_vec.z);
-        float alpha = 1.0f;
-
-        if (sqr_mag < landmark_min_dist * landmark_min_dist)
-        {
-            alpha = (sqr_mag - (landmark_max_dist * landmark_max_dist)) / (landmark_min_dist * landmark_min_dist);
-            if (alpha < 0.0f) alpha = 0.0f;
-        }
-        landmark_display[i].uniform.color_alpha = alpha;
-        landmark_display[i].uniform.transform.rotation = camera->orientation;
-        
-        landmark_display[i].draw(*camera);
-    }
-    glDepthMask(true);
+    mark_loader.draw();
 }
 
 #pragma region Unique Display
