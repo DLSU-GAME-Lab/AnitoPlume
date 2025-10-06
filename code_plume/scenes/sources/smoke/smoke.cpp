@@ -687,6 +687,24 @@ void scene_model::set_gui(gui_structure& gui)
     ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &plume.subsubspheres_number, &spheres_min, &spheres_max);
     ImGui::PopItemWidth();
 
+    show_display_settings();
+    show_wind_settings();
+    show_eruption_parameters();
+    // Coeffs
+
+    //float air_inc_min = 0.5, air_inc_max = 10.;
+    //ImGui::SliderScalar("Air incorporation coefficient", ImGuiDataType_Float, &air_incorporation_coeff, &air_inc_min, &air_inc_max, "%.2f");
+
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+void scene_model::show_display_settings()
+{
+    const float indent_width = 5;
+    const float child_width = 380;
+
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 5.25f));
@@ -703,33 +721,13 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::EndChild();
     }
 
-    // Coeffs
+}
 
-    //float air_inc_min = 0.5, air_inc_max = 10.;
-    //ImGui::SliderScalar("Air incorporation coefficient", ImGuiDataType_Float, &air_incorporation_coeff, &air_inc_min, &air_inc_max, "%.2f");
+void scene_model::show_wind_settings()
+{
+    const float indent_width = 5;
+    const float child_width = 380;
 
-    // Initial conditions
-    if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
-        ImGui::Spacing();
-        ImGui::Indent(indent_width);
-        ImGui::PushItemWidth(200);
-
-        float initial_speed_min = 0., initial_speed_max = 200.;
-        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, plume.get_U_0(), &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, plume.get_rho_0(), &initial_density_min, &initial_density_max, "%.2f kg/m3");
-        float vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, plume.get_r_0(), &vent_ray_min, &vent_ray_max, "%.2f m");
-        float vent_altitude_min = 0., vent_altitude_max = 8000.;
-        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, plume.get_z_0(), &vent_altitude_min, &vent_altitude_max, "%.2f m");
-
-        ImGui::PopItemWidth();
-        ImGui::Unindent();
-        ImGui::EndChild();
-
-    }
     // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -938,10 +936,37 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::Unindent();
         ImGui::EndChild();
     }
+}
 
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();
-    ImGui::End();
+void scene_model::show_eruption_parameters()
+{
+    Plume& plume = plumes[0];
+    const float indent_width = 5;
+    const float child_width = 380;
+
+    // Initial conditions
+    if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
+        ImGui::Spacing();
+        ImGui::Indent(indent_width);
+        ImGui::PushItemWidth(200);
+
+        float initial_speed_min = 0., initial_speed_max = 200.;
+        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, plume.get_U_0(), &initial_speed_min, &initial_speed_max, "%.2f m/s");
+        float initial_density_min = 150., initial_density_max = 250.;
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, plume.get_rho_0(), &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        float vent_ray_min = 50., vent_ray_max = 200.;
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, plume.get_r_0(), &vent_ray_min, &vent_ray_max, "%.2f m");
+        float vent_altitude_min = 0., vent_altitude_max = 8000.;
+        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, plume.get_z_0(), &vent_altitude_min, &vent_altitude_max, "%.2f m");
+
+        ImGui::PopItemWidth();
+        ImGui::Unindent();
+        ImGui::EndChild();
+
+    }
+
 }
 
 void scene_model::set_gui_playback(gui_structure& gui)

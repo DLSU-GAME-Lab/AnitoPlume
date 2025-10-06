@@ -133,8 +133,11 @@ struct scene_model : scene_base
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 
-    // Init
     void set_gui(gui_structure& gui);
+    void show_display_settings();
+    void show_wind_settings();
+    void show_eruption_parameters();
+
     void set_gui_playback(gui_structure& gui);
     void set_gui_profiler(gui_structure& gui);
 

@@ -9,22 +9,6 @@ Plume::Plume(vcl::vec3 vent_position)
 {
     vent_position.z = (float)z_0;
     this->vent_position = vent_position;
-    reset();
-}
-
-void Plume::reset()
-{
-    subspheres_number = 0;
-    subsubspheres_number = 0;
-
-    free_sphere_id = 0;
-    falling_sphere_id = 0;
-
-    t_step = 0;
-    new_layer_delay = 0;
-    nb_of_iterations = 0;
-    last_ppe_layer_idx = 0;
-    stagnation_speed = 50;
 
     // Parameters : to be chosen by user
     T_0 = 1273.; // initial temp (K)
@@ -35,6 +19,9 @@ void Plume::reset()
     r_0 = 100; // initial radius (m)
     rho_0 = 200.;
 
+    subspheres_number = 0;
+    subsubspheres_number = 0;
+
     // Parameters : constants
     g = 9.81; // (m.s-2)
     min_lifetime = 180.0;
@@ -42,6 +29,20 @@ void Plume::reset()
 
     // coeff init
     air_incorporation_coeff = 5.;
+
+    reset();
+}
+
+void Plume::reset()
+{
+    free_sphere_id = 0;
+    falling_sphere_id = 0;
+
+    t_step = 0;
+    new_layer_delay = 0;
+    nb_of_iterations = 0;
+    last_ppe_layer_idx = 0;
+    stagnation_speed = 50;
 
     smoke_layers.clear();
     free_spheres.clear();
