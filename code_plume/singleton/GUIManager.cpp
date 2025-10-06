@@ -1,6 +1,9 @@
 #include "GUIManager.hpp"
 #include"gui/MenuScreen.hpp"
 #include "gui/CameraSettingsScreen.hpp"
+#include "gui/SimulatorInputScreen.hpp"
+#include "gui/PlaybackScreen.hpp"
+#include "gui/ProfilerScreen.hpp"
 
 void GUIManager::newFrame()
 {
@@ -61,6 +64,18 @@ GUIManager::GUIManager(GLFWwindow* window)
     CameraSettingsScreen* camScreen = new CameraSettingsScreen();
     this->guiTable["CAMERA_SETTINGS_SCREEN"] = camScreen;
     this->guiList.push_back(camScreen);
+
+    SimulatorInputScreen* simInputScreen = new SimulatorInputScreen();
+    this->guiTable["SIMULATOR_INPUT_SCREEN"] = simInputScreen;
+    this->guiList.push_back(simInputScreen);
+
+    PlaybackScreen* playbackScreen = new PlaybackScreen();
+    this->guiTable["PLAYBACK_SCREEN"] = playbackScreen;
+    this->guiList.push_back(playbackScreen);
+
+    ProfilerScreen* profilerScreen = new ProfilerScreen();
+    this->guiTable["PROFILER_SCREEN"] = profilerScreen;
+    this->guiList.push_back(profilerScreen);
 
 }
 

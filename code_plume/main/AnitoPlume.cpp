@@ -165,11 +165,7 @@ void AnitoPlume::run()
         auto endTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float, std::milli> elapsedTime = endTime - startTime;
         float sleepTime = FRAME_TIME - elapsedTime.count();
-
-        if (sleepTime > 0)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepTime)));
-        }
+        if (sleepTime > 0) std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepTime)));
 
     }
     std::cout << "*** Stop GLFW loop ***" << std::endl;
@@ -185,6 +181,7 @@ void AnitoPlume::processInput()
 void AnitoPlume::update()
 {
     CameraManager::getInstance()->getController()->update_timer();
+    scene_current.update();
 }
 
 void AnitoPlume::render()

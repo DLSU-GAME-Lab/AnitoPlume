@@ -4,108 +4,23 @@
 
 using namespace vcl;
 
-
-
-// Counter used to save image on hard drive
-int counter_image = 0;
-
-std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
-std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
-
-//------------------------------------------------------------
-//------------------------ TERRAIN ---------------------------
-//------------------------------------------------------------
-
-void scene_model::fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
-                                    vcl::mesh_drawable terrain)
-{
-    // prepare field with parameters
-    terrain_struct.min_xyz = -15000.0f;
-    terrain_struct.max_xyz = 15000.0f;
-    float interval_size = terrain_struct.max_xyz - terrain_struct.min_xyz;
-    terrain_struct.cell_size = 200.f;
-    terrain_struct.field_size = (size_t)(terrain_struct.max_xyz/terrain_struct.cell_size);
-    terrain_struct.height_field.resize(terrain_struct.field_size, terrain_struct.field_size);
-    terrain_struct.normal_field.resize(terrain_struct.field_size, terrain_struct.field_size);
-
-    //transform like for mesh_drawable
-    mat3 rotation = terrain.uniform.transform.rotation;
-    vec3 translation = terrain.uniform.transform.translation;
-    float scaling = terrain.uniform.transform.scaling;
-    for (unsigned int i = 0; i<position.size(); i++)
-    {
-        position[i] = scaling * (rotation * position[i] + translation);
-        normal[i] = rotation * normal[i];
-    }
-    terrain_struct.positions = position;
-    terrain_struct.normals = normal;
-
-
-    //fill height field for collisions
-    for (unsigned int i = 0; i<position.size(); i++)
-    {
-        if (position[i].x < terrain_struct.max_xyz && position[i].x > terrain_struct.min_xyz
-                && position[i].y < terrain_struct.max_xyz && position[i].y > terrain_struct.min_xyz)
-        {
-            int idx_x = (int)(terrain_struct.field_size*(position[i].x - terrain_struct.min_xyz)/interval_size);
-            int idx_y = (int)(terrain_struct.field_size*(position[i].y - terrain_struct.min_xyz)/interval_size);
-            if (idx_x == terrain_struct.field_size) idx_x = terrain_struct.field_size-1;
-            if (idx_y == terrain_struct.field_size) idx_y = terrain_struct.field_size-1;
-            terrain_struct.height_field(idx_x,idx_y) = position[i].z;
-            terrain_struct.normal_field(idx_x,idx_y) = normal[i];
-
-            //std::cout << "idx_x: " << idx_x << " idx_y: " << idx_y << " height: " << position[i].z << "\n";
-        }
-    }
-
-}
-
-
 //------------------------------------------------------------
 //------------------------ PROCESS ---------------------------
 //------------------------------------------------------------ */
 
-void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
+void scene_model::update()
 {
-    // Maintain designated frequency of 5 Hz (200 ms per frame)
-//    a = std::chrono::system_clock::now();
-//    std::chrono::duration<double, std::milli> work_time = a - b;
-
-//    if (work_time.count() < 16.0)
-//    {
-//        std::chrono::duration<double, std::milli> delta_ms(16.0 - work_time.count());
-//        auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-//        std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
-//    }
-
-//    b = std::chrono::system_clock::now();
-//    std::chrono::duration<double, std::milli> sleep_time = b - a;
-
     setup_terrain_preemptive();
 
     dt = timer.update();
-    set_gui(gui);
-    set_gui_playback(gui);
-    set_gui_profiler(gui);
-    t_loader.show_gui(&gui.enabled["Terrain"]);
-    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
-
-    terrain_display.texture_id = t_loader.current_tex_id;
-    terrain_display.norm_tex_id = t_loader.current_norm_id;
-    //std::cout << terrain_display.texture_id << std::endl;
-    //std::cout << t_loader.current_tex_id << std::endl;
-
-    //TODO: fix error with smoke layers suddenly exploding
     // Force constant time step
-    t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
-    new_layer_delay += t_step;
+    t_step = dt <= 1e-6f ? 0.0f : timer.scale * 0.002f; //0.0003f
 
     for (int i = 0; i < plumes.size(); i++)
     {
-        plumes[i].t_step = t_step;
-        plumes[i].new_layer_delay = new_layer_delay;
+        plumes[i].set_t_step(t_step);
     }
-    
+
     if (!replay)
     {
         sim_time += t_step;
@@ -120,7 +35,7 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
             transition_lifetime[i] += t_step;
         }
 
-        for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
+        for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame < 10; nb_steps_per_frame++)
         {
             for (int i = 0; i < plumes.size(); i++)
             {
@@ -130,6 +45,15 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
             frame_count++;
         }
     }
+}
+
+void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
+{
+    set_gui(gui);
+    set_gui_playback(gui);
+    set_gui_profiler(gui);
+    t_loader.show_gui(&gui.enabled["Terrain"]);
+    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
 
     if (replay)
     {
@@ -222,11 +146,6 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     debug_mode = true;
     float seed = time(0);
     srand(seed);
-    if (seed_ofstream)
-    {
-        seed_ofstream.precision(10);
-        seed_ofstream << seed;
-    }
 
     gui.show_frame_camera = false; std::cout << "replay becomes false 0" << std::endl;
     gui.enabled["Simulator Input"] = true;
@@ -468,6 +387,10 @@ void scene_model::display(scene_structure& scene)
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, *camera, ShaderManager::getInstance()->getShader("mesh"), true);
+
+        terrain_display.texture_id = t_loader.current_tex_id;
+        terrain_display.norm_tex_id = t_loader.current_norm_id;
+
         terrain_display.draw_mix(*camera, ShaderManager::getInstance()->getShader("mesh_mix"), terrain_display.texture_id, terrain_display.norm_tex_id, decal, 1);
     }
     //draw(terrain, *camera, shaders["wireframe"]);
@@ -794,13 +717,13 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::PushItemWidth(200);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
-        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &plume.U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
+        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, plume.get_U_0(), &initial_speed_min, &initial_speed_max, "%.2f m/s");
         float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &plume.rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, plume.get_rho_0(), &initial_density_min, &initial_density_max, "%.2f kg/m3");
         float vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &plume.r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, plume.get_r_0(), &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
-        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &plume.z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
+        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, plume.get_z_0(), &vent_altitude_min, &vent_altitude_max, "%.2f m");
 
         ImGui::PopItemWidth();
         ImGui::Unindent();

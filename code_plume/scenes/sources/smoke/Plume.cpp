@@ -22,7 +22,6 @@ void Plume::reset()
 
     t_step = 0;
     new_layer_delay = 0;
-    total_layers_ejected = 0;
     nb_of_iterations = 0;
     last_ppe_layer_idx = 0;
     stagnation_speed = 50;
@@ -53,6 +52,12 @@ void Plume::reset()
     falling_spheres_buffers.clear();
 }
 
+void Plume::set_t_step(float t_step)
+{
+    this->t_step = t_step;
+    this->new_layer_delay += t_step;
+}
+
 void Plume::step()
 {
     // add smoke layer each x seconds
@@ -62,7 +67,6 @@ void Plume::step()
         add_free_spheres_for_one_layer(smoke_layers.size() - 1);
 
         new_layer_delay = 0;
-        total_layers_ejected++;
         std::cout << smoke_layers.size() << std::endl;
         std::cout << "LAYER ADDED OK" << std::endl;
     }
@@ -294,7 +298,6 @@ void Plume::remove_smoke_layers()
 {
     if (!smoke_layers.empty())
     {
-        //std::cout << "lifetime: " << smoke_layers[0].lifetime << " max: " << max_lifetime << " t_step: " << t_step << "\n";
         while (smoke_layers[0].lifetime > max_lifetime)
         {
             smoke_layers.erase(smoke_layers.begin());
@@ -310,6 +313,41 @@ void Plume::remove_smoke_layers()
             }
         }
     }
+}
+
+double* Plume::get_T_0()
+{
+    return &this->T_0;
+}
+
+double* Plume::get_theta_0()
+{
+    return &this->theta_0;
+}
+
+double* Plume::get_U_0()
+{
+    return &this->U_0;
+}
+
+double* Plume::get_n_0()
+{
+    return &this->n_0;
+}
+
+double* Plume::get_z_0()
+{
+    return &this->z_0;
+}
+
+double* Plume::get_r_0()
+{
+    return &this->r_0;
+}
+
+double* Plume::get_rho_0()
+{
+    return &this->rho_0;
 }
 
 
@@ -399,7 +437,7 @@ void Plume::ground_falling_sphere_update(free_sphere_params& sphere, int idx, un
     }
 
     // precomputation
-    float V = 4. / 3. * 3.14 * sphere.r * sphere.r * sphere.r;
+    float V = 4. / 3. * PI * sphere.r * sphere.r * sphere.r;
     float m = sphere.rho * V;
 
     float atm_rho = compute_atm_density(sphere.center.z);
@@ -407,23 +445,6 @@ void Plume::ground_falling_sphere_update(free_sphere_params& sphere, int idx, un
     vec3 buoyancy = vec3(0, 0, atm_rho * V * g);
     vec3 friction = -0.1 * normalize(sphere.speed);
     friction = vec3(0, 0, 0);
-
-    // tests for additional force to prevent from being to close from column (not working)
-//    vec3 column_interaction_force = vec3(0,0,0);
-//    float terrain_z = field_height_at(sphere.center.x, sphere.center.y);
-//    if (min_dist < 1.5*smoke_layers[closest_layer_id].r)
-//    {
-//        vec3 force_vector = normalize(sphere.center - smoke_layers[closest_layer_id].center);
-//        force_vector = vec3(force_vector.x, force_vector.y, 0);
-//        column_interaction_force = 0.1 * m * (2*smoke_layers[closest_layer_id].r - min_dist) * force_vector;
-//    }
-//    else if (min_dist < 2.5*smoke_layers[closest_layer_id].r && terrain_z + 100. < sphere.center.z)
-//    {
-//        // horizontal friction
-//        column_interaction_force = -0.001 * m/t_step * vec3(sphere.speed.x, sphere.speed.y, 0);
-//    }
-//    if (smoke_layers[closest_layer_id].secondary_plume) column_interaction_force = vec3(0,0,0);
-//    column_interaction_force = vec3(0,0,0);
 
     vec3 forces = gravity + buoyancy + friction;
     vec3 a = forces / m;
@@ -459,8 +480,8 @@ void Plume::secondary_columns_creation()
     for (unsigned int i = 0; i < falling_spheres_buffers.size(); i++)
     {
         float wanted_ray = falling_spheres_buffers[i][0].r;
-        float wanted_volume = wanted_ray * 3.14 * wanted_ray * wanted_ray;
-        float sphere_volume = 4. / 3. * 3.14 * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r;
+        float wanted_volume = wanted_ray * PI * wanted_ray * wanted_ray;
+        float sphere_volume = 4. / 3. * PI * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r;
         float nb_spheres_needed = wanted_volume / sphere_volume;
         nb_spheres_needed = 6;
 
@@ -483,7 +504,6 @@ void Plume::secondary_columns_creation()
             // emit layer
             add_smoke_layer(5, falling_spheres_buffers[i][0].rho, wanted_ray * 0.75, falling_spheres_buffers[i][0].center, true);
             add_free_spheres_for_one_layer(smoke_layers.size() - 1);
-            total_layers_ejected++;
             //if (debug_mode) std::cout << "SECONDARY LAYER ADDED OK" << std::endl;
 
             // remove corresponding particles
@@ -496,51 +516,6 @@ void Plume::secondary_columns_creation()
             }
         }
     }
-
-    // test to check closest spheres every timestep without buffers: too slow
-//    for (unsigned int i = 0; i<falling_spheres.size(); i++)
-//    {
-//        if (falling_spheres[i].falling_under_atm_rho)
-//        {
-//            std::vector<unsigned int> close_particle_light;
-//            for (unsigned int j = 0; j<falling_spheres.size(); j++)
-//            {
-//                if (falling_spheres[j].falling_under_atm_rho && norm(falling_spheres[i].center - falling_spheres[j].center)< 2*falling_spheres[i].r)
-//                {
-//                    close_particle_light.push_back(j);
-//                }
-//            }
-
-//            vec3 center_i = falling_spheres[i].center;
-//            //find closest layer
-//            int closest_layer_id = smoke_layers.size()-1;
-//            float min_dist = norm(center_i - smoke_layers[closest_layer_id].center);
-//            for (unsigned int j = 0; j<smoke_layers.size(); j++)
-//            {
-//                float dist = norm (center_i - smoke_layers[j].center);
-//                if (dist < min_dist)
-//                {
-//                    min_dist = dist;
-//                    closest_layer_id = j;
-//                }
-//            }
-
-//            if (close_particle_light.size() > 6 && min_dist > falling_spheres[i].r)
-//            {
-//                // emit layer
-//                add_smoke_layer(5, falling_spheres[i].rho, falling_spheres[i].r, falling_spheres[i].center, true);
-//                add_free_spheres_for_one_layer(smoke_layers.size()-1);
-//                total_layers_ejected++;
-
-//                // remove corresponding particles
-//                for (unsigned int j = 0; j<6; j++)
-//                {
-//                    falling_spheres.erase(falling_spheres.begin() + close_particle_light[j]);
-//                }
-//            }
-//        }
-//    }
-
 }
 
 void Plume::falling_spheres_update(unsigned int frame_nb)

@@ -98,8 +98,6 @@ struct scene_model : scene_base
     std::vector<vcl::vec3> vent_positions;
     unsigned short vent_index;
 
-    float new_layer_delay;
-
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
 
@@ -109,36 +107,11 @@ struct scene_model : scene_base
     tooltip_loader tip_loader;
     landmark_loader mark_loader;
 
-    //// For replay feature
-    //std::vector< std::vector<smoke_layer> > smoke_layers_frames;
-    //std::vector< std::vector<free_sphere_params> > free_spheres_frames;
-    //std::vector< std::vector<subsphere_params> > s2_spheres_frames;
-    //std::vector< std::vector<free_sphere_params> > stagnate_spheres_frames;
-    //std::vector< std::vector<free_sphere_params> > falling_spheres_frames;
-    //std::vector< std::vector< std::vector<free_sphere_params> > > falling_spheres_buffers_frames;
-
-    // Export structures
-    std::string const altitude_file = "../output/altitude.txt";
-    std::string const plumex_file = "../output/plumex_file.txt";
-    std::string const speed_file = "../output/speed.txt";
-    std::string const ray_file = "../output/ray.txt";
-    std::string const smoke_rho_file = "../output/smoke_rho.txt";
-    std::string const atm_rho_file = "../output/atm_rho.txt";
-    std::string const temp_file = "../output/temp.txt";
-    std::ofstream altitude = std::ofstream(altitude_file.c_str());
-    std::ofstream plumex = std::ofstream(plumex_file.c_str());
-    std::ofstream speed = std::ofstream(speed_file.c_str());
-    std::ofstream ray = std::ofstream(ray_file.c_str());
-    std::ofstream smoke_rho = std::ofstream(smoke_rho_file.c_str());
-    std::ofstream atm_rho = std::ofstream(atm_rho_file.c_str());
-    std::ofstream temp = std::ofstream(temp_file.c_str());
-    // Seed export
-    std::string const seed_file = "../output/seed.txt";
-    std::ofstream seed_ofstream = std::ofstream(seed_file.c_str());
-
     // General functions
     void setup_data(scene_structure& scene, gui_structure& gui);
     void setup_plume_params();
+
+    void update();
 
     void frame_draw(scene_structure& scene, gui_structure& gui);
     void display(scene_structure& scene);
@@ -154,9 +127,6 @@ struct scene_model : scene_base
     void reset_simulation();
     void setup_terrain_preemptive();
 
-    // Fill structures
-    void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
-                           vcl::mesh_drawable terrain);
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
     void calculate_avg_wind_dir();

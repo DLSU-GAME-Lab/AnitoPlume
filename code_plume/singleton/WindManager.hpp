@@ -23,7 +23,6 @@ public:
 
 private:
 	WindManager();
-	~WindManager();
 	WindManager(const WindManager&) {};
 	WindManager operator=(const WindManager&) {};
 	static WindManager* sharedInstance;

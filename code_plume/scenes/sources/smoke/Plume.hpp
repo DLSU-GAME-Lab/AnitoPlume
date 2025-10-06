@@ -7,7 +7,7 @@
 // TODO: Add getters and setters for encapsulation
 class Plume
 {
-public:
+private:
     // User-defined parameters
     double T_0; // initial temp
     double theta_0; // initial angle
@@ -16,23 +16,20 @@ public:
     double z_0; // initial altitude
     double r_0; // initial radius
     double rho_0; // initial density
-    double air_incorporation_coeff;
-    double stagnation_speed;
 
     // Trackers
     float t_step;
-
     float new_layer_delay;
-    unsigned int total_layers_ejected;
+    double air_incorporation_coeff;
+    double stagnation_speed;
+
     unsigned int nb_of_iterations;
     unsigned int last_ppe_layer_idx;
 
     unsigned short free_sphere_id;
     unsigned short falling_sphere_id;
 
-    unsigned int subspheres_number; // IU subsphere count
-    unsigned int subsubspheres_number; // IU subsubsphere count
-
+public:
     // Constants
     float g;
     float min_lifetime;
@@ -51,14 +48,28 @@ public:
     std::vector<float> sphere_lifetime;
     std::vector<float> transition_lifetime;
 
+    unsigned int subspheres_number;
+    unsigned int subsubspheres_number;
+
 public:
     Plume(vcl::vec3 vent_position);
     void reset();
+
+    void set_t_step(float t_step);
+
     void step();
     void update(unsigned int frame_count);
 
     void remove_colliding_smoke();
     void remove_smoke_layers();
+
+    double* get_T_0();
+    double* get_theta_0();
+    double* get_U_0();
+    double* get_n_0();
+    double* get_z_0();
+    double* get_r_0();
+    double* get_rho_0();
 
 private:
     // Smoke layer computation
