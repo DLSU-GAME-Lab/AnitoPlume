@@ -102,8 +102,8 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
 
     for (int i = 0; i < plumes.size(); i++)
     {
-        plumes[i]->t_step = t_step;
-        plumes[i]->new_layer_delay = new_layer_delay;
+        plumes[i].t_step = t_step;
+        plumes[i].new_layer_delay = new_layer_delay;
     }
     
     if (!replay)
@@ -112,7 +112,7 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
         for (int i = 0; i < plumes.size(); i++)
         {
             //plumes[i].remove_colliding_smoke();
-            plumes[i]->remove_smoke_layers();
+            plumes[i].remove_smoke_layers();
         }
 
         for (int i = 0; i < transition_lifetime.size(); i++)
@@ -124,8 +124,8 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
         {
             for (int i = 0; i < plumes.size(); i++)
             {
-                plumes[i]->step();
-                plumes[i]->update(frame_count);
+                plumes[i].step();
+                plumes[i].update(frame_count);
             }
             frame_count++;
         }
@@ -452,7 +452,7 @@ void scene_model::setup_plume_params()
     vent_positions.push_back(vec3(-2000, -6000, 0));
     vent_positions.push_back(vec3(-3000, 5800, 0));
     
-    plumes.push_back(new Plume(vent_positions[0]));
+    plumes.push_back(Plume(vent_positions[0]));
 }
 
 
@@ -501,15 +501,14 @@ void scene_model::display(scene_structure& scene)
 
 #pragma region Unique Display
 
-void scene_model::display_smoke_layers(Plume* plume)
+void scene_model::display_smoke_layers(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
-
-    for (unsigned int i = 0; i < plume->smoke_layers.size(); i++)
+    
+    for (unsigned int i = 0; i < plume.smoke_layers.size(); i++)
     {
-        smoke_layer lay = plume->smoke_layers[i];
-
+        smoke_layer& lay = plume.smoke_layers[i];
         generic_torus_mesh.uniform.transform.scaling = lay.r / ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
@@ -518,7 +517,7 @@ void scene_model::display_smoke_layers(Plume* plume)
     }
 }
 
-void scene_model::display_billboards(Plume* plume)
+void scene_model::display_billboards(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
@@ -545,34 +544,33 @@ void scene_model::display_billboards(Plume* plume)
         quad.draw(*camera);
     }
 
-
-    for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
+    for (unsigned int j = 0; j < plume.free_spheres.size(); j++)
     {
-        mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float new_scaling = plume->free_spheres[j].r / ratio;
+        mat3 const R = rotation_from_axis_angle_mat3(plume.free_spheres[j].rotation_axis, plume.free_spheres[j].current_angle);
+        float new_scaling = plume.free_spheres[j].r / ratio;
         //if (j==0) std::cout << new_scaling << std::endl;
-        vec3 new_translation = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
+        vec3 new_translation = vec3(plume.free_spheres[j].center.x / ratio - 25, plume.free_spheres[j].center.y / ratio, plume.free_spheres[j].center.z / ratio - 2);
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = R;
         generic_sphere_mesh.uniform.color = { 1,1,1 };
         generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
 
-        float var = vcl::perlin(plume->free_spheres[j].id, 2);
+        float var = vcl::perlin(plume.free_spheres[j].id, 2);
 
         //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
-        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume->free_spheres[j].id * var) * camera->orientation;
+        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.free_spheres[j].id * var) * camera->orientation;
         quad.uniform.transform.translation = new_translation;
         quad.uniform.transform.scaling = new_scaling * 1.3;
         quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
 
-        float l = (plume->free_spheres[j].lifetime / 120) + 0.3f;
+        float l = (plume.free_spheres[j].lifetime / 120) + 0.3f;
         if (l > 1) l = 1;
         quad.uniform.color = { l,l,l };
 
         float end_fade = 1.0f;
-        if (plume->free_spheres[j].lifetime >= plume->min_lifetime)
-            end_fade -= (plume->free_spheres[j].lifetime - plume->min_lifetime) / (plume->max_lifetime - plume->min_lifetime);
+        if (plume.free_spheres[j].lifetime >= plume.min_lifetime)
+            end_fade -= (plume.free_spheres[j].lifetime - plume.min_lifetime) / (plume.max_lifetime - plume.min_lifetime);
         quad.uniform.color_alpha *= end_fade;
         quad.shader = ShaderManager::getInstance()->getShader("mesh");
 
@@ -581,18 +579,18 @@ void scene_model::display_billboards(Plume* plume)
     glDepthMask(true);
 }
 
-void scene_model::display_free_spheres(Plume* plume)
+void scene_model::display_free_spheres(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
 
-    for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
+    for (unsigned int j = 0; j < plume.free_spheres.size(); j++)
     {
         //if (!free_spheres[j].falling)
-        mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float r = plume->free_spheres[j].r / ratio;
-        vec3 t = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
-        float rho = plume->free_spheres[j].rho;
+        mat3 const R = rotation_from_axis_angle_mat3(plume.free_spheres[j].rotation_axis, plume.free_spheres[j].current_angle);
+        float r = plume.free_spheres[j].r / ratio;
+        vec3 t = vec3(plume.free_spheres[j].center.x / ratio - 25, plume.free_spheres[j].center.y / ratio, plume.free_spheres[j].center.z / ratio - 2);
+        float rho = plume.free_spheres[j].rho;
         float disp_rho = 1. - rho;
         if (disp_rho < 0) disp_rho = 0.;
         disp_rho = 1.;
@@ -606,17 +604,17 @@ void scene_model::display_free_spheres(Plume* plume)
     }
 }
 
-void scene_model::display_spheres_with_subspheres(Plume* plume)
+void scene_model::display_spheres_with_subspheres(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
-    for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
+    for (unsigned int j = 0; j < plume.free_spheres.size(); j++)
     {
         //if (!free_spheres[j].falling)
-        mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float r = plume->free_spheres[j].r / ratio;
-        vec3 t = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
-        float rho = plume->free_spheres[j].rho;
+        mat3 const R = rotation_from_axis_angle_mat3(plume.free_spheres[j].rotation_axis, plume.free_spheres[j].current_angle);
+        float r = plume.free_spheres[j].r / ratio;
+        vec3 t = vec3(plume.free_spheres[j].center.x / ratio - 25, plume.free_spheres[j].center.y / ratio, plume.free_spheres[j].center.z / ratio - 2);
+        float rho = plume.free_spheres[j].rho;
         float disp_rho = 1. - rho;
         if (disp_rho < 0) disp_rho = 0.;
         disp_rho = 1.;
@@ -631,17 +629,17 @@ void scene_model::display_spheres_with_subspheres(Plume* plume)
     }
 }
 
-void scene_model::display_subspheres(Plume* plume)
+void scene_model::display_subspheres(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
-    for (unsigned int j = 0; j < plume->s2_spheres.size(); j++)
+    for (unsigned int j = 0; j < plume.s2_spheres.size(); j++)
     {
-        if (!plume->free_spheres[plume->s2_spheres[j].parent_id].falling)
+        if (!plume.free_spheres[plume.s2_spheres[j].parent_id].falling)
         {
-            float r = plume->s2_spheres[j].r / ratio;
-            vec3 t = plume->s2_spheres[j].center / ratio;
-            float rho = plume->free_spheres[plume->s2_spheres[j].parent_id].rho;
+            float r = plume.s2_spheres[j].r / ratio;
+            vec3 t = plume.s2_spheres[j].center / ratio;
+            float rho = plume.free_spheres[plume.s2_spheres[j].parent_id].rho;
             float disp_rho = 1. - rho;
             if (disp_rho < 0) disp_rho = 0.;
             disp_rho = 1.;
@@ -655,40 +653,40 @@ void scene_model::display_subspheres(Plume* plume)
     }
 }
 
-void scene_model::display_falling_spheres(Plume* plume)
+void scene_model::display_falling_spheres(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
 
-    for (unsigned int j = 0; j < plume->falling_spheres.size(); j++)
+    for (unsigned int j = 0; j < plume.falling_spheres.size(); j++)
     {
-        float new_scaling = plume->falling_spheres[j].r / ratio;
-        vec3 new_translation = { plume->falling_spheres[j].center.x / ratio, plume->falling_spheres[j].center.y / ratio, plume->falling_spheres[j].center.z / ratio - 2 };
+        float new_scaling = plume.falling_spheres[j].r / ratio;
+        vec3 new_translation = { plume.falling_spheres[j].center.x / ratio, plume.falling_spheres[j].center.y / ratio, plume.falling_spheres[j].center.z / ratio - 2 };
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-        if (plume->falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+        if (plume.falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
         else generic_sphere_mesh.uniform.color = { 1,1,1 };
         generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
         generic_sphere_mesh.draw(*camera);
     }
 }
 
-void scene_model::display_falling_spheres_buffers(Plume* plume)
+void scene_model::display_falling_spheres_buffers(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
 
-    for (unsigned int k = 0; k < plume->falling_spheres_buffers.size(); k++)
+    for (unsigned int k = 0; k < plume.falling_spheres_buffers.size(); k++)
     {
-        for (unsigned int j = 0; j < plume->falling_spheres_buffers[k].size(); j++)
+        for (unsigned int j = 0; j < plume.falling_spheres_buffers[k].size(); j++)
         {
-            float new_scaling = plume->falling_spheres_buffers[k][j].r / ratio;
-            vec3 new_translation = { plume->falling_spheres_buffers[k][j].center.x / ratio, plume->falling_spheres_buffers[k][j].center.y / ratio, plume->falling_spheres_buffers[k][j].center.z / ratio + 5 };
+            float new_scaling = plume.falling_spheres_buffers[k][j].r / ratio;
+            vec3 new_translation = { plume.falling_spheres_buffers[k][j].center.x / ratio, plume.falling_spheres_buffers[k][j].center.y / ratio, plume.falling_spheres_buffers[k][j].center.z / ratio + 5 };
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-            if (plume->falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
+            if (plume.falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
             else generic_sphere_mesh.uniform.color = { 1,1,1 };
             generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
             generic_sphere_mesh.draw(*camera);
@@ -706,7 +704,7 @@ void scene_model::reset_simulation()
     sim_time = 0;
 
     for (int i = 0; i < plumes.size(); i++)
-        plumes[i]->reset();
+        plumes[i].reset();
 
     transition_lifetime.clear();
     for (int i = 0; i < max_smoke; i++)
@@ -745,7 +743,7 @@ void scene_model::setup_terrain_preemptive()
 // TODO: Finally move GUI stuff into their respective screens
 void scene_model::set_gui(gui_structure& gui)
 {
-    Plume* plume = plumes[0];
+    Plume& plume = plumes[0];
     ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
@@ -762,8 +760,8 @@ void scene_model::set_gui(gui_structure& gui)
 
     // Parameters
     unsigned int spheres_min = 0, spheres_max = 500;
-    ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &plume->subspheres_number, &spheres_min, &spheres_max);
-    ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &plume->subsubspheres_number, &spheres_min, &spheres_max);
+    ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &plume.subspheres_number, &spheres_min, &spheres_max);
+    ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &plume.subsubspheres_number, &spheres_min, &spheres_max);
     ImGui::PopItemWidth();
 
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -796,13 +794,13 @@ void scene_model::set_gui(gui_structure& gui)
         ImGui::PushItemWidth(200);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
-        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &plume->U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
+        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &plume.U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
         float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &plume->rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, &plume.rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
         float vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &plume->r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, &plume.r_0, &vent_ray_min, &vent_ray_max, "%.2f m");
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
-        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &plume->z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
+        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &plume.z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
 
         ImGui::PopItemWidth();
         ImGui::Unindent();
@@ -1059,14 +1057,14 @@ void scene_model::set_gui_playback(gui_structure& gui)
 
 void scene_model::set_gui_profiler(gui_structure& gui)
 {
-    Plume* plume = plumes[0];
+    Plume& plume = plumes[0];
     ImGui::Begin("Profiler", &gui.enabled["Profiler"], ImGuiWindowFlags_AlwaysAutoResize);
 
-    std::string smoke_layers_count = "Smoke Layers: " + std::to_string(plume->smoke_layers.size());
-    std::string free_sphere_count = "Free Spheres: " + std::to_string(plume->free_spheres.size());
-    std::string falling_sphere_count = "Falling Spheres: " + std::to_string(plume->falling_spheres.size());
-    std::string stagnate_sphere_count = "Stagnate Spheres: " + std::to_string(plume->stagnate_spheres.size());
-    std::string subsphere_count = "Subspheres: " + std::to_string(plume->s2_spheres.size() + plume->s3_spheres.size());
+    std::string smoke_layers_count = "Smoke Layers: " + std::to_string(plume.smoke_layers.size());
+    std::string free_sphere_count = "Free Spheres: " + std::to_string(plume.free_spheres.size());
+    std::string falling_sphere_count = "Falling Spheres: " + std::to_string(plume.falling_spheres.size());
+    std::string stagnate_sphere_count = "Stagnate Spheres: " + std::to_string(plume.stagnate_spheres.size());
+    std::string subsphere_count = "Subspheres: " + std::to_string(plume.s2_spheres.size() + plume.s3_spheres.size());
 
     ImGui::Text(smoke_layers_count.c_str());
     ImGui::Text(free_sphere_count.c_str());

@@ -94,7 +94,7 @@ struct scene_model : scene_base
     float direction_tracker_step;
 
     // PLUMES
-    std::vector<Plume*> plumes;
+    std::vector<Plume> plumes;
     std::vector<vcl::vec3> vent_positions;
     unsigned short vent_index;
 
@@ -143,13 +143,13 @@ struct scene_model : scene_base
     void frame_draw(scene_structure& scene, gui_structure& gui);
     void display(scene_structure& scene);
 
-    void display_smoke_layers(Plume* plume);
-    void display_billboards(Plume* plume);
-    void display_free_spheres(Plume* plume);
-    void display_spheres_with_subspheres(Plume* plume);
-    void display_subspheres(Plume* plume);
-    void display_falling_spheres(Plume* plume);
-    void display_falling_spheres_buffers(Plume* plume);
+    void display_smoke_layers(Plume& plume);
+    void display_billboards(Plume& plume);
+    void display_free_spheres(Plume& plume);
+    void display_spheres_with_subspheres(Plume& plume);
+    void display_subspheres(Plume& plume);
+    void display_falling_spheres(Plume& plume);
+    void display_falling_spheres_buffers(Plume& plume);
 
     void reset_simulation();
     void setup_terrain_preemptive();
