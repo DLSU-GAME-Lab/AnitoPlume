@@ -1,5 +1,6 @@
 #include "Plume.hpp"
 #include "singleton/WindManager.hpp"
+#include "singleton/PlumeManager.hpp"
 using namespace vcl;
 //------------------------------------------------------------
 //------------------------- ALGO -----------------------------
@@ -30,6 +31,13 @@ Plume::Plume(vcl::vec3 vent_position)
     // coeff init
     air_incorporation_coeff = 5.;
 
+    //transition
+    max_smoke = 20;
+    transition_speed = 5.0f;
+    transition_delay = 0.2f;
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
+
     reset();
 }
 
@@ -51,6 +59,10 @@ void Plume::reset()
     falling_spheres.clear();
     stagnate_spheres.clear();
     falling_spheres_buffers.clear();
+
+    transition_lifetime.clear();
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
 }
 
 void Plume::set_t_step(float t_step)
@@ -59,7 +71,9 @@ void Plume::set_t_step(float t_step)
     this->new_layer_delay += t_step;
 }
 
-void Plume::step()
+
+
+void Plume::update(unsigned int frame_count)
 {
     // add smoke layer each x seconds
     if (smoke_layers.size() == 0 || (new_layer_delay >= r_0 / (2 * U_0) && smoke_layers.size() < 1000000000000000))
@@ -71,10 +85,6 @@ void Plume::step()
         std::cout << smoke_layers.size() << std::endl;
         std::cout << "LAYER ADDED OK" << std::endl;
     }
-}
-
-void Plume::update(unsigned int frame_count)
-{
 
     // update of layer and spheres
     for (unsigned int id = 0; id < smoke_layers.size(); id++)
@@ -349,6 +359,41 @@ double* Plume::get_r_0()
 double* Plume::get_rho_0()
 {
     return &this->rho_0;
+}
+
+int Plume::getMaxSmoke()
+{
+    return this->max_smoke;
+}
+
+float Plume::getTransitionSpeed()
+{
+    return this->transition_speed;
+}
+
+float Plume::getTransitionDelay()
+{
+    return this->transition_delay;
+}
+
+std::vector<float>& Plume::getTransitionLifetime()
+{
+    return this->transition_lifetime;
+}
+
+void Plume::setMaxSmoke(int max_smoke)
+{
+    this->max_smoke = max_smoke;
+}
+
+void Plume::setTransitionSpeed(float transition_speed)
+{
+    this->transition_speed = transition_speed;
+}
+
+void Plume::setTranstionDelay(float transition_delay)
+{
+    this->transition_delay = transition_delay;
 }
 
 

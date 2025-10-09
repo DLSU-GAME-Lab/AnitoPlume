@@ -59,7 +59,6 @@ struct scene_model : scene_base
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
     vcl::skybox_drawable skybox;
-    vcl::vec3 avg_wind_direction;
     GLuint skybox_tex;
     GLuint smoke_texture;
     GLuint pauseIcon;
@@ -80,10 +79,7 @@ struct scene_model : scene_base
     std::vector<int> deg_angle; // UI wind angles
     bool all_angles; // UI toggle
 
-    // smoke transition animation
-    int max_smoke;
-    float transition_speed;
-    float transition_delay;
+
 
     //Wind settings ui
     float max_altitude;
@@ -94,12 +90,12 @@ struct scene_model : scene_base
     float direction_tracker_step;
 
     // PLUMES
-    std::vector<Plume> plumes;
+    //std::vector<Plume> plumes;
     std::vector<vcl::vec3> vent_positions;
     unsigned short vent_index;
 
     std::vector<float> sphere_lifetime;
-    std::vector<float> transition_lifetime;
+
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
@@ -129,7 +125,6 @@ struct scene_model : scene_base
 
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
-    void calculate_avg_wind_dir();
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 

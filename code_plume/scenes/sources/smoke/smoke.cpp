@@ -1,6 +1,8 @@
 #include "smoke.hpp"
 #include "singleton/CameraManager.hpp"
 #include "singleton/ShaderManager.hpp"
+#include "singleton/PlumeManager.hpp"
+#include "singleton/WindManager.hpp"
 
 using namespace vcl;
 
@@ -16,32 +18,26 @@ void scene_model::update()
     // Force constant time step
     t_step = dt <= 1e-6f ? 0.0f : timer.scale * 0.002f; //0.0003f
 
-    for (int i = 0; i < plumes.size(); i++)
-    {
-        plumes[i].set_t_step(t_step);
-    }
+    
+    PlumeManager::getInstance()->setTStep(t_step);
+   
 
     if (!replay)
     {
         sim_time += t_step;
-        for (int i = 0; i < plumes.size(); i++)
+        for (int i = 0; i < PlumeManager::getInstance()->getPlumes().size(); i++)
         {
-            //plumes[i].remove_colliding_smoke();
-            plumes[i].remove_smoke_layers();
+            //PlumeManager::getInstance()->getPlumes()[i]->remove_colliding_smoke();
+            PlumeManager::getInstance()->removeSmokeLayers();
         }
 
-        for (int i = 0; i < transition_lifetime.size(); i++)
-        {
-            transition_lifetime[i] += t_step;
-        }
+      
 
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame < 10; nb_steps_per_frame++)
         {
-            for (int i = 0; i < plumes.size(); i++)
-            {
-                plumes[i].step();
-                plumes[i].update(frame_count);
-            }
+            
+            PlumeManager::getInstance()->update(frame_count);
+            
             frame_count++;
         }
     }
@@ -99,23 +95,7 @@ vcl::vec3 scene_model::compute_wind_vector(float height)
     }
 }
 
-// TODO: transfer logic to direction tracker using WindManager
-void scene_model::calculate_avg_wind_dir()
-{
-    vcl::vec3 winds_vec = { 0,0,0 };
-    for (int i = 0; i < winds.size(); i++)
-    {
-        winds_vec += winds[i].wind_vector;
-    }
 
-    float winds_squared_x = winds_vec.x * winds_vec.x;
-    float winds_squared_y = winds_vec.y * winds_vec.y;
-    float winds_squared_z = winds_vec.z * winds_vec.z;
-
-    float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
-    this->avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
-    direction_tracker.set_wind_direction(this->avg_wind_direction);
-}
 
 //------------------------------------------------------------
 //------------------------- SETUP ----------------------------
@@ -196,11 +176,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
-    max_smoke = 20;
-    transition_speed = 5.0f;
-    transition_delay = 0.2f;
-    for (int i = 0; i < max_smoke; i++)
-        transition_lifetime.push_back(transition_delay * i);
+    PlumeManager::getInstance()->setupTransitionValues(20, 5.f, .2f); 
 
     //sky mesh setup
     sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
@@ -344,7 +320,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     {
         wind_altitudes.push_back(i* altitude_step);
         winds.push_back(wind_structure(0,0));
-        this->deg_angle.push_back(0);
+        WindManager::getInstance()->getDegAngle().push_back(0);
     }
 
     is_wind = false;
@@ -357,7 +333,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     direction_tracker_step_size = 20;
     direction_tracker.initialize(max_altitude, direction_tracker_step_size);
     direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
-    calculate_avg_wind_dir();
+    direction_tracker.calculate_avg_wind_dir();
 
 }
 
@@ -371,7 +347,9 @@ void scene_model::setup_plume_params()
     vent_positions.push_back(vec3(-2000, -6000, 0));
     vent_positions.push_back(vec3(-3000, 5800, 0));
     
-    plumes.push_back(Plume(vent_positions[0]));
+    //plumes.push_back(Plume(vent_positions[0]));
+    //Plume* plume = new Plume(vent_positions[0]);
+    PlumeManager::getInstance()->createPlume(vent_positions[0]);
 }
 
 
@@ -399,22 +377,22 @@ void scene_model::display(scene_structure& scene)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    for (int i = 0; i < plumes.size(); i++)
+    for (int i = 0; i < PlumeManager::getInstance()->getPlumes().size(); i++)
     {
         // Display torus
-        if (gui_param.display_smoke_layers) display_smoke_layers(plumes[i]);
+        if (gui_param.display_smoke_layers) display_smoke_layers(PlumeManager::getInstance()->getPlumes()[i]);
         // billboards
-        if (gui_param.display_billboards) display_billboards(plumes[i]);
+        if (gui_param.display_billboards) display_billboards(PlumeManager::getInstance()->getPlumes()[i]);
         // free + stagnation spheres display
-        if (gui_param.display_free_spheres) display_free_spheres(plumes[i]);
+        if (gui_param.display_free_spheres) display_free_spheres(PlumeManager::getInstance()->getPlumes()[i]);
         // spheres+subspheres display (lighter)
-        if (gui_param.display_spheres_with_subspheres) display_spheres_with_subspheres(plumes[i]);
+        if (gui_param.display_spheres_with_subspheres) display_spheres_with_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
         // subspheres display
-        if (gui_param.display_subspheres) display_subspheres(plumes[i]);
+        if (gui_param.display_subspheres) display_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
         // falling spheres display
-        if (gui_param.display_free_spheres) display_falling_spheres(plumes[i]);
+        if (gui_param.display_free_spheres) display_falling_spheres(PlumeManager::getInstance()->getPlumes()[i]);
         // buffer falling spheres display
-        if (gui_param.display_free_spheres) display_falling_spheres_buffers(plumes[i]);
+        if (gui_param.display_free_spheres) display_falling_spheres_buffers(PlumeManager::getInstance()->getPlumes()[i]);
     }
     
     if (gui_param.display_tooltips == true  && camera->mode != view_mode::orbital) tip_loader.draw();
@@ -428,10 +406,10 @@ void scene_model::display_smoke_layers(Plume& plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
     float ratio = 100;
-    
+
     for (unsigned int i = 0; i < plume.smoke_layers.size(); i++)
     {
-        smoke_layer& lay = plume.smoke_layers[i];
+        smoke_layer lay = plume.smoke_layers[i];
         generic_torus_mesh.uniform.transform.scaling = lay.r / ratio;
         generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
@@ -448,15 +426,15 @@ void scene_model::display_billboards(Plume& plume)
     glDepthMask(false);
 
     // transition smoke
-    for (int j = 0; j < transition_lifetime.size(); j++)
+    for (int j = 0; j < plume.getTransitionLifetime().size(); j++)
     {
-        float animation = fmax(0, sinf(transition_speed * transition_lifetime[j]));
+        float animation = fmax(0, sinf(plume.getTransitionSpeed() * plume.getTransitionLifetime()[j]));
         float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
         float offset = terrain_display.uniform.transform.translation.z;
         vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
         float var = vcl::perlin(j, 2);
 
-        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), transition_speed * transition_lifetime[j] * var) * camera->orientation;
+        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.getTransitionSpeed() * plume.getTransitionLifetime()[j] * var) * camera->orientation;
         quad.uniform.transform.translation = new_translation;
         quad.uniform.transform.scaling = new_scaling * 1.3;
         quad.uniform.color = { 0.3f,0.3f,0.3f };
@@ -473,11 +451,11 @@ void scene_model::display_billboards(Plume& plume)
         float new_scaling = plume.free_spheres[j].r / ratio;
         //if (j==0) std::cout << new_scaling << std::endl;
         vec3 new_translation = vec3(plume.free_spheres[j].center.x / ratio - 25, plume.free_spheres[j].center.y / ratio, plume.free_spheres[j].center.z / ratio - 2);
-        generic_sphere_mesh.uniform.transform.translation = new_translation;
+     /*   generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = R;
         generic_sphere_mesh.uniform.color = { 1,1,1 };
-        generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
+        generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");*/
 
         float var = vcl::perlin(plume.free_spheres[j].id, 2);
 
@@ -626,12 +604,9 @@ void scene_model::reset_simulation()
     frame_count = 0;
     sim_time = 0;
 
-    for (int i = 0; i < plumes.size(); i++)
-        plumes[i].reset();
+    PlumeManager::getInstance()->reset();
 
-    transition_lifetime.clear();
-    for (int i = 0; i < max_smoke; i++)
-        transition_lifetime.push_back(transition_delay * i);
+   
 
     //smoke_layers_frames.clear();
     //free_spheres_frames.clear();
@@ -666,7 +641,7 @@ void scene_model::setup_terrain_preemptive()
 // TODO: Finally move GUI stuff into their respective screens
 void scene_model::set_gui(gui_structure& gui)
 {
-    Plume& plume = plumes[0];
+    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
     ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
@@ -753,8 +728,8 @@ void scene_model::show_wind_settings()
 
         for (int i = 0; i < wind_size; i++)
         {
-            intensity[i] = winds[i].intensity;
-            angle[i] = this->deg_angle[i];
+            intensity[i] = WindManager::getInstance()->getWinds()[i].intensity;
+            angle[i] = WindManager::getInstance()->getDegAngle()[i];
         }
 
         const int x_offset = ImGui::GetCursorScreenPos().x;
@@ -781,11 +756,11 @@ void scene_model::show_wind_settings()
             }
         }
 
-        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
+        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &WindManager::getInstance()->getWinds()[selected].intensity, &wind_min, &wind_max))
         {
-            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
-            winds[selected].recalc_wind_vector();
-            calculate_avg_wind_dir();
+            WindManager::getInstance()->getWinds()[selected] = wind_structure(WindManager::getInstance()->getWinds()[selected].intensity, WindManager::getInstance()->getDegAngle()[selected]);
+            WindManager::getInstance()->getWinds()[selected].recalc_wind_vector();
+            direction_tracker.calculate_avg_wind_dir();
         }
 
         ImGui::SameLine();
@@ -793,23 +768,23 @@ void scene_model::show_wind_settings()
         ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity (m/s)", wind_min, wind_max, ImVec2(plot_width, plot_height));
         ImGui::PopStyleColor();
 
-        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
+        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &WindManager::getInstance()->getDegAngle()[selected], &angle_min, &angle_max))
         {
             if (all_angles)
             {
                 for (int i = 0; i < wind_size; i++)
                 {
-                    this->deg_angle[i] = this->deg_angle[selected];
-                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
-                    winds[i].recalc_wind_vector();
+                    WindManager::getInstance()->getDegAngle()[i] = WindManager::getInstance()->getDegAngle()[selected];
+                    WindManager::getInstance()->getWinds()[i] = wind_structure(WindManager::getInstance()->getWinds()[i].intensity, WindManager::getInstance()->getDegAngle()[i]);
+                    WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
                 }
             }
             else
             {
-                winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
-                winds[selected].recalc_wind_vector();
+                WindManager::getInstance()->getWinds()[selected] = wind_structure(WindManager::getInstance()->getWinds()[selected].intensity, WindManager::getInstance()->getDegAngle()[selected]);
+                WindManager::getInstance()->getWinds()[selected].recalc_wind_vector();
             }
-            calculate_avg_wind_dir();
+            direction_tracker.calculate_avg_wind_dir();
         }
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
@@ -829,7 +804,7 @@ void scene_model::show_wind_settings()
         {
             for (int i = 0; i < wind_size && !altitude_selected; i++)
             {
-                if (wind_altitudes[i] == wind_alt)
+                if (WindManager::getInstance()->getWindAlts()[i] == wind_alt)
                 {
                     altitude_selected = true;
                     selected = i;
@@ -839,7 +814,7 @@ void scene_model::show_wind_settings()
             if (!altitude_selected)
             {
                 selected = clamp(((float)wind_alt / altitude_step) + 0.5f, 0, wind_size - 1);
-                wind_alt = wind_altitudes[selected];
+                wind_alt = WindManager::getInstance()->getWindAlts()[selected];
             }
         }
         ImGui::PopItemWidth();
@@ -851,37 +826,37 @@ void scene_model::show_wind_settings()
             is_wind = false;
             for (unsigned int i = 0; i < winds.size(); i++)
             {
-                this->deg_angle[i] = angle_min;
-                winds[i] = wind_structure(wind_min, this->deg_angle[i]);
-                winds[i].recalc_wind_vector();
+                WindManager::getInstance()->getDegAngle()[i] = angle_min;
+                WindManager::getInstance()->getWinds()[i] = wind_structure(wind_min, WindManager::getInstance()->getDegAngle()[i]);
+                WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
             }
-            calculate_avg_wind_dir();
+            direction_tracker.calculate_avg_wind_dir();
         }
 
         ImGui::SameLine();
         if (ImGui::Button("Linear Wind"))
         {
             is_wind = true;
-            for (unsigned int i = 0; i < winds.size(); i++)
+            for (unsigned int i = 0; i < WindManager::getInstance()->getWinds().size(); i++)
             {
-                winds[i].intensity = i * linear_wind_base;
-                if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                if (winds[i].intensity == wind_min) winds[i].intensity = 1;
-                winds[i].recalc_wind_vector();
+                WindManager::getInstance()->getWinds()[i].intensity = i * linear_wind_base;
+                if (i > 3)  WindManager::getInstance()->getWinds()[i].intensity = 3 * linear_wind_base;
+                if ( WindManager::getInstance()->getWinds()[i].intensity == wind_min)  WindManager::getInstance()->getWinds()[i].intensity = 1;
+                 WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
             }
-            calculate_avg_wind_dir();
+            direction_tracker.calculate_avg_wind_dir();
         }
 
         ImGui::SameLine();
         if (ImGui::Button("Max Intensity"))
         {
             is_wind = true;
-            for (unsigned int i = 0; i < winds.size(); i++)
+            for (unsigned int i = 0; i < WindManager::getInstance()->getWinds().size(); i++)
             {
-                winds[i].intensity = wind_max;
-                winds[i].recalc_wind_vector();
+                WindManager::getInstance()->getWinds()[i].intensity = wind_max;
+                WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
             }
-            calculate_avg_wind_dir();
+            direction_tracker.calculate_avg_wind_dir();
         }
 
         ImGui::SameLine();
@@ -893,15 +868,15 @@ void scene_model::show_wind_settings()
         {
             if (is_wind)
             {
-                for (unsigned int i = 0; i < winds.size(); i++)
+                for (unsigned int i = 0; i < WindManager::getInstance()->getWinds().size(); i++)
                 {
-                    winds[i].intensity = i * linear_wind_base;
-                    if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                    if (winds[i].intensity == wind_min) winds[i].intensity = 1;
-                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
-                    winds[i].recalc_wind_vector();
+                    WindManager::getInstance()->getWinds()[i].intensity = i * linear_wind_base;
+                    if (i > 3) WindManager::getInstance()->getWinds()[i].intensity = 3 * linear_wind_base;
+                    if (WindManager::getInstance()->getWinds()[i].intensity == wind_min) WindManager::getInstance()->getWinds()[i].intensity = 1;
+                    WindManager::getInstance()->getWinds()[i] = wind_structure(WindManager::getInstance()->getWinds()[i].intensity, WindManager::getInstance()->getDegAngle()[i]);
+                    WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
                 }
-                calculate_avg_wind_dir();
+                direction_tracker.calculate_avg_wind_dir();
             }
         }
         ImGui::PopItemWidth();
@@ -911,26 +886,26 @@ void scene_model::show_wind_settings()
             //U_0 = 200;
             //rho_0 = 250;
 
-            winds[0].intensity = 1;
-            winds[1].intensity = 14;
-            winds[2].intensity = 20;
-            winds[3].intensity = 30;
-            winds[4].intensity = 40;
-            winds[5].intensity = 58;
+            WindManager::getInstance()->getWinds()[0].intensity = 1;
+            WindManager::getInstance()->getWinds()[1].intensity = 14;
+            WindManager::getInstance()->getWinds()[2].intensity = 20;
+            WindManager::getInstance()->getWinds()[3].intensity = 30;
+            WindManager::getInstance()->getWinds()[4].intensity = 40;
+            WindManager::getInstance()->getWinds()[5].intensity = 58;
 
-            this->deg_angle[0] = 0;
-            this->deg_angle[1] = 30;
-            this->deg_angle[2] = 330;
-            this->deg_angle[3] = 90;
-            this->deg_angle[4] = 120;
-            this->deg_angle[5] = 135;
+            WindManager::getInstance()->getDegAngle()[0] = 0;
+            WindManager::getInstance()->getDegAngle()[1] = 30;
+            WindManager::getInstance()->getDegAngle()[2] = 330;
+            WindManager::getInstance()->getDegAngle()[3] = 90;
+            WindManager::getInstance()->getDegAngle()[4] = 120;
+            WindManager::getInstance()->getDegAngle()[5] = 135;
 
-            for (unsigned int i = 0; i < winds.size(); i++)
+            for (unsigned int i = 0; i < WindManager::getInstance()->getWinds().size(); i++)
             {
-                winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
-                winds[i].recalc_wind_vector();
+                WindManager::getInstance()->getWinds()[i] = wind_structure(WindManager::getInstance()->getWinds()[i].intensity, WindManager::getInstance()->getDegAngle()[i]);
+                WindManager::getInstance()->getWinds()[i].recalc_wind_vector();
             }
-            calculate_avg_wind_dir();
+            direction_tracker.calculate_avg_wind_dir();
         }
 
         ImGui::Unindent();
@@ -940,7 +915,7 @@ void scene_model::show_wind_settings()
 
 void scene_model::show_eruption_parameters()
 {
-    Plume& plume = plumes[0];
+    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
     const float indent_width = 5;
     const float child_width = 380;
 
@@ -1005,7 +980,7 @@ void scene_model::set_gui_playback(gui_structure& gui)
 
 void scene_model::set_gui_profiler(gui_structure& gui)
 {
-    Plume& plume = plumes[0];
+    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
     ImGui::Begin("Profiler", &gui.enabled["Profiler"], ImGuiWindowFlags_AlwaysAutoResize);
 
     std::string smoke_layers_count = "Smoke Layers: " + std::to_string(plume.smoke_layers.size());

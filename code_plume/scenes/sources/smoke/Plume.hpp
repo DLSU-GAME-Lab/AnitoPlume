@@ -29,6 +29,12 @@ private:
     unsigned short free_sphere_id;
     unsigned short falling_sphere_id;
 
+    // smoke transition animation
+    int max_smoke;
+    float transition_speed;
+    float transition_delay;
+
+
 public:
     // Constants
     float g;
@@ -57,7 +63,6 @@ public:
 
     void set_t_step(float t_step);
 
-    void step();
     void update(unsigned int frame_count);
 
     void remove_colliding_smoke();
@@ -70,6 +75,13 @@ public:
     double* get_z_0();
     double* get_r_0();
     double* get_rho_0();
+    int getMaxSmoke();
+    float getTransitionSpeed();
+    float getTransitionDelay();
+    std::vector<float>& getTransitionLifetime();
+    void setMaxSmoke(int max_smoke);
+    void setTransitionSpeed(float transition_speed);
+    void setTranstionDelay(float transition_delay);
 
 private:
     // Smoke layer computation

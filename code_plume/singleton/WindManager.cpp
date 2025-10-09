@@ -9,6 +9,7 @@ WindManager::WindManager()
     all_angles = false;
     max_altitude = 10000;
     altitude_step = 2000;
+    linear_wind_base = 15.f;
     altitude_size = int(max_altitude / altitude_step) + 1;
     for (unsigned int i = 0; i < altitude_size; i++)
     {
@@ -59,3 +60,43 @@ vcl::vec3 WindManager::compute_wind_vector(float height)
         return interpo_wind;
     }
 }
+
+std::vector<int>& WindManager::getWindAlts()
+{
+    return this->wind_altitudes;
+}
+
+std::vector<wind_structure>& WindManager::getWinds()
+{
+    return this->winds;
+}
+
+std::vector<int>& WindManager::getDegAngle()
+{
+    return this->deg_angle;
+}
+
+float WindManager::getMaxAlt()
+{
+    return this->max_altitude;
+}
+
+float WindManager::getAltStep()
+{
+    return this->altitude_step;
+}
+
+int WindManager::getAltSize()
+{
+    return this->altitude_size;
+}
+
+float WindManager::getLinearWindBase()
+{
+    return this->linear_wind_base;
+}
+void WindManager::setLinearWindBase(float fLinearWindBase)
+{
+    this->linear_wind_base = fLinearWindBase;
+}
+

@@ -1,5 +1,4 @@
 #include "direction_tracker.hpp"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -39,6 +38,23 @@ void direction_tracker::load_data(std::string filePath)
     else std::cout << "ERROR: File with path " << filePath << " could not be opened.";
 
     file.close();
+}
+
+void direction_tracker::calculate_avg_wind_dir()
+{
+    vcl::vec3 winds_vec = { 0,0,0 };
+    for (int i = 0; i < WindManager::getInstance()->getWinds().size(); i++)
+    {
+        winds_vec += WindManager::getInstance()->getWinds()[i].wind_vector;
+    }
+
+    float winds_squared_x = winds_vec.x * winds_vec.x;
+    float winds_squared_y = winds_vec.y * winds_vec.y;
+    float winds_squared_z = winds_vec.z * winds_vec.z;
+
+    float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
+    vcl::vec3 avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
+    this->set_wind_direction(avg_wind_direction);
 }
 
 std::vector<std::string> direction_tracker::get_location_names(float angle)
