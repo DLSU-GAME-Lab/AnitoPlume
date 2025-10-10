@@ -381,5 +381,95 @@ mesh mesh_primitive_bar_grid(int Nu, int Nv , int Nw, const vec3& p0, const vec3
 
 }
 
+mesh mesh_primitive_torus(float radius, const vec3& p1, const vec3& p2, size_t Nu, size_t Nv, bool is_border_duplicated)
+{
+    mesh cyl = vcl::mesh_primitive_cylinder(radius, p1, p2, Nu, Nv);
+    mesh d1 = vcl::mesh_primitive_disc(radius, p1);
+    mesh d2 = vcl::mesh_primitive_disc(radius, p2);
+    mesh shape = cyl;
+    shape.push_back(d1);
+    shape.push_back(d2);
+
+    return shape;
+}
+
+mesh mesh_primitive_subspheres()
+{
+    std::vector<vcl::vec3> samples_subspheres;
+    int N = 60;
+    for (int k = 0; k < N; ++k)
+    {
+        //uniform sampling on sphere
+        float theta = 2 * 3.14f * vcl::rand_interval();
+        float phi = std::acos(1 - 2.0f * vcl::rand_interval());
+
+
+        float x = std::sin(phi) * std::cos(theta);
+        float y = std::sin(phi) * std::sin(theta);
+        float z = std::cos(phi);
+
+        vec3 p = { x,y,z };
+        bool add = true;
+        for (int k2 = 0; add == true && k2 < k; ++k2)
+            if (norm(p - samples_subspheres[k2]) < 0.18f)
+                add = false;
+        samples_subspheres.push_back({ x,y,z });
+    }
+
+
+    
+    mesh m0 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 5, 5);
+    mesh m1 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 8, 8);
+    mesh m2 = vcl::mesh_primitive_sphere(1.0, { 0,0,0 }, 10, 10);
+
+    for (int k = 0; k < N; ++k)
+    {
+        //uniform sampling on sphere
+        float theta = 2 * 3.14f * vcl::rand_interval();
+        float phi = std::acos(1 - 2.0f * vcl::rand_interval());
+        float r = vcl::rand_interval(0.8f, 1.0f);
+
+        float x = r * std::sin(phi) * std::cos(theta);
+        float y = r * std::sin(phi) * std::sin(theta);
+        float z = r * std::cos(phi);
+
+        vec3 p = { x,y,z };
+        bool add = true;
+        for (int k2 = 0; add == true && k2 < k; ++k2)
+            if (norm(p - samples_subspheres[k2]) < 0.18f)
+                add = false;
+        samples_subspheres.push_back({ x,y,z });
+    }
+
+    mesh shape;
+    shape.push_back(m0);
+    for (int sub = 0; sub < samples_subspheres.size(); ++sub) {
+        mesh temp = m1;
+        float r = vcl::rand_interval(0.18f, 0.2f);
+
+        // subspheres
+        for (int k = 0; k < temp.position.size(); ++k)
+        {
+            vec3 p = r * temp.position[k] + samples_subspheres[sub];
+
+            vec3 n0 = temp.normal[k];
+            vec3 n1 = normalize(p);
+
+            float d = norm(p);
+            float alpha = 0.0;
+            if (d > 1.0f && d < 1.2f)
+                alpha = (d - 1.0f) / 0.2f;
+            if (d > 1.2f)
+                alpha = 1.0f;
+
+            vec3 n = (1 - alpha) * n1 + alpha * n0; // hack normals
+            temp.normal[k] = n;
+            temp.position[k] = p;
+        }
+
+        shape.push_back(temp);
+    }
+    return shape;   
+}
 
 }

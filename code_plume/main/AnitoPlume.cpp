@@ -96,6 +96,17 @@ AnitoPlume::AnitoPlume()
     ShaderManager::getInstance()->load("sky_mesh", "sky_mesh");
     std::cout << "\t [OK] Shader loaded" << std::endl;
 
+    std::cout << "*** Setup Meshes ***" << std::endl;
+    MeshManager::getInstance()->loadPrimitive("Generic_Sphere", vcl::mesh_primitive_sphere());
+    MeshManager::getInstance()->loadPrimitive("Subsphere_Disp", vcl::mesh_primitive_subspheres());
+    MeshManager::getInstance()->loadPrimitive("Generic_Torus", mesh_primitive_torus(2.5f, { 0,0,1.5 }, { 0,0,-1.5 }, 30, 30));
+    MeshManager::getInstance()->loadPrimitive("Quad", mesh_primitive_quad({ -1,-1,0 }, { 1,-1,0 }, { 1,1,0 }, { -1,1,0 }));
+    MeshManager::getInstance()->load("Skysphere", "../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
+
+
+    std::cout << "\t [OK] Meshes loaded" << std::endl;
+
+
 
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);

@@ -46,28 +46,14 @@ struct scene_model : scene_base
     float avg_wind_dir_degrees;
 
     // Meshes
-    vcl::mesh mesh_terrain;
 
-    vcl::mesh_drawable generic_torus_mesh;
-    vcl::mesh_drawable generic_sphere_mesh;
-    vcl::mesh_drawable layer_mesh;
-    vcl::mesh_drawable terrain;
-    vcl::mesh_drawable skysphere;
     vcl::mesh_drawable terrain_display;
-    vcl::mesh_drawable sphere;
-    vcl::mesh_drawable sky_sphere;
-    vcl::mesh_drawable quad;
-    vcl::curve_drawable sphere_circle;
-    vcl::skybox_drawable skybox;
-    GLuint skybox_tex;
     GLuint smoke_texture;
     GLuint pauseIcon;
     GLuint playIcon;
     GLuint resetIcon;
     GLuint decal;
 
-    std::vector<vcl::vec3> samples_subspheres;
-    vcl::mesh_drawable subspheres;
     vcl::mesh_drawable subspheres_display;
 
     std::vector<int> wind_altitudes;

@@ -3,6 +3,7 @@
 #include "singleton/ShaderManager.hpp"
 #include "singleton/PlumeManager.hpp"
 #include "singleton/WindManager.hpp"
+#include "singleton/MeshManager.hpp"
 
 using namespace vcl;
 
@@ -137,166 +138,55 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     setup_plume_params();
 
     // Meshes setup
-    layer_mesh = mesh_drawable( mesh_primitive_cylinder(0.1f, {0,0,0}, {0,0,0.01}));
-    layer_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-    layer_mesh.uniform.color = {0,0.5,1};
 
-    mesh cyl = vcl::mesh_primitive_cylinder(2.5f, {0,0,1.5}, {0,0,-1.5}, 30, 30);
-    mesh d1 = vcl::mesh_primitive_disc(2.5f, {0,0,1.5});
-    mesh d2 = vcl::mesh_primitive_disc(2.5f, {0,0,-1.5});
-    mesh t = cyl;t.push_back(d1); t.push_back(d2);
 
-    generic_sphere_mesh = vcl::mesh_primitive_sphere();
-    generic_sphere_mesh.texture_id = scene.texture_white;
+
+    MeshManager::getInstance()->getMesh("Generic_Sphere")->texture_id = scene.texture_white;
     //generic_torus_mesh = vcl::mesh_primitive_torus(1.,1.,{0,0,0}, {0,0,-1});
-    generic_torus_mesh = t;
-    generic_torus_mesh.uniform.color = {1,0.5,0};
-    generic_torus_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-    generic_torus_mesh.texture_id = scene.texture_white;
-    generic_torus_mesh.uniform.color_alpha = 0.6f;
+    
+    MeshManager::getInstance()->getMesh("Generic_Torus")->uniform.color = {1,0.5,0};
+    MeshManager::getInstance()->getMesh("Generic_Torus")->shader = ShaderManager::getInstance()->getShader("mesh");
+    MeshManager::getInstance()->getMesh("Generic_Torus")->texture_id = scene.texture_white;
+    MeshManager::getInstance()->getMesh("Generic_Torus")->uniform.color_alpha = 0.6f;
     //texture_smoke_id = create_texture_gpu( image_load_png("../scenes/sources/smoke/images/texture_panache.png") );
     pauseIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/pause_icon.png"));
     playIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/play_icon.png"));
     resetIcon = create_texture_gpu(image_load_png("../scenes/sources/smoke/images/undo_icon.png"));
 
-    sphere = mesh_drawable( mesh_primitive_sphere(0.1f));
-    sphere.shader = ShaderManager::getInstance()->getShader("mesh");
-    sphere.uniform.color = {0,0.5,1};
-    sphere.texture_id = scene.texture_white;
-
-    subspheres = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 10 ,20);
-    subspheres.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/IMG_2765.png"));
-    subspheres.uniform.color = {0.6,0.5,0.5};
-    subspheres.uniform.shading.diffuse = 0.8f;
-    subspheres.uniform.shading.specular = 0.0f;
-
     smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
-    quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
-    quad.uniform.shading.ambiant = 1.0;
-    quad.uniform.shading.diffuse = 0.0;
-    quad.uniform.shading.specular = 0.0;
+    MeshManager::getInstance()->getMesh("Quad")->uniform.shading.ambiant = 1.0;
+    MeshManager::getInstance()->getMesh("Quad")->uniform.shading.diffuse = 0.0;
+    MeshManager::getInstance()->getMesh("Quad")->uniform.shading.specular = 0.0;
 
     PlumeManager::getInstance()->setupTransitionValues(20, 5.f, .2f); 
 
-    //sky mesh setup
-    sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
-    sphere.shader = ShaderManager::getInstance()->getShader("sky_mesh");
-    sphere.uniform.color = { 1,1,1 };
-    sphere.texture_id = scene.texture_white;
 
-    mesh sky = mesh_load_file_obj("../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
-    skysphere = mesh_drawable(sky);
+
+
     //skysphere = mesh_drawable(mesh_primitive_sphere(100.0f));
-    skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
-    skysphere.uniform.color = { 1, 1, 1 };
-    skysphere.uniform.shading.specular = 100.0f;
-    skysphere.uniform.shading.ambiant = 1.0f;
-    skysphere.uniform.shading.diffuse = 1.0f;
-    skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
-    skysphere.uniform.transform.scaling = 1.0f;
-    skysphere.uniform.transform.translation = { 0,0,0 };
+    MeshManager::getInstance()->getMesh("Skysphere")->texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.color = { 1, 1, 1 };
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.shading.specular = 100.0f;
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.shading.ambiant = 1.0f;
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.shading.diffuse = 1.0f;
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.transform.scaling = 1.0f;
+    MeshManager::getInstance()->getMesh("Skysphere")->uniform.transform.translation = { 0,0,0 };
 
-    ////skybox setup
-    //std::vector<image_raw> skybox_tex_raw;
-    //for (int i = 0; i < 6; i++)
-    //{
-    //    std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
-    //    path += std::to_string(i) + ".png";
-    //    skybox_tex_raw.push_back(image_load_png(path));
-    //}
-    //skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
-    //skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
 
-    //auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
-    //sphere_circle = curve_drawable(circle);
-    //sphere_circle.shader = shaders["curve"];
-    //sphere_circle.uniform.color = {1,0,0};
 
     //sampling subpheres
-    {
-        int N = 60;
-        for (int k = 0; k < N; ++k)
-        {
-            //uniform sampling on sphere
-            float theta = 2*3.14f*vcl::rand_interval();
-            float phi   = std::acos(1-2.0f*vcl::rand_interval());
+    
+   
 
+    //subspheres_display = mesh_drawable(m) ;
 
-            float x = std::sin(phi)*std::cos(theta);
-            float y = std::sin(phi)*std::sin(theta);
-            float z = std::cos(phi);
-
-            vec3 p = {x,y,z};
-            bool add = true;
-            for (int k2 = 0; add==true && k2 < k; ++k2)
-                if(norm(p-samples_subspheres[k2])<0.18f)
-                    add=false;
-            samples_subspheres.push_back({x,y,z});
-        }
-    } 
-
-    {
-        mesh m0 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 5 ,5);
-        mesh m1 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 8 ,8);
-        mesh m2 = vcl::mesh_primitive_sphere(1.0, {0,0,0}, 10 , 10);
-
-        int N = 60;
-        for (int k = 0; k < N; ++k)
-        {
-            //uniform sampling on sphere
-            float theta = 2*3.14f*vcl::rand_interval();
-            float phi   = std::acos(1-2.0f*vcl::rand_interval());
-            float r = vcl::rand_interval(0.8f,1.0f);
-
-            float x = r*std::sin(phi)*std::cos(theta);
-            float y = r*std::sin(phi)*std::sin(theta);
-            float z = r*std::cos(phi);
-
-            vec3 p = {x,y,z};
-            bool add = true;
-            for (int k2 = 0; add==true && k2 < k; ++k2)
-                if(norm(p-samples_subspheres[k2])<0.18f)
-                    add=false;
-            samples_subspheres.push_back({x,y,z});
-        }
-
-        mesh m;
-        m.push_back(m0);
-        for (int sub = 0; sub < samples_subspheres.size(); ++sub) {
-            mesh temp = m1;
-            float r = vcl::rand_interval(0.18f,0.2f);
-
-            // subspheres
-            for (int k = 0; k < temp.position.size(); ++k)
-            {
-                vec3 p = r*temp.position[k] + samples_subspheres[sub];
-
-                vec3 n0 = temp.normal[k];
-                vec3 n1 = normalize(p);
-
-                float d = norm(p);
-                float alpha = 0.0;
-                if(d>1.0f && d<1.2f)
-                    alpha = (d-1.0f)/0.2f;
-                if(d>1.2f)
-                    alpha = 1.0f;
-
-                vec3 n = (1-alpha)*n1 + alpha*n0; // hack normals
-                temp.normal[k] = n;
-                temp.position[k] = p;
-            }
-
-            m.push_back(temp);
-        }
-
-        subspheres_display = mesh_drawable(m) ;
-
-        subspheres_display.texture_id = scene.texture_white;
-        subspheres_display.uniform.color = {0.6,0.6,0.55};
-        subspheres_display.uniform.shading.ambiant = 0.7f;
-        subspheres_display.uniform.shading.diffuse = 0.3f;
-        subspheres_display.uniform.shading.specular = 0.0f;
-    }
+    MeshManager::getInstance()->getMesh("Subsphere_Disp")->texture_id = scene.texture_white;
+    MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.color = {0.6,0.6,0.55};
+    MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.shading.ambiant = 0.7f;
+    MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.shading.diffuse = 0.3f;
+    MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.shading.specular = 0.0f;
+    
     
     tip_loader.setup_tooltips();
     mark_loader.setup_landmarks();
@@ -359,7 +249,7 @@ void scene_model::display(scene_structure& scene)
     float ratio = 100;
 
     if (camera->sky_enabled)
-        skysphere.draw_sky(*camera, ShaderManager::getInstance()->getShader("sky_mesh"), skysphere.texture_id);
+        MeshManager::getInstance()->getMesh("Skysphere")->draw_sky(*camera, ShaderManager::getInstance()->getShader("sky_mesh"), MeshManager::getInstance()->getMesh("Skysphere")->texture_id);
         //draw_sky(sky_sphere, *camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
@@ -410,11 +300,11 @@ void scene_model::display_smoke_layers(Plume& plume)
     for (unsigned int i = 0; i < plume.smoke_layers.size(); i++)
     {
         smoke_layer lay = plume.smoke_layers[i];
-        generic_torus_mesh.uniform.transform.scaling = lay.r / ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
-        generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
-        generic_torus_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-        generic_torus_mesh.draw(*camera);
+        MeshManager::getInstance()->getMesh("Generic_Torus")->uniform.transform.scaling = lay.r / ratio;
+        MeshManager::getInstance()->getMesh("Generic_Torus")->uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
+        MeshManager::getInstance()->getMesh("Generic_Torus")->uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
+        MeshManager::getInstance()->getMesh("Generic_Torus")->shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Generic_Torus")->draw(*camera);
     }
 }
 
@@ -434,15 +324,15 @@ void scene_model::display_billboards(Plume& plume)
         vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
         float var = vcl::perlin(j, 2);
 
-        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.getTransitionSpeed() * plume.getTransitionLifetime()[j] * var) * camera->orientation;
-        quad.uniform.transform.translation = new_translation;
-        quad.uniform.transform.scaling = new_scaling * 1.3;
-        quad.uniform.color = { 0.3f,0.3f,0.3f };
-        quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
-        quad.shader = ShaderManager::getInstance()->getShader("mesh");
-        quad.texture_id = smoke_texture;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.getTransitionSpeed() * plume.getTransitionLifetime()[j] * var) * camera->orientation;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.translation = new_translation;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.scaling = new_scaling * 1.3;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.color = { 0.3f,0.3f,0.3f };
+        MeshManager::getInstance()->getMesh("Quad")->uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
+        MeshManager::getInstance()->getMesh("Quad")->shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Quad")->texture_id = smoke_texture;
 
-        quad.draw(*camera);
+        MeshManager::getInstance()->getMesh("Quad")->draw(*camera);
     }
 
     for (unsigned int j = 0; j < plume.free_spheres.size(); j++)
@@ -451,31 +341,31 @@ void scene_model::display_billboards(Plume& plume)
         float new_scaling = plume.free_spheres[j].r / ratio;
         //if (j==0) std::cout << new_scaling << std::endl;
         vec3 new_translation = vec3(plume.free_spheres[j].center.x / ratio - 25, plume.free_spheres[j].center.y / ratio, plume.free_spheres[j].center.z / ratio - 2);
-     /*   generic_sphere_mesh.uniform.transform.translation = new_translation;
-        generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-        generic_sphere_mesh.uniform.transform.rotation = R;
-        generic_sphere_mesh.uniform.color = { 1,1,1 };
-        generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");*/
+     /*   MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.translation = new_translation;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.scaling = new_scaling;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.rotation = R;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { 1,1,1 };
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->shader = ShaderManager::getInstance()->getShader("mesh");*/
 
         float var = vcl::perlin(plume.free_spheres[j].id, 2);
 
-        //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
-        quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.free_spheres[j].id * var) * camera->orientation;
-        quad.uniform.transform.translation = new_translation;
-        quad.uniform.transform.scaling = new_scaling * 1.3;
-        quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
+        //MeshManager::getInstance()->getMesh("Quad")->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.free_spheres[j].id * var) * camera->orientation;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.translation = new_translation;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.transform.scaling = new_scaling * 1.3;
+        MeshManager::getInstance()->getMesh("Quad")->uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
 
         float l = (plume.free_spheres[j].lifetime / 120) + 0.3f;
         if (l > 1) l = 1;
-        quad.uniform.color = { l,l,l };
+        MeshManager::getInstance()->getMesh("Quad")->uniform.color = { l,l,l };
 
         float end_fade = 1.0f;
         if (plume.free_spheres[j].lifetime >= plume.min_lifetime)
             end_fade -= (plume.free_spheres[j].lifetime - plume.min_lifetime) / (plume.max_lifetime - plume.min_lifetime);
-        quad.uniform.color_alpha *= end_fade;
-        quad.shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Quad")->uniform.color_alpha *= end_fade;
+        MeshManager::getInstance()->getMesh("Quad")->shader = ShaderManager::getInstance()->getShader("mesh");
 
-        quad.draw(*camera);
+        MeshManager::getInstance()->getMesh("Quad")->draw(*camera);
     }
     glDepthMask(true);
 }
@@ -496,12 +386,12 @@ void scene_model::display_free_spheres(Plume& plume)
         if (disp_rho < 0) disp_rho = 0.;
         disp_rho = 1.;
 
-        generic_sphere_mesh.uniform.transform.translation = t;
-        generic_sphere_mesh.uniform.transform.scaling = r;
-        generic_sphere_mesh.uniform.transform.rotation = R;
-        generic_sphere_mesh.uniform.color = { disp_rho,disp_rho,disp_rho };
-        generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-        generic_sphere_mesh.draw(*camera);
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.translation = t;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.scaling = r;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.rotation = R;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { disp_rho,disp_rho,disp_rho };
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->draw(*camera);
     }
 }
 
@@ -520,13 +410,13 @@ void scene_model::display_spheres_with_subspheres(Plume& plume)
         if (disp_rho < 0) disp_rho = 0.;
         disp_rho = 1.;
 
-        subspheres_display.uniform.transform.translation = t;
-        subspheres_display.uniform.transform.scaling = r;
-        subspheres_display.uniform.transform.rotation = R;
-        subspheres_display.uniform.color = { disp_rho,disp_rho,disp_rho };
-        subspheres_display.shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.transform.translation = t;
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.transform.scaling = r;
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.transform.rotation = R;
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->uniform.color = { disp_rho,disp_rho,disp_rho };
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->shader = ShaderManager::getInstance()->getShader("mesh");
 
-        subspheres_display.draw(*camera);
+        MeshManager::getInstance()->getMesh("Subsphere_Disp")->draw(*camera);
     }
 }
 
@@ -545,11 +435,11 @@ void scene_model::display_subspheres(Plume& plume)
             if (disp_rho < 0) disp_rho = 0.;
             disp_rho = 1.;
 
-            generic_sphere_mesh.uniform.transform.translation = t;
-            generic_sphere_mesh.uniform.transform.scaling = r;
-            generic_sphere_mesh.uniform.color = { disp_rho,disp_rho,disp_rho };
-            generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-            generic_sphere_mesh.draw(*camera);
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.translation = t;
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.scaling = r;
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { disp_rho,disp_rho,disp_rho };
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->shader = ShaderManager::getInstance()->getShader("mesh");
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->draw(*camera);
         }
     }
 }
@@ -563,13 +453,13 @@ void scene_model::display_falling_spheres(Plume& plume)
     {
         float new_scaling = plume.falling_spheres[j].r / ratio;
         vec3 new_translation = { plume.falling_spheres[j].center.x / ratio, plume.falling_spheres[j].center.y / ratio, plume.falling_spheres[j].center.z / ratio - 2 };
-        generic_sphere_mesh.uniform.transform.translation = new_translation;
-        generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-        generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-        if (plume.falling_spheres[j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
-        else generic_sphere_mesh.uniform.color = { 1,1,1 };
-        generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-        generic_sphere_mesh.draw(*camera);
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.translation = new_translation;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.scaling = new_scaling;
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.rotation = mat3::identity();
+        if (plume.falling_spheres[j].falling_under_atm_rho) MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { 1,0,0 };
+        else MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { 1,1,1 };
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->shader = ShaderManager::getInstance()->getShader("mesh");
+        MeshManager::getInstance()->getMesh("Generic_Sphere")->draw(*camera);
     }
 }
 
@@ -584,13 +474,13 @@ void scene_model::display_falling_spheres_buffers(Plume& plume)
         {
             float new_scaling = plume.falling_spheres_buffers[k][j].r / ratio;
             vec3 new_translation = { plume.falling_spheres_buffers[k][j].center.x / ratio, plume.falling_spheres_buffers[k][j].center.y / ratio, plume.falling_spheres_buffers[k][j].center.z / ratio + 5 };
-            generic_sphere_mesh.uniform.transform.translation = new_translation;
-            generic_sphere_mesh.uniform.transform.scaling = new_scaling;
-            generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
-            if (plume.falling_spheres_buffers[k][j].falling_under_atm_rho) generic_sphere_mesh.uniform.color = { 1,0,0 };
-            else generic_sphere_mesh.uniform.color = { 1,1,1 };
-            generic_sphere_mesh.shader = ShaderManager::getInstance()->getShader("mesh");
-            generic_sphere_mesh.draw(*camera);
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.translation = new_translation;
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.scaling = new_scaling;
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.transform.rotation = mat3::identity();
+            if (plume.falling_spheres_buffers[k][j].falling_under_atm_rho) MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { 1,0,0 };
+            else MeshManager::getInstance()->getMesh("Generic_Sphere")->uniform.color = { 1,1,1 };
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->shader = ShaderManager::getInstance()->getShader("mesh");
+            MeshManager::getInstance()->getMesh("Generic_Sphere")->draw(*camera);
         }
     }
 }
