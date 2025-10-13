@@ -44,6 +44,10 @@ struct scene_model : scene_base
     // Trackers
     float sim_time;
     float avg_wind_dir_degrees;
+    double fU0;
+    double fRho0;
+    double fR0;
+    double fZ0;
 
     // Meshes
 

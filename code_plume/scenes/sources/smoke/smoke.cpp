@@ -200,6 +200,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
 
+    
     // Params setup
     is_wind = false;
     linear_wind_base = 15.;
@@ -217,6 +218,10 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     linear_wind_base = 15.;
     selected = 0;
     wind_alt = 0;
+    fU0 = 150;
+    fRho0 = 200;
+    fR0 = 100;
+    fZ0 = 0;
 
     // Direction tracker setup
     direction_tracker_step = 1000.0f;
@@ -809,6 +814,8 @@ void scene_model::show_eruption_parameters()
     const float indent_width = 5;
     const float child_width = 380;
 
+
+
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -817,14 +824,19 @@ void scene_model::show_eruption_parameters()
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
-        float initial_speed_min = 0., initial_speed_max = 200.;
-        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, plume.get_U_0(), &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        float initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Float, plume.get_rho_0(), &initial_density_min, &initial_density_max, "%.2f kg/m3");
-        float vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Float, plume.get_r_0(), &vent_ray_min, &vent_ray_max, "%.2f m");
-        float vent_altitude_min = 0., vent_altitude_max = 8000.;
-        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, plume.get_z_0(), &vent_altitude_min, &vent_altitude_max, "%.2f m");
+        double initial_speed_min = 0., initial_speed_max = 200.;
+        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
+        plume.setU0(fU0);
+        double initial_density_min = 150., initial_density_max = 250.;
+        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
+        plume.setRho0(fRho0);
+        double vent_ray_min = 50., vent_ray_max = 200.;
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        plume.setR0(fR0);
+
+        double vent_altitude_min = 0., vent_altitude_max = 8000.;
+        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &fZ0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
+        plume.setZ0(fZ0);
 
         ImGui::PopItemWidth();
         ImGui::Unindent();

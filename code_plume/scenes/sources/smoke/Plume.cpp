@@ -361,6 +361,26 @@ double* Plume::get_rho_0()
     return &this->rho_0;
 }
 
+void Plume::setU0(double fU0)
+{
+    this->U_0 = fU0;
+}
+
+void Plume::setRho0(double fRho0)
+{
+    this->rho_0 = fRho0;
+}
+
+void Plume::setR0(double fR0)
+{
+    this->r_0 = fR0;
+}
+
+void Plume::setZ0(double fZ0)
+{
+    this->z_0 = fZ0;
+}
+
 int Plume::getMaxSmoke()
 {
     return this->max_smoke;

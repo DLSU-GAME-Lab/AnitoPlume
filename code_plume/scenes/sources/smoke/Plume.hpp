@@ -75,6 +75,10 @@ public:
     double* get_z_0();
     double* get_r_0();
     double* get_rho_0();
+    void setU0(double fU0);
+    void setRho0(double fRho0);
+    void setR0(double fR0);
+    void setZ0(double fZ0);
     int getMaxSmoke();
     float getTransitionSpeed();
     float getTransitionDelay();
