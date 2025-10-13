@@ -12,10 +12,10 @@ private:
 	std::vector<int> wind_altitudes;
 	std::vector<wind_structure> winds;
 
+	float min_altitude;
 	float max_altitude;
 	float altitude_step;
 	int altitude_size;
-	float linear_wind_base;
 
 	std::vector<int> deg_angle; // UI wind angles
 	bool all_angles; // UI toggle
@@ -35,6 +35,15 @@ public:
 	void setTStep(float fTStep);
 
 public:
+	void setWindIntensity(unsigned int index, int intensity);
+	void setWindAngle(unsigned int index, int angle);
+	void setWind(unsigned int index, int intensity, int angle);
+
+	void setLinearWind(float linearWindBase);
+	void setAllWindIntensities(int intensity);
+	void setAllWindAngles(int angle);
+	void setAllWinds(int intensity, int angle);
+
 	vcl::vec3 computeWindVector(float height);
 	vcl::vec3 getAverageWindDirection();
 	std::vector<int>& getWindAlts();
@@ -43,8 +52,6 @@ public:
 	float getMaxAlt();
 	float getAltStep();
 	int getAltSize();
-	float getLinearWindBase();
-	void setLinearWindBase(float fLinearWindBase);
 
 //singleton Stuff
 private:

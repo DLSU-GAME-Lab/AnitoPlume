@@ -4,9 +4,9 @@ PlumeManager* PlumeManager::sharedInstance = nullptr;
 PlumeManager::PlumeManager()
 {
 	all_angles = false;
+	min_altitude = 0;
 	max_altitude = 10000;
-	altitude_step = 2000;
-	linear_wind_base = 15.f;
+	altitude_step = 2000;\
 	altitude_size = int(max_altitude / altitude_step) + 1;
 	for (unsigned int i = 0; i < altitude_size; i++)
 	{
@@ -88,6 +88,66 @@ void PlumeManager::setTStep(float fTStep)
 	}
 }
 
+void PlumeManager::setLinearWind(float linearWindBase)
+{
+	for (unsigned int i = 0; i < winds.size(); i++)
+	{
+		winds[i].intensity = i * linearWindBase;
+		if (i > 3) winds[i].intensity = 3 * linearWindBase;
+		if (winds[i].intensity == min_altitude) winds[i].intensity = 1;
+		winds[i] = wind_structure(winds[i].intensity, deg_angle[i]);
+		winds[i].recalc_wind_vector();
+	}
+}
+
+void PlumeManager::setWindIntensity(unsigned int index, int intensity)
+{
+	if (index >= winds.size()) return;
+
+	winds[index] = wind_structure(intensity, deg_angle[index]);
+	winds[index].recalc_wind_vector();
+}
+
+void PlumeManager::setWindAngle(unsigned int index, int angle)
+{
+	if (index >= winds.size()) return;
+
+	deg_angle[index] = angle;
+	winds[index] = wind_structure(winds[index].intensity, deg_angle[index]);
+	winds[index].recalc_wind_vector();
+}
+
+void PlumeManager::setWind(unsigned int index, int intensity, int angle)
+{
+	deg_angle[index] = angle;
+	winds[index] = wind_structure(intensity, deg_angle[index]);
+	winds[index].recalc_wind_vector();
+}
+
+void PlumeManager::setAllWindIntensities(int intensity)
+{
+	for (unsigned int i = 0; i < winds.size(); i++)
+	{
+		setWindIntensity(i, intensity);
+	}
+}
+
+void PlumeManager::setAllWindAngles(int angle)
+{
+	for (int i = 0; i < winds.size(); i++)
+	{
+		setWindAngle(i, angle);
+	}
+}
+
+void PlumeManager::setAllWinds(int intensity, int angle)
+{
+	for (int i = 0; i < winds.size(); i++)
+	{
+		setWind(i, intensity, angle);
+	}
+}
+
 vcl::vec3 PlumeManager::computeWindVector(float height)
 {
 	// find altitude interval
@@ -118,9 +178,9 @@ vcl::vec3 PlumeManager::computeWindVector(float height)
 vcl::vec3 PlumeManager::getAverageWindDirection()
 {
 	vcl::vec3 winds_vec = { 0,0,0 };
-	for (int i = 0; i < PlumeManager::getInstance()->getWinds().size(); i++)
+	for (int i = 0; i < winds.size(); i++)
 	{
-		winds_vec += PlumeManager::getInstance()->getWinds()[i].wind_vector;
+		winds_vec += winds[i].wind_vector;
 	}
 
 	float winds_squared_x = winds_vec.x * winds_vec.x;
@@ -161,13 +221,3 @@ int PlumeManager::getAltSize()
 {
 	return this->altitude_size;
 }
-
-float PlumeManager::getLinearWindBase()
-{
-	return this->linear_wind_base;
-}
-void PlumeManager::setLinearWindBase(float fLinearWindBase)
-{
-	this->linear_wind_base = fLinearWindBase;
-}
-

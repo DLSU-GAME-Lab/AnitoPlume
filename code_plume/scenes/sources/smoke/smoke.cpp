@@ -614,10 +614,10 @@ void scene_model::show_wind_settings()
             }
         }
 
-        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &PlumeManager::getInstance()->getWinds()[selected].intensity, &wind_min, &wind_max))
+        static int wind_intensity = PlumeManager::getInstance()->getWinds()[selected].intensity;
+        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &wind_intensity, &wind_min, &wind_max))
         {
-            PlumeManager::getInstance()->getWinds()[selected] = wind_structure(PlumeManager::getInstance()->getWinds()[selected].intensity, PlumeManager::getInstance()->getDegAngle()[selected]);
-            PlumeManager::getInstance()->getWinds()[selected].recalc_wind_vector();
+            PlumeManager::getInstance()->setWindIntensity(selected, wind_intensity);
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
@@ -626,21 +626,16 @@ void scene_model::show_wind_settings()
         ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity (m/s)", wind_min, wind_max, ImVec2(plot_width, plot_height));
         ImGui::PopStyleColor();
 
-        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &PlumeManager::getInstance()->getDegAngle()[selected], &angle_min, &angle_max))
+        static int wind_angle = PlumeManager::getInstance()->getDegAngle()[selected];
+        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &wind_angle, &angle_min, &angle_max))
         {
             if (all_angles)
             {
-                for (int i = 0; i < wind_size; i++)
-                {
-                    PlumeManager::getInstance()->getDegAngle()[i] = PlumeManager::getInstance()->getDegAngle()[selected];
-                    PlumeManager::getInstance()->getWinds()[i] = wind_structure(PlumeManager::getInstance()->getWinds()[i].intensity, PlumeManager::getInstance()->getDegAngle()[i]);
-                    PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
-                }
+                PlumeManager::getInstance()->setAllWindAngles(wind_angle);
             }
             else
             {
-                PlumeManager::getInstance()->getWinds()[selected] = wind_structure(PlumeManager::getInstance()->getWinds()[selected].intensity, PlumeManager::getInstance()->getDegAngle()[selected]);
-                PlumeManager::getInstance()->getWinds()[selected].recalc_wind_vector();
+                PlumeManager::getInstance()->setWindAngle(selected, wind_angle);
             }
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }
@@ -682,12 +677,7 @@ void scene_model::show_wind_settings()
         if (ImGui::Button("No wind"))
         {
             is_wind = false;
-            for (unsigned int i = 0; i < winds.size(); i++)
-            {
-                PlumeManager::getInstance()->getDegAngle()[i] = angle_min;
-                PlumeManager::getInstance()->getWinds()[i] = wind_structure(wind_min, PlumeManager::getInstance()->getDegAngle()[i]);
-                PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
-            }
+            PlumeManager::getInstance()->setAllWinds(wind_min, angle_min);
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
@@ -695,13 +685,7 @@ void scene_model::show_wind_settings()
         if (ImGui::Button("Linear Wind"))
         {
             is_wind = true;
-            for (unsigned int i = 0; i < PlumeManager::getInstance()->getWinds().size(); i++)
-            {
-                PlumeManager::getInstance()->getWinds()[i].intensity = i * linear_wind_base;
-                if (i > 3)  PlumeManager::getInstance()->getWinds()[i].intensity = 3 * linear_wind_base;
-                if ( PlumeManager::getInstance()->getWinds()[i].intensity == wind_min)  PlumeManager::getInstance()->getWinds()[i].intensity = 1;
-                 PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
-            }
+            PlumeManager::getInstance()->setLinearWind(linear_wind_base);
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
@@ -709,11 +693,7 @@ void scene_model::show_wind_settings()
         if (ImGui::Button("Max Intensity"))
         {
             is_wind = true;
-            for (unsigned int i = 0; i < PlumeManager::getInstance()->getWinds().size(); i++)
-            {
-                PlumeManager::getInstance()->getWinds()[i].intensity = wind_max;
-                PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
-            }
+            PlumeManager::getInstance()->setAllWindIntensities(wind_max);
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
@@ -726,14 +706,7 @@ void scene_model::show_wind_settings()
         {
             if (is_wind)
             {
-                for (unsigned int i = 0; i < PlumeManager::getInstance()->getWinds().size(); i++)
-                {
-                    PlumeManager::getInstance()->getWinds()[i].intensity = i * linear_wind_base;
-                    if (i > 3) PlumeManager::getInstance()->getWinds()[i].intensity = 3 * linear_wind_base;
-                    if (PlumeManager::getInstance()->getWinds()[i].intensity == wind_min) PlumeManager::getInstance()->getWinds()[i].intensity = 1;
-                    PlumeManager::getInstance()->getWinds()[i] = wind_structure(PlumeManager::getInstance()->getWinds()[i].intensity, PlumeManager::getInstance()->getDegAngle()[i]);
-                    PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
-                }
+                PlumeManager::getInstance()->setLinearWind(linear_wind_base);
                 direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
             }
         }
@@ -743,25 +716,26 @@ void scene_model::show_wind_settings()
         {
             //U_0 = 200;
             //rho_0 = 250;
+            std::vector<int> intensities;
+            std::vector<int> angles;
 
-            PlumeManager::getInstance()->getWinds()[0].intensity = 1;
-            PlumeManager::getInstance()->getWinds()[1].intensity = 14;
-            PlumeManager::getInstance()->getWinds()[2].intensity = 20;
-            PlumeManager::getInstance()->getWinds()[3].intensity = 30;
-            PlumeManager::getInstance()->getWinds()[4].intensity = 40;
-            PlumeManager::getInstance()->getWinds()[5].intensity = 58;
+            intensities.push_back(1);
+            intensities.push_back(14);
+            intensities.push_back(20);
+            intensities.push_back(30);
+            intensities.push_back(40);
+            intensities.push_back(58);
 
-            PlumeManager::getInstance()->getDegAngle()[0] = 0;
-            PlumeManager::getInstance()->getDegAngle()[1] = 30;
-            PlumeManager::getInstance()->getDegAngle()[2] = 330;
-            PlumeManager::getInstance()->getDegAngle()[3] = 90;
-            PlumeManager::getInstance()->getDegAngle()[4] = 120;
-            PlumeManager::getInstance()->getDegAngle()[5] = 135;
+            angles.push_back(0);
+            angles.push_back(30);
+            angles.push_back(330);
+            angles.push_back(90);
+            angles.push_back(120);
+            angles.push_back(135);
 
-            for (unsigned int i = 0; i < PlumeManager::getInstance()->getWinds().size(); i++)
+            for (unsigned int i = 0; i < angles.size(); i++)
             {
-                PlumeManager::getInstance()->getWinds()[i] = wind_structure(PlumeManager::getInstance()->getWinds()[i].intensity, PlumeManager::getInstance()->getDegAngle()[i]);
-                PlumeManager::getInstance()->getWinds()[i].recalc_wind_vector();
+                PlumeManager::getInstance()->setWind(i, intensities[i], angles[i]);
             }
             direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
         }

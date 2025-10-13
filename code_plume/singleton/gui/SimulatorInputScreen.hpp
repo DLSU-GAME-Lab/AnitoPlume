@@ -6,8 +6,6 @@
 class SimulatorInputScreen : public GUIScreen
 {
 private:
-    static const int wind_size = 6;
-
     const int alt_min = 0, alt_max = 10000;
     const int wind_min = 0, wind_max = 200;
     const int angle_min = 0, angle_max = 360;
@@ -32,6 +30,7 @@ private:
     bool is_wind;
     int selected;
     int wind_alt;
+    float linear_wind_base;
     
     // Trackers
     float sim_time;
