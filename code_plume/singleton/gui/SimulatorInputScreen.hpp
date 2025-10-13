@@ -17,13 +17,46 @@ private:
     const float plot_width = 330;
     const float plot_height = 100;
 
-    std::vector<int> deg_angle; // UI wind angles
-    bool all_angles; // UI toggle
+    //Wind settings ui
+    float max_altitude;
+    float altitude_step;
+    int altitude_size;
+
+    ////wind stuff
+    //std::vector<int> wind_altitudes;
+    //std::vector<wind_structure> winds;
+    //float linear_wind_base;
+    //
+    std::vector<int> deg_angle;
+    bool all_angles;
+    bool is_wind;
+    int selected;
+    int wind_alt;
+    
+    // Trackers
+    float sim_time;
+    float avg_wind_dir_degrees;
+    double fU0;
+    double fRho0;
+    double fR0;
+    double fZ0;
+
+    // Display settings
+    bool display_smoke_layers;
+    bool display_free_spheres;
+    bool display_subspheres;
+    bool display_spheres_with_subspheres;
+    bool display_billboards;
+    bool display_tooltips;
 
 	SimulatorInputScreen();
 	~SimulatorInputScreen();
 
 	virtual void drawGUI() override;
+
+    void show_display_settings();
+    void show_wind_settings();
+    void show_eruption_parameters();
 
 	friend class GUIManager;
 };

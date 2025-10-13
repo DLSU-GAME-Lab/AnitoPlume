@@ -69,8 +69,6 @@ struct scene_model : scene_base
     std::vector<int> deg_angle; // UI wind angles
     bool all_angles; // UI toggle
 
-
-
     //Wind settings ui
     float max_altitude;
     float altitude_step;
@@ -113,8 +111,6 @@ struct scene_model : scene_base
     void reset_simulation();
     void setup_terrain_preemptive();
 
-    // Smoke layer computation
-    vcl::vec3 compute_wind_vector(float height);
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 

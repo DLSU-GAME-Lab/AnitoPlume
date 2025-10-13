@@ -90,12 +90,12 @@ public:
 private:
     // Smoke layer computation
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);
-    void edit_smoke_layer_properties(unsigned int i, float& d_mass);
-    void apply_forces_to_smoke_layer(unsigned int i, float d_mass);
+    void edit_smoke_layer_properties(unsigned int i, float& d_mass, vcl::vec3 wind);
+    void apply_forces_to_smoke_layer(unsigned int i, float d_mass, vcl::vec3 wind);
     void sedimentation(unsigned int i, float& d_mass);
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
-    void smoke_layer_update(unsigned int i);
+    void smoke_layer_update(unsigned int i, vcl::vec3 wind);
 
     float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
     float compute_atm_temperature(float height);

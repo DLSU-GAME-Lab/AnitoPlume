@@ -1,7 +1,6 @@
 #pragma once
 
-#include "scenes/sources/smoke/smokeLayer.hpp"
-#include "singleton/WindManager.hpp"
+#include "vcl/vcl.hpp"
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -42,7 +41,6 @@ public:
 	void set_wind_direction(vcl::vec3 wind_vector);
 	void set_plume_positions(unsigned int index, vcl::vec3 position, float radius);
 	void reset_plume_positions();
-	void calculate_avg_wind_dir();
 
     void show_gui(bool* show);
 };

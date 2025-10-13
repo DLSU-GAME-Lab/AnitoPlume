@@ -1,6 +1,6 @@
 #include "Plume.hpp"
-#include "singleton/WindManager.hpp"
 #include "singleton/PlumeManager.hpp"
+
 using namespace vcl;
 //------------------------------------------------------------
 //------------------------- ALGO -----------------------------
@@ -89,7 +89,9 @@ void Plume::update(unsigned int frame_count)
     // update of layer and spheres
     for (unsigned int id = 0; id < smoke_layers.size(); id++)
     {
-        smoke_layer_update(id);
+        // get wind at altitude
+        vec3 wind = PlumeManager::getInstance()->computeWindVector(smoke_layers[id].center.z);
+        smoke_layer_update(id, wind);
     }
     update_free_spheres();
     if (frame_count % 100 == 0) falling_spheres_update(100);
@@ -128,11 +130,8 @@ float Plume::compute_atm_density(float height) //(kg.m-3) cf https://www.deleze.
     return 352.995 * pow(1 - 0.0000225577 * height, 5.25516) / (288.15 - 0.0065 * height);
 }
 
-void Plume::edit_smoke_layer_properties(unsigned int i, float& d_mass)
+void Plume::edit_smoke_layer_properties(unsigned int i, float& d_mass, vec3 wind)
 {
-    // get wind at altitude
-    vec3 wind = WindManager::getInstance()->compute_wind_vector(smoke_layers[i].center.z);
-
     // preliminary computation
     float thk = t_step * smoke_layers[i].v.z;
     //thk = smoke_layers[i].v.z * 0.002;
@@ -177,11 +176,8 @@ void Plume::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     smoke_layers[i].rho = rho_new;
 }
 
-void Plume::apply_forces_to_smoke_layer(unsigned int i, float d_mass)
+void Plume::apply_forces_to_smoke_layer(unsigned int i, float d_mass, vec3 wind)
 {
-    // get wind at altitude
-    vec3 wind = WindManager::getInstance()->compute_wind_vector(smoke_layers[i].center.z);
-
     // precomputation
     float atm_density = compute_atm_density(smoke_layers[i].center.z);
     float volume = smoke_layers[i].thickness * PI * smoke_layers[i].r * smoke_layers[i].r;
@@ -279,14 +275,14 @@ void Plume::sedimentation(unsigned int i, float& d_mass)
 
 }
 
-void Plume::smoke_layer_update(unsigned int i)
+void Plume::smoke_layer_update(unsigned int i, vec3 wind)
 {
     float d_mass = 0; // to track mass change for equation of dynamics
     smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
 
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
-    if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass); // convection if v_z > 0 (convection causes air entrainment)
-    apply_forces_to_smoke_layer(i, d_mass);
+    if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass, wind); // convection if v_z > 0 (convection causes air entrainment)
+    apply_forces_to_smoke_layer(i, d_mass, wind);
     //check_smoke_position(i);
 }
 
@@ -885,7 +881,7 @@ void Plume::update_stagnation_spheres()
             unsigned int closest_layer_id = free_spheres[i].closest_layer_idx;
 
             // get wind
-            vec3 wind = WindManager::getInstance()->compute_wind_vector(free_spheres[i].center.z);
+            vec3 wind = PlumeManager::getInstance()->computeWindVector(free_spheres[i].center.z);
 
             // get radial composant relative to layer center
             vec3 p_radial = vec3(free_spheres[i].center.x, free_spheres[i].center.y, 0);
