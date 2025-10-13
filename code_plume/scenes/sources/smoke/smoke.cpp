@@ -239,8 +239,8 @@ void scene_model::setup_plume_params()
     vent_positions.push_back(vec3(2500, 0, 0));
     vent_positions.push_back(vec3(5850, 5950, 0));
     vent_positions.push_back(vec3(-2000, -6000, 0));
-    vent_positions.push_back(vec3(-3000, 5800, 0));
-    vent_positions.push_back(vec3(5850, -6000, -2000));
+    vent_positions.push_back(vec3(-3100, 6200, 200));
+    vent_positions.push_back(vec3(5850, -6000, 0));
     
     //plumes.push_back(Plume(vent_positions[0]));
     //Plume* plume = new Plume(vent_positions[0]);
