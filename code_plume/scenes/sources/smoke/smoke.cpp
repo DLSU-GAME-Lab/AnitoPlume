@@ -236,15 +236,19 @@ void scene_model::setup_plume_params()
 {
 
     // Vent positions setup
-    vent_index = 0;
     vent_positions.push_back(vec3(2500, 0, 0));
     vent_positions.push_back(vec3(5850, 5950, 0));
     vent_positions.push_back(vec3(-2000, -6000, 0));
     vent_positions.push_back(vec3(-3000, 5800, 0));
+    vent_positions.push_back(vec3(5850, -6000, -2000));
     
     //plumes.push_back(Plume(vent_positions[0]));
     //Plume* plume = new Plume(vent_positions[0]);
-    PlumeManager::getInstance()->createPlume(vent_positions[0]);
+    for (int i = 0; i <vent_positions.size();i++)
+    {
+        PlumeManager::getInstance()->createPlume(vent_positions[i]);
+    }
+
 }
 
 
