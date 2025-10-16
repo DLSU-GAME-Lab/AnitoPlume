@@ -3,7 +3,15 @@
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/wind_structure.hpp"
 #include <vector>
-
+struct eruptionParams
+{
+    double U_0; // initial speed
+    double z_0; // initial altitude
+    double r_0; // initial radius
+    double rho_0; // initial density
+    double maxRadius;
+    double minRadius;
+};
 // TODO: Add getters and setters for encapsulation
 class Plume
 {
@@ -21,6 +29,8 @@ private:
     // Trackers
     float t_step;
     float new_layer_delay;
+    float fMaxRadius;
+    float fMinRadius;
     double air_incorporation_coeff;
     double stagnation_speed;
 
@@ -59,7 +69,7 @@ public:
     unsigned int subsubspheres_number;
 
 public:
-    Plume(std::string vent_name, vcl::vec3 vent_position);
+    Plume(std::string vent_name, vcl::vec3 vent_position, eruptionParams eruptParams);
     void reset();
 
     void set_t_step(float t_step);
@@ -76,6 +86,8 @@ public:
     double* get_z_0();
     double* get_r_0();
     double* get_rho_0();
+    double getMaxRadius();
+    double getMinRadius();
     void setU0(double fU0);
     void setRho0(double fRho0);
     void setR0(double fR0);

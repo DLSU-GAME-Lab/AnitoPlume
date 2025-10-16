@@ -206,10 +206,16 @@ void scene_model::setup_plume_params()
     vent_positions[2] = vec3(-2000, -6000, 0);
     vent_positions[3] = vec3(-3100, 6200, 200);
     vent_positions[4] = vec3(5850, -6000, 0);
+
+    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 1000, 500});
+    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 250, 125 });
+    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 500, 250});
+    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 250, 125});
+    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 1000, 500});
     
     for (int i = 0; i < 5; i++)
     {
-        PlumeManager::getInstance()->createPlume(vent_names[i], vent_positions[i]);
+        PlumeManager::getInstance()->createPlume(vent_names[i], vent_positions[i], erupt_params[i]);
     }
 
 }
@@ -764,7 +770,14 @@ void scene_model::show_eruption_parameters()
 
         static int plume_index = 0;
         static bool erupt_on_play[5] = {};
-        ImGui::Combo("Eruption Vent", &plume_index, vent_names, 5);
+        if(ImGui::Combo("Eruption Vent", &plume_index, vent_names, 5))
+        {
+            Plume& holder = PlumeManager::getInstance()->getPlumes()[plume_index];
+            this->fR0 = *holder.get_r_0();
+            this->fU0 = *holder.get_U_0();
+            this->fRho0 = *holder.get_rho_0();
+            this->fZ0 = *holder.get_z_0();
+        }
         ImGui::Separator();
 
         Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
@@ -772,13 +785,13 @@ void scene_model::show_eruption_parameters()
 
         double initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        plume.setU0(fU0);
+        plume.setU0(fU0*10);
         double initial_density_min = 150., initial_density_max = 250.;
         ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
         plume.setRho0(fRho0);
-        double vent_ray_min = 50., vent_radius_max = 1000.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_radius_max, "%.2f m");
-        plume.setR0(fR0);
+        double vent_ray_min = plume.getMinRadius(), vent_radius_max = plume.getMaxRadius();
+        if(ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_radius_max, "%.2f m"))
+            plume.setR0(fR0);
 
         double vent_altitude_min = 0., vent_altitude_max = 8000.;
         ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &fZ0, &vent_altitude_min, &vent_altitude_max, "%.2f m");

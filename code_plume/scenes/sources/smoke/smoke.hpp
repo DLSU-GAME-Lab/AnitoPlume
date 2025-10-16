@@ -80,6 +80,7 @@ struct scene_model : scene_base
     // PLUMES
     //std::vector<Plume> plumes;
     const char* vent_names[5];
+    std::vector<eruptionParams> erupt_params;
     vcl::vec3 vent_positions[5];
     unsigned short vent_index;
 

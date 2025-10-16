@@ -6,20 +6,25 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
-Plume::Plume(std::string vent_name, vcl::vec3 vent_position)
+Plume::Plume(std::string vent_name, vcl::vec3 vent_position, eruptionParams eruptParams)
 {
     this->vent_name = vent_name;
     this->vent_position = vent_position;
-    vent_position.z = (float)z_0;
 
     // Parameters : to be chosen by user
     T_0 = 1273.; // initial temp (K)
     theta_0 = 0.; // initial angle (rad)
-    U_0 = 150.; // initial speed (m.s-1)
+    U_0 = eruptParams.U_0; // initial speed (m.s-1)
     n_0 = 0.03; // initial gas mass fraction
-    z_0 = 0.f; // initial altitude (m)
-    r_0 = 100; // initial radius (m)
-    rho_0 = 200.;
+    z_0 = eruptParams.z_0; // initial altitude (m)
+    r_0 = eruptParams.r_0; // initial radius (m)
+    rho_0 = eruptParams.rho_0;
+
+    fMinRadius = (float)eruptParams.minRadius;
+    fMaxRadius = (float)eruptParams.maxRadius;
+
+
+    vent_position.z = (float)z_0;
 
     subspheres_number = 0;
     subsubspheres_number = 0;
@@ -356,6 +361,16 @@ double* Plume::get_r_0()
 double* Plume::get_rho_0()
 {
     return &this->rho_0;
+}
+
+double Plume::getMaxRadius()
+{
+    return this->fMaxRadius;
+}
+
+double Plume::getMinRadius()
+{
+    return this->fMinRadius;
 }
 
 void Plume::setU0(double fU0)
@@ -773,7 +788,7 @@ void Plume::update_free_spheres()
             // check if closest layer begins falling (if so, make sphere falling)
             if (smoke_layers[closest_layer_id].begin_falling)
             {
-                subdivide_and_make_falling(i);
+                //subdivide_and_make_falling(i);
             }
             else if (smoke_layers[closest_layer_id].stagnates && !smoke_layers[closest_layer_id].stagnates_long && !sphere_i.stagnate)
             {
