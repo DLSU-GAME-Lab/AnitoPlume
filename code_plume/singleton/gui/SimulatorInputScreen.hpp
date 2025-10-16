@@ -21,13 +21,8 @@ private:
     //Wind settings ui
     float max_altitude;
     float altitude_step;
-    int altitude_size;
 
-    ////wind stuff
-    //std::vector<int> wind_altitudes;
-    //std::vector<wind_structure> winds;
-    //float linear_wind_base;
-    //
+    std::vector<bool> erupt_on_play;
     std::vector<int> deg_angle;
     bool all_angles;
     bool is_wind;
@@ -63,6 +58,8 @@ private:
 	friend class GUIManager;
 
 public:
+    void resetEruptOnPlay();
+
     float getTimerScale() const;
     void setTimerScale(float timer_scale);
     bool getDisplaySmokeLayers() const;

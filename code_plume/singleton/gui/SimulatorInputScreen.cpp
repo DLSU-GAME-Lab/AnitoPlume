@@ -24,6 +24,10 @@ SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
     display_spheres_with_subspheres = false;
     display_tooltips = true;
     display_landmarks = true;
+
+    erupt_on_play.push_back(true);
+    for (int i = 1; i < 5; i++)
+        erupt_on_play.push_back(false);
 }
 
 SimulatorInputScreen::~SimulatorInputScreen()
@@ -69,7 +73,7 @@ void SimulatorInputScreen::show_display_settings()
 {
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 5.25f));
+        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 6.25f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
 
@@ -298,9 +302,12 @@ void SimulatorInputScreen::show_eruption_parameters()
 
         Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
 
-        static bool erupt_on_play[5]{ true, false, false, false, false };
-        if (ImGui::Checkbox("Erupt on play", &erupt_on_play[plume_index]) && erupt_on_play[plume_index])
-            plume.eruptOnPlay();
+        bool erupt = erupt_on_play[plume_index];
+        if (ImGui::Checkbox("Erupt on play", &erupt))
+        {
+            erupt_on_play[plume_index] = erupt;
+            if (erupt) plume.eruptOnPlay();
+        }
 
         double initial_speed_min = 0., initial_speed_max = 200.;
         if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
@@ -321,6 +328,14 @@ void SimulatorInputScreen::show_eruption_parameters()
         ImGui::PopItemWidth();
         ImGui::Unindent();
         ImGui::EndChild();
+    }
+}
+
+void SimulatorInputScreen::resetEruptOnPlay()
+{
+    for (int i = 0; i < erupt_on_play.size(); i++)
+    {
+        if (erupt_on_play[i]) PlumeManager::getInstance()->getPlumes()[i].eruptOnPlay();
     }
 }
 

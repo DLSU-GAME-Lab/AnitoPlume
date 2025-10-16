@@ -475,8 +475,7 @@ void scene_model::reset_simulation()
     sim_time = 0;
 
     PlumeManager::getInstance()->reset();
-
-   
+    sim_input->resetEruptOnPlay();
 
     //smoke_layers_frames.clear();
     //free_spheres_frames.clear();
