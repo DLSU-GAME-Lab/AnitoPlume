@@ -3,7 +3,7 @@
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/wind_structure.hpp"
 #include <vector>
-struct eruptionParams
+struct EruptionParams
 {
     double U_0; // initial speed
     double z_0; // initial altitude
@@ -45,6 +45,8 @@ private:
     float transition_speed;
     float transition_delay;
 
+    bool erupt_on_play;
+
 
 public:
     // Constants
@@ -69,7 +71,7 @@ public:
     unsigned int subsubspheres_number;
 
 public:
-    Plume(std::string vent_name, vcl::vec3 vent_position, eruptionParams eruptParams);
+    Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams);
     void reset();
 
     void set_t_step(float t_step);
@@ -100,6 +102,8 @@ public:
     void setMaxSmoke(int max_smoke);
     void setTransitionSpeed(float transition_speed);
     void setTranstionDelay(float transition_delay);
+    bool getEruptOnPlay();
+    void setEruptOnPlay(bool erupt_on_play);
 
 private:
     // Smoke layer computation

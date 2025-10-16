@@ -207,11 +207,11 @@ void scene_model::setup_plume_params()
     vent_positions[3] = vec3(-3100, 6200, 200);
     vent_positions[4] = vec3(5850, -6000, 0);
 
-    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 1000, 500});
-    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 250, 125 });
-    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 500, 250});
-    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 250, 125});
-    erupt_params.push_back(eruptionParams{ 150.,0,100,200, 1000, 500});
+    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 1000, 500});
+    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 250, 125 });
+    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 500, 250});
+    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 250, 125});
+    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 1000, 500});
     
     for (int i = 0; i < 5; i++)
     {

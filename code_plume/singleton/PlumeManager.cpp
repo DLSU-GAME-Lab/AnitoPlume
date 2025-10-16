@@ -29,7 +29,7 @@ PlumeManager* PlumeManager::getInstance()
 	return sharedInstance;
 }
 
-void PlumeManager::createPlume(std::string ventName, vcl::vec3 ventLoc,eruptionParams eruptParams)
+void PlumeManager::createPlume(std::string ventName, vcl::vec3 ventLoc,EruptionParams eruptParams)
 {
 	this->vecPlumes.push_back(Plume(ventName, ventLoc, eruptParams));
 }

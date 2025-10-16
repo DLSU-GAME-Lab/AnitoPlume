@@ -6,7 +6,7 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
-Plume::Plume(std::string vent_name, vcl::vec3 vent_position, eruptionParams eruptParams)
+Plume::Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams)
 {
     this->vent_name = vent_name;
     this->vent_position = vent_position;
@@ -29,6 +29,7 @@ Plume::Plume(std::string vent_name, vcl::vec3 vent_position, eruptionParams erup
     subspheres_number = 0;
     subsubspheres_number = 0;
 
+    erupt_on_play = false;
     // Parameters : constants
     g = 9.81; // (m.s-2)
     min_lifetime = 180.0;
@@ -431,6 +432,16 @@ void Plume::setTransitionSpeed(float transition_speed)
 void Plume::setTranstionDelay(float transition_delay)
 {
     this->transition_delay = transition_delay;
+}
+
+bool Plume::getEruptOnPlay()
+{
+    return this->erupt_on_play;
+}
+
+void Plume::setEruptOnPlay(bool erupt_on_play)
+{
+    this->erupt_on_play = erupt_on_play;
 }
 
 
