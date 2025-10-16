@@ -195,19 +195,19 @@ void scene_model::setup_plume_params()
 {
 
     // Vent positions setup
-    vent_names.push_back("Taal Main Crater");
-    vent_names.push_back("Pira-piraso");
-    vent_names.push_back("Binintiang Munti");
-    vent_names.push_back("Binintiang Malaki");
-    vent_names.push_back("Calauit Point");
+    vent_names[0] = "Taal Main Crater";
+    vent_names[1] = "Pira-piraso";
+    vent_names[2] = "Binintiang Munti";
+    vent_names[3] = "Binintiang Malaki";
+    vent_names[4] = "Calauit Point";
 
-    vent_positions.push_back(vec3(2500, 0, 0));
-    vent_positions.push_back(vec3(5850, 5950, 0));
-    vent_positions.push_back(vec3(-2000, -6000, 0));
-    vent_positions.push_back(vec3(-3100, 6200, 200));
-    vent_positions.push_back(vec3(5850, -6000, 0));
+    vent_positions[0] = vec3(2500, 0, 0);
+    vent_positions[1] = vec3(5850, 5950, 0);
+    vent_positions[2] = vec3(-2000, -6000, 0);
+    vent_positions[3] = vec3(-3100, 6200, 200);
+    vent_positions[4] = vec3(5850, -6000, 0);
     
-    for (int i = 0; i <vent_positions.size();i++)
+    for (int i = 0; i < 5; i++)
     {
         PlumeManager::getInstance()->createPlume(vent_names[i], vent_positions[i]);
     }
@@ -751,23 +751,24 @@ void scene_model::show_wind_settings()
 
 void scene_model::show_eruption_parameters()
 {
-    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
     const float indent_width = 5;
     const float child_width = 380;
 
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 6.5f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
-        //static int item = 0;
-        //if (ImGui::Combo("Vent", &item, &vent_names[0]))
-        //{
+        static int plume_index = 0;
+        static bool erupt_on_play[5] = {};
+        ImGui::Combo("Eruption Vent", &plume_index, vent_names, 5);
+        ImGui::Separator();
 
-        //}
+        Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
+        ImGui::Checkbox("Erupt on play", &erupt_on_play[plume_index]);
 
         double initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
@@ -775,8 +776,8 @@ void scene_model::show_eruption_parameters()
         double initial_density_min = 150., initial_density_max = 250.;
         ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
         plume.setRho0(fRho0);
-        double vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_ray_max, "%.2f m");
+        double vent_ray_min = 50., vent_radius_max = 1000.;
+        ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_radius_max, "%.2f m");
         plume.setR0(fR0);
 
         double vent_altitude_min = 0., vent_altitude_max = 8000.;
