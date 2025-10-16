@@ -8,6 +8,7 @@
 class Plume
 {
 private:
+    std::string vent_name;
     // User-defined parameters
     double T_0; // initial temp
     double theta_0; // initial angle
@@ -58,7 +59,7 @@ public:
     unsigned int subsubspheres_number;
 
 public:
-    Plume(vcl::vec3 vent_position);
+    Plume(std::string vent_name, vcl::vec3 vent_position);
     void reset();
 
     void set_t_step(float t_step);
@@ -79,6 +80,7 @@ public:
     void setRho0(double fRho0);
     void setR0(double fR0);
     void setZ0(double fZ0);
+    std::string getVentName();
     int getMaxSmoke();
     float getTransitionSpeed();
     float getTransitionDelay();

@@ -6,10 +6,11 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
-Plume::Plume(vcl::vec3 vent_position)
+Plume::Plume(std::string vent_name, vcl::vec3 vent_position)
 {
-    vent_position.z = (float)z_0;
+    this->vent_name = vent_name;
     this->vent_position = vent_position;
+    vent_position.z = (float)z_0;
 
     // Parameters : to be chosen by user
     T_0 = 1273.; // initial temp (K)
@@ -375,6 +376,11 @@ void Plume::setR0(double fR0)
 void Plume::setZ0(double fZ0)
 {
     this->z_0 = fZ0;
+}
+
+std::string Plume::getVentName()
+{
+    return this->vent_name;
 }
 
 int Plume::getMaxSmoke()

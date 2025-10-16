@@ -195,17 +195,21 @@ void scene_model::setup_plume_params()
 {
 
     // Vent positions setup
+    vent_names.push_back("Taal Main Crater");
+    vent_names.push_back("Pira-piraso");
+    vent_names.push_back("Binintiang Munti");
+    vent_names.push_back("Binintiang Malaki");
+    vent_names.push_back("Calauit Point");
+
     vent_positions.push_back(vec3(2500, 0, 0));
     vent_positions.push_back(vec3(5850, 5950, 0));
     vent_positions.push_back(vec3(-2000, -6000, 0));
     vent_positions.push_back(vec3(-3100, 6200, 200));
     vent_positions.push_back(vec3(5850, -6000, 0));
     
-    //plumes.push_back(Plume(vent_positions[0]));
-    //Plume* plume = new Plume(vent_positions[0]);
     for (int i = 0; i <vent_positions.size();i++)
     {
-        PlumeManager::getInstance()->createPlume(vent_positions[i]);
+        PlumeManager::getInstance()->createPlume(vent_names[i], vent_positions[i]);
     }
 
 }
@@ -751,8 +755,6 @@ void scene_model::show_eruption_parameters()
     const float indent_width = 5;
     const float child_width = 380;
 
-
-
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -760,6 +762,12 @@ void scene_model::show_eruption_parameters()
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
+
+        //static int item = 0;
+        //if (ImGui::Combo("Vent", &item, &vent_names[0]))
+        //{
+
+        //}
 
         double initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
