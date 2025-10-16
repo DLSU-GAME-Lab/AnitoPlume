@@ -785,7 +785,7 @@ void scene_model::show_eruption_parameters()
 
         double initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        plume.setU0(fU0*10);
+        plume.setU0(fU0);
         double initial_density_min = 150., initial_density_max = 250.;
         ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
         plume.setRho0(fRho0);
