@@ -8,11 +8,15 @@
 
 class GUIScreen
 {
+public:
+	std::string getName() const;
+	bool getEnabled() const;
+	void setEnabled(bool enabled);
+
 protected:
 	GUIScreen(std::string name);
 	~GUIScreen();
 
-	std::string getName();
 	virtual void drawGUI() = 0;
 
 	std::string name;

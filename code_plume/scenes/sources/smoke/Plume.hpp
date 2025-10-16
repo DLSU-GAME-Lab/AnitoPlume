@@ -45,7 +45,7 @@ private:
     float transition_speed;
     float transition_delay;
 
-    bool erupt_on_play;
+    bool to_update;
 
 
 public:
@@ -81,6 +81,7 @@ public:
     void remove_colliding_smoke();
     void remove_smoke_layers();
 
+    vcl::vec3 getPosition();
     double* get_T_0();
     double* get_theta_0();
     double* get_U_0();
@@ -102,8 +103,8 @@ public:
     void setMaxSmoke(int max_smoke);
     void setTransitionSpeed(float transition_speed);
     void setTranstionDelay(float transition_delay);
-    bool getEruptOnPlay();
-    void setEruptOnPlay(bool erupt_on_play);
+    bool getToUpdate();
+    void eruptOnPlay();
 
 private:
     // Smoke layer computation

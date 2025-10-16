@@ -1,7 +1,8 @@
 #include "MenuScreen.hpp"
 #include "singleton/CameraManager.hpp"
+#include "singleton/GUIManager.hpp"
 
-MenuScreen::MenuScreen() : GUIScreen("MENU_SCREEN")
+MenuScreen::MenuScreen() : GUIScreen("Menu")
 {
 
 }
@@ -83,13 +84,25 @@ void MenuScreen::showView()
 
 void MenuScreen::showWindow()
 {
+    std::vector<GUIScreen*>& screens = GUIManager::getInstance()->getGUIScreens();
 
-    //for (auto it = gui.enabled.begin(); it != gui.enabled.end(); it++)
-    //{
-    //    if (ImGui::MenuItem(it->first.c_str()))
-    //        gui.enabled[it->first] = !gui.enabled[it->first];
-    //}
+    if (ImGui::MenuItem("Show all"))
+    {
+        for (int i = 1; i < screens.size(); i++) screens[i]->setEnabled(true);
+    }
 
+    if (ImGui::MenuItem("Hide all"))
+    {
+        for (int i = 1; i < screens.size(); i++) screens[i]->setEnabled(false);
+    }
+
+    ImGui::Separator();
+    for (int i = 1; i < screens.size(); i++)
+    {
+        bool enabled = screens[i]->getEnabled();
+        if (ImGui::Checkbox(screens[i]->getName().c_str(), &enabled))
+            screens[i]->setEnabled(enabled);
+    }
 }
 
 void MenuScreen::showHelp()

@@ -21,6 +21,7 @@ public:
 	void drawAllGUI(GLFWwindow* window);
 
 	GUIScreen* getGUIScreen(std::string name);
+	std::vector<GUIScreen*>& getGUIScreens();
 	bool getEnabled(std::string name);
 	void setEnabled(std::string name, bool enabled);
 

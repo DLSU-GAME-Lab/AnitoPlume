@@ -3,7 +3,7 @@
 
 using namespace vcl;
 
-CameraSettingsScreen::CameraSettingsScreen() : GUIScreen("CAMERA_SETTINGS_SCREEN")
+CameraSettingsScreen::CameraSettingsScreen() : GUIScreen("Camera Settings")
 {
 
 }

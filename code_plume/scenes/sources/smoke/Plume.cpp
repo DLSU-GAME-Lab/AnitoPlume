@@ -29,7 +29,7 @@ Plume::Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams erup
     subspheres_number = 0;
     subsubspheres_number = 0;
 
-    erupt_on_play = false;
+    to_update = false;
     // Parameters : constants
     g = 9.81; // (m.s-2)
     min_lifetime = 180.0;
@@ -50,6 +50,7 @@ Plume::Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams erup
 
 void Plume::reset()
 {
+    to_update = false;
     free_sphere_id = 0;
     falling_sphere_id = 0;
 
@@ -82,6 +83,8 @@ void Plume::set_t_step(float t_step)
 
 void Plume::update(unsigned int frame_count)
 {
+    if (!this->to_update) return;
+
     // add smoke layer each x seconds
     if (smoke_layers.size() == 0 || (new_layer_delay >= r_0 / (2 * U_0) && smoke_layers.size() < 1000000000000000))
     {
@@ -89,8 +92,8 @@ void Plume::update(unsigned int frame_count)
         add_free_spheres_for_one_layer(smoke_layers.size() - 1);
 
         new_layer_delay = 0;
-        std::cout << smoke_layers.size() << std::endl;
-        std::cout << "LAYER ADDED OK" << std::endl;
+        std::cout << vent_name << " - LAYER ADDED OK" << std::endl;
+        std::cout << vent_name << " - Total Layers: " << smoke_layers.size() << std::endl;
     }
 
     // update of layer and spheres
@@ -329,6 +332,11 @@ void Plume::remove_smoke_layers()
     }
 }
 
+vcl::vec3 Plume::getPosition()
+{
+    return this->vent_position;
+}
+
 double* Plume::get_T_0()
 {
     return &this->T_0;
@@ -434,14 +442,14 @@ void Plume::setTranstionDelay(float transition_delay)
     this->transition_delay = transition_delay;
 }
 
-bool Plume::getEruptOnPlay()
+bool Plume::getToUpdate()
 {
-    return this->erupt_on_play;
+    return this->to_update;
 }
 
-void Plume::setEruptOnPlay(bool erupt_on_play)
+void Plume::eruptOnPlay()
 {
-    this->erupt_on_play = erupt_on_play;
+    this->to_update = true;
 }
 
 

@@ -5,6 +5,7 @@
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
 #include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
+#include "singleton/gui/SimulatorInputScreen.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -86,6 +87,7 @@ struct scene_model : scene_base
 
     std::vector<float> sphere_lifetime;
 
+    SimulatorInputScreen* sim_input;
     terrain_structure terrain_struct;
     terrain_loader t_loader;
     direction_tracker direction_tracker;
@@ -114,11 +116,6 @@ struct scene_model : scene_base
 
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
-
-    void set_gui(gui_structure& gui);
-    void show_display_settings();
-    void show_wind_settings();
-    void show_eruption_parameters();
 
     void set_gui_playback(gui_structure& gui);
     void set_gui_profiler(gui_structure& gui);

@@ -1,9 +1,29 @@
 #include "SimulatorInputScreen.hpp"
 #include "singleton/PlumeManager.hpp"
 
-SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("SIMULATOR_INPUT_SCREEN")
+SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
 {
+    is_wind = false;
+    all_angles = false;
+    linear_wind_base = 15.;
+    max_altitude = 10000;
+    altitude_step = 2000;
+    timer_scale = 1.0f;
 
+    selected = 0;
+    wind_alt = 0;
+    fU0 = 150;
+    fRho0 = 200;
+    fR0 = 100;
+    fZ0 = 0;
+
+    display_billboards = true;
+    display_smoke_layers = false;
+    display_free_spheres = false;
+    display_subspheres = false;
+    display_spheres_with_subspheres = false;
+    display_tooltips = true;
+    display_landmarks = true;
 }
 
 SimulatorInputScreen::~SimulatorInputScreen()
@@ -13,45 +33,40 @@ SimulatorInputScreen::~SimulatorInputScreen()
 
 void SimulatorInputScreen::drawGUI()
 {
-    //Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
-    //ImGui::Begin("Simulator Input", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Simulator Input", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
 
-    //ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
-    //ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
-    //ImGui::PushItemWidth(200);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
+    ImGui::PushItemWidth(200);
 
-    //const float indent_width = 5;
-    //const float child_width = 380;
+    // Can set the speed of the animation
+    float scale_min = 0.05f;
+    float scale_max = 5.0f;
+    ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer_scale, &scale_min, &scale_max, "%.2f s");
 
-    //// Can set the speed of the animation
-    //float scale_min = 0.05f;
-    //float scale_max = 5.0f;
-    //ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer.scale, &scale_min, &scale_max, "%.2f s");
+    // Parameters
+    std::vector<Plume>& plume = PlumeManager::getInstance()->getPlumes();
+    unsigned int spheres_min = 0, spheres_max = 500;
+    static unsigned int subspheres_number = 0, subsubspheres_number = 0;
+    if (ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max))
+        for (int i = 0; i < plume.size(); i++) plume[i].subspheres_number = subspheres_number;
 
-    //// Parameters
-    //unsigned int spheres_min = 0, spheres_max = 500;
-    //ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &plume.subspheres_number, &spheres_min, &spheres_max);
-    //ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &plume.subsubspheres_number, &spheres_min, &spheres_max);
-    //ImGui::PopItemWidth();
+    if (ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max))
+        for (int i = 0; i < plume.size(); i++) plume[i].subsubspheres_number = subsubspheres_number;
 
-    //show_display_settings();
-    //show_wind_settings();
-    //show_eruption_parameters();
-    //// Coeffs
+    ImGui::PopItemWidth();
 
-    ////float air_inc_min = 0.5, air_inc_max = 10.;
-    ////ImGui::SliderScalar("Air incorporation coefficient", ImGuiDataType_Float, &air_incorporation_coeff, &air_inc_min, &air_inc_max, "%.2f");
+    show_display_settings();
+    show_wind_settings();
+    show_eruption_parameters();
 
-    //ImGui::PopStyleColor();
-    //ImGui::PopStyleVar();
-    //ImGui::End();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
+    ImGui::End();
 }
 
 void SimulatorInputScreen::show_display_settings()
 {
-    const float indent_width = 5;
-    const float child_width = 380;
-
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 5.25f));
@@ -61,21 +76,16 @@ void SimulatorInputScreen::show_display_settings()
         ImGui::Checkbox("Display billboards", &display_billboards);
         ImGui::Checkbox("Display torus layers", &display_smoke_layers);
         ImGui::Checkbox("Display free spheres", &display_free_spheres);
-        //ImGui::Checkbox("Display subspheres", &display_subspheres);
         ImGui::Checkbox("Display spheres with subspheres", &display_spheres_with_subspheres);
         ImGui::Checkbox("Display Tooltips", &display_tooltips);
+        ImGui::Checkbox("Display Landmarks", &display_landmarks);
         ImGui::Unindent();
         ImGui::EndChild();
     }
-
 }
 
 void SimulatorInputScreen::show_wind_settings()
 {
-    const float indent_width = 5;
-    const float child_width = 380;
-
-    // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 13.5f));
@@ -261,38 +271,135 @@ void SimulatorInputScreen::show_wind_settings()
 
 void SimulatorInputScreen::show_eruption_parameters()
 {
-    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
-    const float indent_width = 5;
-    const float child_width = 380;
-
-
-
-    // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 6.5f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
+        static int plume_index = 0;
+        const char* vent_names[]{
+            "Taal Main Crater",
+            "Pira-piraso",
+            "Binintiang Munti",
+            "Binintiang Malaki",
+            "Calauit Point"
+        };
+        if (ImGui::Combo("Eruption Vent", &plume_index, vent_names, 5))
+        {
+            Plume& holder = PlumeManager::getInstance()->getPlumes()[plume_index];
+            this->fR0 = *holder.get_r_0();
+            this->fU0 = *holder.get_U_0();
+            this->fRho0 = *holder.get_rho_0();
+            this->fZ0 = *holder.get_z_0();
+        }
+        ImGui::Separator();
+
+        Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
+
+        static bool erupt_on_play[5]{ true, false, false, false, false };
+        if (ImGui::Checkbox("Erupt on play", &erupt_on_play[plume_index]) && erupt_on_play[plume_index])
+            plume.eruptOnPlay();
+
         double initial_speed_min = 0., initial_speed_max = 200.;
-        ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
-        plume.setU0(fU0);
+        if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
+            plume.setU0(fU0);
+
         double initial_density_min = 150., initial_density_max = 250.;
-        ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3");
-        plume.setRho0(fRho0);
-        double vent_ray_min = 50., vent_ray_max = 200.;
-        ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_ray_max, "%.2f m");
-        plume.setR0(fR0);
+        if (ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3"))
+            plume.setRho0(fRho0);
+
+        double vent_ray_min = plume.getMinRadius(), vent_radius_max = plume.getMaxRadius();
+        if (ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_radius_max, "%.2f m"))
+            plume.setR0(fR0);
 
         double vent_altitude_min = 0., vent_altitude_max = 8000.;
-        ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &fZ0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
-        plume.setZ0(fZ0);
+        if (ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &fZ0, &vent_altitude_min, &vent_altitude_max, "%.2f m"))
+            plume.setZ0(fZ0);
 
         ImGui::PopItemWidth();
         ImGui::Unindent();
         ImGui::EndChild();
-
     }
+}
 
+float SimulatorInputScreen::getTimerScale() const
+{
+    return this->timer_scale;
+}
+
+void SimulatorInputScreen::setTimerScale(float timer_scale)
+{
+    this->timer_scale = timer_scale;
+}
+
+bool SimulatorInputScreen::getDisplaySmokeLayers() const
+{
+    return this->display_smoke_layers;
+}
+
+void SimulatorInputScreen::setDisplaySmokeLayers(bool display)
+{
+    this->display_smoke_layers = display;
+}
+
+bool SimulatorInputScreen::getDisplayFreeSpheres() const
+{
+    return this->display_free_spheres;
+}
+
+void SimulatorInputScreen::setDisplayFreeSpheres(bool display)
+{
+    this->display_free_spheres = display;
+}
+
+bool SimulatorInputScreen::getDisplaySubspheres() const
+{
+    return this->display_subspheres;
+}
+
+void SimulatorInputScreen::setDisplaySubspheres(bool display)
+{
+    this->display_subspheres = display;
+}
+
+bool SimulatorInputScreen::getDisplaySpheresWithSubspheres() const
+{
+    return this->display_spheres_with_subspheres;
+}
+
+void SimulatorInputScreen::setDisplaySpheresWithSubspheres(bool display)
+{
+    this->display_spheres_with_subspheres = display;
+}
+
+bool SimulatorInputScreen::getDisplayBillboards() const
+{
+    return this->display_billboards;
+}
+
+void SimulatorInputScreen::setDisplayBillboards(bool display)
+{
+    this->display_billboards = display;
+}
+
+bool SimulatorInputScreen::getDisplayTooltips() const
+{
+    return this->display_tooltips;
+}
+
+void SimulatorInputScreen::setDisplayTooltips(bool display)
+{
+    this->display_tooltips;
+}
+
+bool SimulatorInputScreen::getDisplayLandmarks() const
+{
+    return this->display_landmarks;
+}
+
+void SimulatorInputScreen::setDisplayLandmarks(bool display)
+{
+    this->display_landmarks = display;
 }

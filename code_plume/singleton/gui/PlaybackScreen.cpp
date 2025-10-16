@@ -1,6 +1,6 @@
 #include "PlaybackScreen.hpp"
 
-PlaybackScreen::PlaybackScreen() : GUIScreen("PLAYBACK_SCREEN")
+PlaybackScreen::PlaybackScreen() : GUIScreen("Playback")
 {
 
 }

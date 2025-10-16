@@ -31,6 +31,11 @@ GUIScreen* GUIManager::getGUIScreen(std::string name)
     return this->guiTable[name];
 }
 
+std::vector<GUIScreen*>& GUIManager::getGUIScreens()
+{
+    return this->guiList;
+}
+
 bool GUIManager::getEnabled(std::string name)
 {
     GUIScreen* gui = this->guiTable[name];
@@ -58,23 +63,23 @@ GUIManager::GUIManager(GLFWwindow* window)
     ImGui::StyleColorsDark();
 
     MenuScreen* menuScreen = new MenuScreen();
-    this->guiTable["MENU_SCREEN"] = menuScreen;
+    this->guiTable[menuScreen->name] = menuScreen;
     this->guiList.push_back(menuScreen);
 
     CameraSettingsScreen* camScreen = new CameraSettingsScreen();
-    this->guiTable["CAMERA_SETTINGS_SCREEN"] = camScreen;
+    this->guiTable[camScreen->name] = camScreen;
     this->guiList.push_back(camScreen);
 
     SimulatorInputScreen* simInputScreen = new SimulatorInputScreen();
-    this->guiTable["SIMULATOR_INPUT_SCREEN"] = simInputScreen;
+    this->guiTable[simInputScreen->name] = simInputScreen;
     this->guiList.push_back(simInputScreen);
 
     PlaybackScreen* playbackScreen = new PlaybackScreen();
-    this->guiTable["PLAYBACK_SCREEN"] = playbackScreen;
+    this->guiTable[playbackScreen->name] = playbackScreen;
     this->guiList.push_back(playbackScreen);
 
     ProfilerScreen* profilerScreen = new ProfilerScreen();
-    this->guiTable["PROFILER_SCREEN"] = profilerScreen;
+    this->guiTable[profilerScreen->name] = profilerScreen;
     this->guiList.push_back(profilerScreen);
 
 }
