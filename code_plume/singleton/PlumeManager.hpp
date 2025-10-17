@@ -26,7 +26,7 @@ public:
 	static void destroy();
 
 public:
-	void createPlume(std::string ventName, vcl::vec3 ventLoc, EruptionParams eruptParams);
+	void createPlume(unsigned int id, std::string ventName, vcl::vec3 ventLoc, EruptionParams eruptParams);
 	void setupTransitionValues(int maxSmoke, float transitionSpeed, float transitionDelay);
 	void removeSmokeLayers();
 	void update(unsigned int dFrameCount);

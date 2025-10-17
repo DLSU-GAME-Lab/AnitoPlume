@@ -29,9 +29,9 @@ PlumeManager* PlumeManager::getInstance()
 	return sharedInstance;
 }
 
-void PlumeManager::createPlume(std::string ventName, vcl::vec3 ventLoc,EruptionParams eruptParams)
+void PlumeManager::createPlume(unsigned int id, std::string ventName, vcl::vec3 ventLoc,EruptionParams eruptParams)
 {
-	this->vecPlumes.push_back(Plume(ventName, ventLoc, eruptParams));
+	this->vecPlumes.push_back(Plume(id, ventName, ventLoc, eruptParams));
 }
 void PlumeManager::setupTransitionValues(int dMaxSmoke, float fTransitionSpeed, float fTransitionDelay)
 {

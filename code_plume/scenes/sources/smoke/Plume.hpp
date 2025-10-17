@@ -16,6 +16,7 @@ struct EruptionParams
 class Plume
 {
 private:
+    unsigned int id;
     std::string vent_name;
     // User-defined parameters
     double T_0; // initial temp
@@ -71,7 +72,7 @@ public:
     unsigned int subsubspheres_number;
 
 public:
-    Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams);
+    Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams);
     void reset();
 
     void set_t_step(float t_step);
@@ -95,6 +96,8 @@ public:
     void setRho0(double fRho0);
     void setR0(double fR0);
     void setZ0(double fZ0);
+
+    unsigned int getID();
     std::string getVentName();
     int getMaxSmoke();
     float getTransitionSpeed();

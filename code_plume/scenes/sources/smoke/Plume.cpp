@@ -7,8 +7,9 @@ using namespace vcl;
 //------------------------- ALGO -----------------------------
 //------------------------------------------------------------ */
 
-Plume::Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams)
+Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams)
 {
+    this->id = id;
     this->vent_name = vent_name;
     this->vent_position = vent_position;
 
@@ -47,6 +48,7 @@ Plume::Plume(std::string vent_name, vcl::vec3 vent_position, EruptionParams erup
         transition_lifetime.push_back(transition_delay * i);
 
     reset();
+    PlumeTracker::getInstance()->addTrackerData();
 }
 
 void Plume::reset()
@@ -293,7 +295,7 @@ void Plume::smoke_layer_update(unsigned int i)
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass, wind); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass, wind);
-    PlumeTracker::getInstance()->checkSmokePosition(i);
+    PlumeTracker::getInstance()->checkSmokePosition(id, smoke_layers[0].center.z, smoke_layers[i].center, smoke_layers[i].r);
 }
 
 void Plume::remove_colliding_smoke()
@@ -400,6 +402,11 @@ void Plume::setR0(double fR0)
 void Plume::setZ0(double fZ0)
 {
     this->z_0 = fZ0;
+}
+
+unsigned int Plume::getID()
+{
+    return this->id;
 }
 
 std::string Plume::getVentName()

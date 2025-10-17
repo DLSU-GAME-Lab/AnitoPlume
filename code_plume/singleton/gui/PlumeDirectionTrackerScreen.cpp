@@ -22,9 +22,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
     ImVec2 winPos = ImGui::GetWindowPos();
     winPos.x += 8; winPos.y += 27;
     ImVec2 start = ImVec2(winPos.x + halfSize, winPos.y + halfSize);
-
-    std::vector<vcl::vec3> positions = PlumeTracker::getInstance()->getPositions();
-    std::vector<float> radii = PlumeTracker::getInstance()->getRadii();
+    
     float windAngle = PlumeTracker::getInstance()->getWindDirectionAngle();
     float coneRadius = PlumeTracker::getInstance()->getConeRadius() / ratio;
     int maxAltitude = PlumeManager::getInstance()->getMaxAlt();
@@ -44,27 +42,32 @@ void PlumeDirectionTrackerScreen::drawGUI()
 
     if (layeredViewEnabled)
     {
-        for (int i = 0; i < positions.size(); i++)
+        for (int i = 0; i < PlumeTracker::getInstance()->getDataCount(); i++)
         {
-            vcl::vec2 pos = vcl::vec2(positions[i].x, positions[i].y);
-            pos /= ratio;
-            pos.x += xOffset;
-            pos.y *= -1;
-
-            float map_r = (imgSize / 2) - 32;
-
-            if (pos.x > -map_r && pos.x < map_r &&
-                pos.y > -map_r && pos.y < map_r)
+            std::vector<vcl::vec3> positions = PlumeTracker::getInstance()->getPositions(i);
+            std::vector<float> radii = PlumeTracker::getInstance()->getRadii(i);
+            for (int i = 0; i < positions.size(); i++)
             {
-                ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
-                float radius = radii[i] / ratio;
+                vcl::vec2 pos = vcl::vec2(positions[i].x, positions[i].y);
+                pos /= ratio;
+                pos.x += xOffset;
+                pos.y *= -1;
 
-                if (int(positions[i].z) >= int(maxAltitude) + 1)
-                    radius *= ((i * altitudeStep) / maxAltitude) + 0.1f;
+                float map_r = (imgSize / 2) - 32;
 
-                int col = 64 + (192 * (i / (steps * 0.75f)));
-                if (col > 255) col = 255;
-                drawList->AddCircleFilled(center, radius, IM_COL32(col, col, col, 200));
+                if (pos.x > -map_r && pos.x < map_r &&
+                    pos.y > -map_r && pos.y < map_r)
+                {
+                    ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
+                    float radius = radii[i] / ratio;
+
+                    if (int(positions[i].z) >= int(maxAltitude) + 1)
+                        radius *= ((i * altitudeStep) / maxAltitude) + 0.1f;
+
+                    int col = 64 + (192 * (i / (steps * 0.75f)));
+                    if (col > 255) col = 255;
+                    drawList->AddCircleFilled(center, radius, IM_COL32(col, col, col, 200));
+                }
             }
         }
     }

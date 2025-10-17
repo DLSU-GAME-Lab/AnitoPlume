@@ -212,7 +212,7 @@ void scene_model::setup_plume_params()
     
     for (int i = 0; i < 5; i++)
     {
-        PlumeManager::getInstance()->createPlume(vent_names[i], vent_positions[i], erupt_params[i]);
+        PlumeManager::getInstance()->createPlume(i, vent_names[i], vent_positions[i], erupt_params[i]);
     }
     PlumeManager::getInstance()->getPlumes()[0].eruptOnPlay();
 }

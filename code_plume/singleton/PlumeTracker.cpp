@@ -1,5 +1,4 @@
 #include "PlumeTracker.hpp"
-#include "PlumeManager.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -8,7 +7,7 @@ PlumeTracker* PlumeTracker::sharedInstance = nullptr;
 
 PlumeTracker::PlumeTracker()
 {
-    this->coneRadius = 0.0f;
+    
 }
 
 PlumeTracker::~PlumeTracker()
@@ -29,6 +28,11 @@ void PlumeTracker::initialize()
 void PlumeTracker::destroy()
 {
     delete sharedInstance;
+}
+
+void PlumeTracker::addTrackerData()
+{
+    this->data.push_back(TrackerData());
 }
 
 void PlumeTracker::loadData(std::string filePath)
@@ -57,6 +61,7 @@ void PlumeTracker::loadData(std::string filePath)
 std::vector<std::string> PlumeTracker::getIntersectingLocations()
 {
     std::vector<std::string> locNames;
+    float coneRadius = getConeRadius();
     float lowAngle = windAngle - coneRadius;
     float hiAngle = windAngle + coneRadius;
 
@@ -79,34 +84,18 @@ std::vector<std::string> PlumeTracker::getIntersectingLocations()
     return locNames;
 }
 
-void PlumeTracker::checkSmokePosition(unsigned int i)
+void PlumeTracker::checkSmokePosition(unsigned int plumeID, float maxAltitude, vcl::vec3 center, float radius)
 {
-    std::vector<smoke_layer> smokeLayers = PlumeManager::getInstance()->getPlumes()[0].smoke_layers;
-    float maxAltStep = smokeLayers[0].center.z;
-    altStep = altStep < minAltStep ? minAltStep : maxAltStep / stepSize;
-    for (int j = 0; j < stepSize; j++)
+    altStep = altStep < minAltStep ? minAltStep : maxAltitude / stepSize;
+    for (int i = 0; i < stepSize; i++)
     {
-        if (int(smokeLayers[i].center.z) == int(j * altStep) + 1)
-        {
-            setPlumePositions(j, smokeLayers[i].center, smokeLayers[i].r);
-        }
+        if (int(center.z) == int(i * altStep) + 1) data[plumeID].setData(i, center, radius);
     }
 }
 
-void PlumeTracker::setPlumePositions(unsigned int index, vcl::vec3 position, float radius)
+unsigned int PlumeTracker::getDataCount()
 {
-    if (index == this->positions.size())
-    {
-        this->positions.push_back(position);
-        this->radii.push_back(radius);
-        this->coneRadius = radii[radii.size() - 1];
-    }
-    else if (index < this->positions.size())
-    {
-        this->positions[index] = position;
-        this->radii[index] = radius;
-        this->coneRadius = radii[radii.size() - 1];
-    }
+    return data.size();
 }
 
 std::vector<std::string>& PlumeTracker::getLocationNames()
@@ -114,26 +103,26 @@ std::vector<std::string>& PlumeTracker::getLocationNames()
     return this->locationNames;
 }
 
-std::vector<vcl::vec3>& PlumeTracker::getPositions()
+std::vector<vcl::vec3>& PlumeTracker::getPositions(unsigned int plumeID)
 {
-    return this->positions;
+    return data[plumeID].positions;
 }
 
-std::vector<float>& PlumeTracker::getRadii()
+std::vector<float>& PlumeTracker::getRadii(unsigned int plumeID)
 {
-    return this->radii;
+    return data[plumeID].radii;
 }
 
 float PlumeTracker::getConeRadius() const
 {
-    return this->coneRadius;
+    float coneRadius = 0.0f;
+    for (int i = 0; i < data.size(); i++) coneRadius += data[i].maxRadius;
+    return coneRadius;
 }
 
 void PlumeTracker::resetPlumePositions()
 {
-    this->positions.clear();
-    this->radii.clear();
-    this->coneRadius = 0.0f;
+    for (int i = 0; i < data.size(); i++) data[i].reset();
 }
 
 vcl::vec3 PlumeTracker::getWindDirection() const
@@ -148,6 +137,27 @@ float PlumeTracker::getWindDirectionAngle() const
 
 void PlumeTracker::setWindDirection(vcl::vec3 windVector)
 {
-    this->windVector = PlumeManager::getInstance()->getAverageWindDirection();
+    this->windVector = windVector;
     this->windAngle = vcl::vector_to_angle(windVector);
+}
+
+void PlumeTracker::TrackerData::setData(unsigned int index, vcl::vec3 position, float radius)
+{
+    if (index == this->positions.size())
+    {
+        this->positions.push_back(position);
+        this->radii.push_back(radius);
+        this->maxRadius = radii[radii.size() - 1];
+    }
+    else if (index < this->positions.size())
+    {
+        this->positions[index] = position;
+        this->radii[index] = radius;
+        this->maxRadius = radii[radii.size() - 1];
+    }
+}
+
+void PlumeTracker::TrackerData::reset()
+{
+
 }
