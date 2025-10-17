@@ -4,6 +4,7 @@
 #include "singleton/PlumeManager.hpp"
 #include "singleton/MeshManager.hpp"
 #include "singleton/GUIManager.hpp"
+#include "singleton/PlumeTracker.hpp"
 
 using namespace vcl;
 
@@ -43,7 +44,6 @@ void scene_model::frame_draw(scene_structure& scene, gui_structure& gui)
     set_gui_playback(gui);
     set_gui_profiler(gui);
     t_loader.show_gui(&gui.enabled["Terrain"]);
-    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
 
     if (replay)
     {
@@ -184,9 +184,7 @@ void scene_model::setup_data(scene_structure& scene, gui_structure& gui)
     // Direction tracker setup
     direction_tracker_step = 1000.0f;
     direction_tracker_step_size = 20;
-    direction_tracker.initialize(max_altitude, direction_tracker_step_size);
-    direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
-    direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+    PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
     sim_input = (SimulatorInputScreen*)GUIManager::getInstance()->getGUIScreen("Simulator Input");
 }
 
@@ -470,7 +468,7 @@ void scene_model::display_falling_spheres_buffers(Plume& plume)
 void scene_model::reset_simulation()
 {
     timer.stop();
-    direction_tracker.reset_plume_positions();
+    PlumeTracker::getInstance()->resetPlumePositions();
     frame_count = 0;
     sim_time = 0;
 

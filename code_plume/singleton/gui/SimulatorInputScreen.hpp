@@ -51,9 +51,9 @@ private:
 
 	virtual void drawGUI() override;
 
-    void show_display_settings();
-    void show_wind_settings();
-    void show_eruption_parameters();
+    void showDisplaySettings();
+    void showWindSettings();
+    void showEruptionParameters();
 
 	friend class GUIManager;
 

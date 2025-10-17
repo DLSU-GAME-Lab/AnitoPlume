@@ -1,5 +1,6 @@
 #include "SimulatorInputScreen.hpp"
 #include "singleton/PlumeManager.hpp"
+#include "singleton/PlumeTracker.hpp"
 
 SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
 {
@@ -60,16 +61,16 @@ void SimulatorInputScreen::drawGUI()
 
     ImGui::PopItemWidth();
 
-    show_display_settings();
-    show_wind_settings();
-    show_eruption_parameters();
+    showDisplaySettings();
+    showWindSettings();
+    showEruptionParameters();
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     ImGui::End();
 }
 
-void SimulatorInputScreen::show_display_settings()
+void SimulatorInputScreen::showDisplaySettings()
 {
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -88,7 +89,7 @@ void SimulatorInputScreen::show_display_settings()
     }
 }
 
-void SimulatorInputScreen::show_wind_settings()
+void SimulatorInputScreen::showWindSettings()
 {
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -146,7 +147,7 @@ void SimulatorInputScreen::show_wind_settings()
         if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &wind_intensity, &wind_min, &wind_max))
         {
             PlumeManager::getInstance()->setWindIntensity(selected, wind_intensity);
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
         ImGui::SameLine();
@@ -165,7 +166,7 @@ void SimulatorInputScreen::show_wind_settings()
             {
                 PlumeManager::getInstance()->setWindAngle(selected, wind_angle);
             }
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
@@ -206,7 +207,7 @@ void SimulatorInputScreen::show_wind_settings()
         {
             is_wind = false;
             PlumeManager::getInstance()->setAllWinds(wind_min, angle_min);
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
         ImGui::SameLine();
@@ -214,7 +215,7 @@ void SimulatorInputScreen::show_wind_settings()
         {
             is_wind = true;
             PlumeManager::getInstance()->setLinearWind(linear_wind_base);
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
         ImGui::SameLine();
@@ -222,7 +223,7 @@ void SimulatorInputScreen::show_wind_settings()
         {
             is_wind = true;
             PlumeManager::getInstance()->setAllWindIntensities(wind_max);
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
         ImGui::SameLine();
@@ -235,7 +236,7 @@ void SimulatorInputScreen::show_wind_settings()
             if (is_wind)
             {
                 PlumeManager::getInstance()->setLinearWind(linear_wind_base);
-                //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+                PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
             }
         }
         ImGui::PopItemWidth();
@@ -265,7 +266,7 @@ void SimulatorInputScreen::show_wind_settings()
             {
                 PlumeManager::getInstance()->setWind(i, intensities[i], angles[i]);
             }
-            //direction_tracker.set_wind_direction(PlumeManager::getInstance()->getAverageWindDirection());
+            PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
         }
 
         ImGui::Unindent();
@@ -273,7 +274,7 @@ void SimulatorInputScreen::show_wind_settings()
     }
 }
 
-void SimulatorInputScreen::show_eruption_parameters()
+void SimulatorInputScreen::showEruptionParameters()
 {
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {

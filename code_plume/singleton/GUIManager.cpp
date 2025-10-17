@@ -4,6 +4,7 @@
 #include "gui/SimulatorInputScreen.hpp"
 #include "gui/PlaybackScreen.hpp"
 #include "gui/ProfilerScreen.hpp"
+#include "gui/PlumeDirectionTrackerScreen.hpp"
 
 void GUIManager::newFrame()
 {
@@ -81,6 +82,10 @@ GUIManager::GUIManager(GLFWwindow* window)
     ProfilerScreen* profilerScreen = new ProfilerScreen();
     this->guiTable[profilerScreen->name] = profilerScreen;
     this->guiList.push_back(profilerScreen);
+
+    PlumeDirectionTrackerScreen* pdtScreen = new PlumeDirectionTrackerScreen();
+    this->guiTable[pdtScreen->name] = pdtScreen;
+    this->guiList.push_back(pdtScreen);
 
 }
 

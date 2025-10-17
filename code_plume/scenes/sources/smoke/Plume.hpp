@@ -114,7 +114,7 @@ private:
     void sedimentation(unsigned int i, float& d_mass);
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
-    void smoke_layer_update(unsigned int i, vcl::vec3 wind);
+    void smoke_layer_update(unsigned int i);
 
     float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
     float compute_atm_temperature(float height);

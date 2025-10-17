@@ -7,6 +7,7 @@
 #include "singleton/CameraManager.hpp"
 #include "singleton/EngineTime.hpp"
 #include "singleton/PlumeManager.hpp"
+#include "singleton/PlumeTracker.hpp"
 // ************************************** //
 // Global data declaration
 // ************************************** //
@@ -61,6 +62,7 @@ AnitoPlume::AnitoPlume()
     ShaderManager::initialize();
     MeshManager::initialize();
     PlumeManager::initialize();
+    PlumeTracker::initialize();
     std::cout << "\t [OK] systems Initialized" << std::endl;
 
     GraphicsEngine::getInstance()->createWindow("AnitoPlume");
@@ -101,10 +103,8 @@ AnitoPlume::AnitoPlume()
     MeshManager::getInstance()->loadPrimitive("Quad", mesh_primitive_quad({ -1,-1,0 }, { 1,-1,0 }, { 1,1,0 }, { -1,1,0 }));
     MeshManager::getInstance()->load("Skysphere", "../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
 
-
     std::cout << "\t [OK] Meshes loaded" << std::endl;
-
-
+    PlumeTracker::getInstance()->loadData("../scenes/sources/smoke/taal_danger_zones.csv");
 
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
@@ -138,6 +138,7 @@ AnitoPlume::~AnitoPlume()
     GraphicsEngine::destroy();
     EngineTime::destroy();
     PlumeManager::destroy();
+    PlumeTracker::destroy();
 }
 
 void AnitoPlume::run()

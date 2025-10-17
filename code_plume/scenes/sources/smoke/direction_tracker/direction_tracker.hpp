@@ -28,9 +28,6 @@ private:
 	vcl::vec3 wind_vector = { 0.0f, 0.0f, 0.0f };
 
 	std::vector<std::string> get_location_names(float angle);
-	vcl::vec3 angle_to_vector(float angle) const;
-	float vector_to_angle(vcl::vec3 vector) const;
-
 	void show_affected_areas(float image_size);
 
 public:

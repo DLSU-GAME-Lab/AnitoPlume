@@ -4,7 +4,6 @@
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
-#include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
 #include "singleton/gui/SimulatorInputScreen.hpp"
 
 #include <iostream>
@@ -90,7 +89,6 @@ struct scene_model : scene_base
     SimulatorInputScreen* sim_input;
     terrain_structure terrain_struct;
     terrain_loader t_loader;
-    direction_tracker direction_tracker;
     tooltip_loader tip_loader;
     landmark_loader mark_loader;
 

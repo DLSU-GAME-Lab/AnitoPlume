@@ -1,5 +1,6 @@
 #include "Plume.hpp"
 #include "singleton/PlumeManager.hpp"
+#include "singleton/PlumeTracker.hpp"
 
 using namespace vcl;
 //------------------------------------------------------------
@@ -99,9 +100,7 @@ void Plume::update(unsigned int frame_count)
     // update of layer and spheres
     for (unsigned int id = 0; id < smoke_layers.size(); id++)
     {
-        // get wind at altitude
-        vec3 wind = PlumeManager::getInstance()->computeWindVector(smoke_layers[id].center.z);
-        smoke_layer_update(id, wind);
+        smoke_layer_update(id);
     }
     update_free_spheres();
     if (frame_count % 100 == 0) falling_spheres_update(100);
@@ -285,15 +284,16 @@ void Plume::sedimentation(unsigned int i, float& d_mass)
 
 }
 
-void Plume::smoke_layer_update(unsigned int i, vec3 wind)
+void Plume::smoke_layer_update(unsigned int i)
 {
     float d_mass = 0; // to track mass change for equation of dynamics
+    vec3 wind = PlumeManager::getInstance()->computeWindVector(smoke_layers[i].center.z); // get wind at altitude
     smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
 
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass, wind); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass, wind);
-    //check_smoke_position(i);
+    PlumeTracker::getInstance()->checkSmokePosition(i);
 }
 
 void Plume::remove_colliding_smoke()
