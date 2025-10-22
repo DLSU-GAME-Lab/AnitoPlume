@@ -3,10 +3,11 @@ PlumeManager* PlumeManager::sharedInstance = nullptr;
 
 PlumeManager::PlumeManager()
 {
+	state = SimulatorState::Stopped;
 	all_angles = false;
 	min_altitude = 0;
 	max_altitude = 10000;
-	altitude_step = 2000;\
+	altitude_step = 2000;
 	altitude_size = int(max_altitude / altitude_step) + 1;
 	for (unsigned int i = 0; i < altitude_size; i++)
 	{
@@ -31,18 +32,19 @@ PlumeManager* PlumeManager::getInstance()
 
 void PlumeManager::createPlume(unsigned int id, std::string ventName, vcl::vec3 ventLoc,EruptionParams eruptParams)
 {
-	this->vecPlumes.push_back(Plume(id, ventName, ventLoc, eruptParams));
+	this->plumes.push_back(Plume(id, ventName, ventLoc, eruptParams));
+	this->toUpdate.push_back(false);
 }
 void PlumeManager::setupTransitionValues(int dMaxSmoke, float fTransitionSpeed, float fTransitionDelay)
 {
-	for (int i = 0; i < this->vecPlumes.size(); i++)
+	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		this->vecPlumes[i].setMaxSmoke(dMaxSmoke);
-		this->vecPlumes[i].setTransitionSpeed(fTransitionSpeed);
-		this->vecPlumes[i].setTranstionDelay(fTransitionDelay);
+		this->plumes[i].setMaxSmoke(dMaxSmoke);
+		this->plumes[i].setTransitionSpeed(fTransitionSpeed);
+		this->plumes[i].setTranstionDelay(fTransitionDelay);
 		for (int j = 0; j < dMaxSmoke; j++)
 		{
-			this->vecPlumes[i].getTransitionLifetime().push_back(this->vecPlumes[i].getTransitionDelay() * j);
+			this->plumes[i].getTransitionLifetime().push_back(this->plumes[i].getTransitionDelay() * j);
 
 		}
 
@@ -50,40 +52,77 @@ void PlumeManager::setupTransitionValues(int dMaxSmoke, float fTransitionSpeed, 
 }
 void PlumeManager::removeSmokeLayers()
 {
-	for (int i = 0; i < this->vecPlumes.size(); i++)
+	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		this->vecPlumes[i].remove_smoke_layers();
+		this->plumes[i].remove_smoke_layers();
 	}
 }
 void PlumeManager::update(unsigned int dFrameCount)
 {
 
-	for (int i = 0; i < this->vecPlumes.size(); i++)
+	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		this->vecPlumes[i].update(dFrameCount);
+		if (this->toUpdate[i])
+			this->plumes[i].update(dFrameCount);
 	}
 }
+
+bool PlumeManager::getToUpdate(unsigned int plumeID)
+{
+	return this->toUpdate[plumeID];
+}
+
+void PlumeManager::setToUpdate(unsigned int plumeID, bool toUpdate)
+{
+	this->toUpdate[plumeID] = toUpdate;
+}
+
+void PlumeManager::playSimulation()
+{
+	state = SimulatorState::Playing;
+}
+
+void PlumeManager::pauseSimulation()
+{
+	state = SimulatorState::Paused;
+}
+
+void PlumeManager::stopSimulation()
+{
+	state = SimulatorState::Stopped;
+	for (int i = 0; i < this->plumes.size(); i++)
+	{
+		this->plumes[i].reset();
+	}
+}
+
 void PlumeManager::reset()
 {
-	for (int i = 0; i < this->vecPlumes.size(); i++)
+	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		this->vecPlumes[i].reset();
+		this->plumes[i].reset();
 	}
 }
+
+SimulatorState PlumeManager::getState() const
+{
+	return this->state;
+}
+
 std::vector<Plume>& PlumeManager::getPlumes()
 {
-	return this->vecPlumes;
+	return this->plumes;
 }
 
 void PlumeManager::setTStep(float fTStep)
 {
-	for (int i = 0; i < this->vecPlumes.size(); i++)
+	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		for (int j = 0; j < this->vecPlumes[i].getTransitionLifetime().size(); j++)
+		for (int j = 0; j < this->plumes[i].getTransitionLifetime().size(); j++)
 		{
-			this->vecPlumes[i].getTransitionLifetime()[j] += fTStep;
+			this->plumes[i].getTransitionLifetime()[j] += fTStep;
 		}
-		this->vecPlumes[i].set_t_step(fTStep);
+		this->plumes[i].set_t_step(fTStep);
 
 	}
 }

@@ -4,11 +4,15 @@
 #include "string"
 #include "scenes/sources/smoke/Plume.hpp"
 
+enum class SimulatorState { Stopped, Playing, Paused };
+
 class PlumeManager
 {
 private:
+	SimulatorState state;
 	vcl::timer_event timer;
-	std::vector<Plume> vecPlumes;
+	std::vector<Plume> plumes;
+	std::vector<bool> toUpdate;
 	std::vector<int> wind_altitudes;
 	std::vector<wind_structure> winds;
 
@@ -30,7 +34,15 @@ public:
 	void setupTransitionValues(int maxSmoke, float transitionSpeed, float transitionDelay);
 	void removeSmokeLayers();
 	void update(unsigned int dFrameCount);
+	bool getToUpdate(unsigned int plumeID);
+	void setToUpdate(unsigned int plumeID, bool toUpdate);
+
+	void playSimulation();
+	void pauseSimulation();
+	void stopSimulation();
 	void reset();
+
+	SimulatorState getState() const;
 	std::vector<Plume>& getPlumes();
 	void setTStep(float fTStep);
 

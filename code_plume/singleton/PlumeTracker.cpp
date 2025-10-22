@@ -159,5 +159,7 @@ void PlumeTracker::TrackerData::setData(unsigned int index, vcl::vec3 position, 
 
 void PlumeTracker::TrackerData::reset()
 {
-
+    this->positions.clear();
+    this->radii.clear();
+    this->maxRadius = 0.0f;
 }

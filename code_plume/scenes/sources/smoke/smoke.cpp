@@ -29,8 +29,6 @@ void scene_model::update()
         //PlumeManager::getInstance()->getPlumes()[i]->remove_colliding_smoke();
         PlumeManager::getInstance()->removeSmokeLayers();
 
-      
-
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame < 10; nb_steps_per_frame++)
         {
             PlumeManager::getInstance()->update(frame_count);
@@ -204,17 +202,17 @@ void scene_model::setup_plume_params()
     vent_positions[3] = vec3(-3100, 6200, 200);
     vent_positions[4] = vec3(5850, -6000, 0);
 
-    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 1000, 500});
-    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 250, 125 });
-    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 500, 250});
-    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 250, 125});
-    erupt_params.push_back(EruptionParams{ 150.,0,100,200, 1000, 500});
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 500, 250 });
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
     
     for (int i = 0; i < 5; i++)
     {
         PlumeManager::getInstance()->createPlume(i, vent_names[i], vent_positions[i], erupt_params[i]);
     }
-    PlumeManager::getInstance()->getPlumes()[0].eruptOnPlay();
+    PlumeManager::getInstance()->setToUpdate(0, true);
 }
 
 
@@ -291,7 +289,7 @@ void scene_model::display_billboards(Plume& plume)
     glDepthMask(false);
 
     // transition smoke
-    if (plume.getToUpdate())
+    if (PlumeManager::getInstance()->getToUpdate(plume.getID()))
     {
         for (int j = 0; j < plume.getTransitionLifetime().size(); j++)
         {
@@ -465,28 +463,6 @@ void scene_model::display_falling_spheres_buffers(Plume& plume)
 
 #pragma endregion
 
-void scene_model::reset_simulation()
-{
-    timer.stop();
-    PlumeTracker::getInstance()->resetPlumePositions();
-    frame_count = 0;
-    sim_time = 0;
-
-    PlumeManager::getInstance()->reset();
-    sim_input->resetEruptOnPlay();
-
-    //smoke_layers_frames.clear();
-    //free_spheres_frames.clear();
-    //s2_spheres_frames.clear();
-    //stagnate_spheres_frames.clear();
-    //falling_spheres_frames.clear();
-    //falling_spheres_buffers_frames.clear();
-
-    frame_replay = 0;
-    replay = false;
-    export_data = false;
-}
-
 void scene_model::setup_terrain_preemptive()
 {
     if (t_loader.new_terrain_loaded)
@@ -510,30 +486,28 @@ void scene_model::set_gui_playback(gui_structure& gui)
     ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 73), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
-    if (state == engine_state::stopped || state == engine_state::paused)
+    SimulatorState state = PlumeManager::getInstance()->getState();
+    if (state == SimulatorState::Stopped || state == SimulatorState::Paused)
     {
         if (ImGui::ImageButton((ImTextureID)scene_model::playIcon, ImVec2(32, 32)))
         {
-            timer.start();
-            state = engine_state::playing;
+            play();
         }
     }
-    else if (state == engine_state::playing)
+    else if (state == SimulatorState::Playing)
     {
         if (ImGui::ImageButton((ImTextureID)scene_model::pauseIcon, ImVec2(32, 32)))
         {
-            timer.stop();
-            state = engine_state::paused;
+            pause();
         }
     }
 
-    if (state == engine_state::playing || state == engine_state::paused)
+    if (state == SimulatorState::Playing || state == SimulatorState::Paused)
     {
         ImGui::SameLine();
         if (ImGui::ImageButton((ImTextureID)scene_model::resetIcon, ImVec2(32, 32)))
         {
-            reset_simulation();
-            state = engine_state::stopped;
+            stop();
         }
     }
     ImGui::End();
@@ -559,6 +533,36 @@ void scene_model::set_gui_profiler(gui_structure& gui)
     ImGui::End();
 }
 
+void scene_model::stop()
+{
+    timer.stop();
+
+    PlumeManager::getInstance()->stopSimulation();
+    PlumeTracker::getInstance()->resetPlumePositions();
+    sim_input->resetEruptOnPlay();
+
+    frame_count = 0;
+    sim_time = 0;
+    frame_replay = 0;
+    replay = false;
+    export_data = false;
+    state = engine_state::stopped;
+}
+
+void scene_model::play()
+{
+    timer.start();
+    PlumeManager::getInstance()->playSimulation();
+    state = engine_state::playing;
+}
+
+void scene_model::pause()
+{
+    timer.stop();
+    PlumeManager::getInstance()->pauseSimulation();
+    state = engine_state::paused;
+}
+
 void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     const bool key_escape = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
@@ -566,21 +570,18 @@ void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int
 
     if (key_escape)
     {
-        reset_simulation();
-        state = engine_state::stopped;
+        stop();
     }
 
     if (key_space)
     {
          if (state == engine_state::stopped || state == engine_state::paused)
          {
-             timer.start();
-             state = engine_state::playing;
+             play();
          }
          else if (state == engine_state::playing)
          {
-             timer.stop();
-             state = engine_state::paused;
+             pause();
          }
     }
 }

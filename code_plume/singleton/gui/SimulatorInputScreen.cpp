@@ -143,7 +143,7 @@ void SimulatorInputScreen::showWindSettings()
             }
         }
 
-        static int wind_intensity = PlumeManager::getInstance()->getWinds()[selected].intensity;
+        int wind_intensity = PlumeManager::getInstance()->getWinds()[selected].intensity;
         if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &wind_intensity, &wind_min, &wind_max))
         {
             PlumeManager::getInstance()->setWindIntensity(selected, wind_intensity);
@@ -155,7 +155,7 @@ void SimulatorInputScreen::showWindSettings()
         ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity (m/s)", wind_min, wind_max, ImVec2(plot_width, plot_height));
         ImGui::PopStyleColor();
 
-        static int wind_angle = PlumeManager::getInstance()->getDegAngle()[selected];
+        int wind_angle = PlumeManager::getInstance()->getDegAngle()[selected];
         if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &wind_angle, &angle_min, &angle_max))
         {
             if (all_angles)
@@ -182,22 +182,11 @@ void SimulatorInputScreen::showWindSettings()
 
         ImGui::Indent(indent_w);
         ImGui::PushItemWidth(plot_width + 7);
+        int wind_alt = PlumeManager::getInstance()->getWindAlts()[selected];
         if (ImGui::SliderScalar("##Altitude", ImGuiDataType_S32, &wind_alt, &alt_min, &alt_max, "%d meters in altitude"))
         {
-            for (int i = 0; i < wind_size && !altitude_selected; i++)
-            {
-                if (PlumeManager::getInstance()->getWindAlts()[i] == wind_alt)
-                {
-                    altitude_selected = true;
-                    selected = i;
-                }
-            }
-
-            if (!altitude_selected)
-            {
-                selected = vcl::clamp(((float)wind_alt / altitude_step) + 0.5f, 0, wind_size - 1);
-                wind_alt = PlumeManager::getInstance()->getWindAlts()[selected];
-            }
+            selected = vcl::clamp(((float)wind_alt / altitude_step) + 0.5f, 0, wind_size - 1);
+            wind_alt = PlumeManager::getInstance()->getWindAlts()[selected];
         }
         ImGui::PopItemWidth();
         ImGui::Unindent(indent_w);
@@ -306,8 +295,17 @@ void SimulatorInputScreen::showEruptionParameters()
         bool erupt = erupt_on_play[plume_index];
         if (ImGui::Checkbox("Erupt on play", &erupt))
         {
+            // if playing or stopped and erupt == true: set toUpdate to erupt
+            // if stopped and erupt == false: set toUpdate to erupt
             erupt_on_play[plume_index] = erupt;
-            if (erupt) plume.eruptOnPlay();
+            if (erupt)
+            {
+                PlumeManager::getInstance()->setToUpdate(plume_index, true);
+            }
+            else
+            {
+
+            }
         }
 
         double initial_speed_min = 0., initial_speed_max = 200.;
@@ -336,7 +334,7 @@ void SimulatorInputScreen::resetEruptOnPlay()
 {
     for (int i = 0; i < erupt_on_play.size(); i++)
     {
-        if (erupt_on_play[i]) PlumeManager::getInstance()->getPlumes()[i].eruptOnPlay();
+        if (erupt_on_play[i]) PlumeManager::getInstance()->setToUpdate(i, true);
     }
 }
 

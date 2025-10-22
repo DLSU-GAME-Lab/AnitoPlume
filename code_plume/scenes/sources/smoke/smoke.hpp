@@ -92,6 +92,7 @@ struct scene_model : scene_base
     tooltip_loader tip_loader;
     landmark_loader mark_loader;
 
+public:
     // General functions
     void setup_data(scene_structure& scene, gui_structure& gui);
     void setup_plume_params();
@@ -101,6 +102,7 @@ struct scene_model : scene_base
     void frame_draw(scene_structure& scene, gui_structure& gui);
     void display(scene_structure& scene);
 
+private:
     void display_smoke_layers(Plume& plume);
     void display_billboards(Plume& plume);
     void display_free_spheres(Plume& plume);
@@ -109,9 +111,13 @@ struct scene_model : scene_base
     void display_falling_spheres(Plume& plume);
     void display_falling_spheres_buffers(Plume& plume);
 
-    void reset_simulation();
     void setup_terrain_preemptive();
 
+    void stop();
+    void play();
+    void pause();
+
+public:
     // Input
     void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
 

@@ -12,10 +12,10 @@ private:
 
 	const float imgSize = 256.0f;
 	const float halfSize = imgSize / 2.0f;
-	const float ratio = 144.0f;
-	const float xOffset = -18;
+	const float ratio = 400.0f;
+	const float xOffset = -7.0f;
 
-	const int steps = 20;
+	const int steps = 10;
 	const float altitudeStep = 1000.0f;
 
 	unsigned int dangerZoneImage;

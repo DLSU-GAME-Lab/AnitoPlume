@@ -46,9 +46,6 @@ private:
     float transition_speed;
     float transition_delay;
 
-    bool to_update;
-
-
 public:
     // Constants
     float g;
@@ -106,8 +103,6 @@ public:
     void setMaxSmoke(int max_smoke);
     void setTransitionSpeed(float transition_speed);
     void setTranstionDelay(float transition_delay);
-    bool getToUpdate();
-    void eruptOnPlay();
 
 private:
     // Smoke layer computation
