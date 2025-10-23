@@ -194,21 +194,21 @@ void scene_model::setup_plume_params()
     vent_names[1] = "Pira-piraso";
     vent_names[2] = "Binintiang Munti";
     vent_names[3] = "Binintiang Malaki";
-    vent_names[4] = "Calauit Point";
+    //vent_names[4] = "Calauit Point";
 
     vent_positions[0] = vec3(2500, 0, 0);
     vent_positions[1] = vec3(5850, 5950, 0);
     vent_positions[2] = vec3(-2000, -6000, 0);
     vent_positions[3] = vec3(-3100, 6200, 200);
-    vent_positions[4] = vec3(5850, -6000, 0);
+    //vent_positions[4] = vec3(5850, -6000, 0);
 
     erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
     erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
     erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 500, 250 });
     erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
-    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
+    //erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
     
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < erupt_params.size(); i++)
     {
         PlumeManager::getInstance()->createPlume(i, vent_names[i], vent_positions[i], erupt_params[i]);
     }

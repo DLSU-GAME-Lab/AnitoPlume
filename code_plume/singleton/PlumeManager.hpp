@@ -35,6 +35,7 @@ public:
 	void removeSmokeLayers();
 	void update(unsigned int dFrameCount);
 	bool getToUpdate(unsigned int plumeID);
+	void setToUpdate(bool toUpdate);
 	void setToUpdate(unsigned int plumeID, bool toUpdate);
 
 	void playSimulation();

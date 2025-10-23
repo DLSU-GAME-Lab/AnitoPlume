@@ -72,6 +72,12 @@ bool PlumeManager::getToUpdate(unsigned int plumeID)
 	return this->toUpdate[plumeID];
 }
 
+void PlumeManager::setToUpdate(bool toUpdate)
+{
+	for (int i = 0; i < this->toUpdate.size(); i++)
+		this->toUpdate[i] = toUpdate;
+}
+
 void PlumeManager::setToUpdate(unsigned int plumeID, bool toUpdate)
 {
 	this->toUpdate[plumeID] = toUpdate;

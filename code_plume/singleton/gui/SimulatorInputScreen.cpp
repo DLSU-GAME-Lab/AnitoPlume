@@ -267,7 +267,7 @@ void SimulatorInputScreen::showEruptionParameters()
 {
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 6.5f));
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 7.5f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
@@ -278,9 +278,9 @@ void SimulatorInputScreen::showEruptionParameters()
             "Pira-piraso",
             "Binintiang Munti",
             "Binintiang Malaki",
-            "Calauit Point"
+            //"Calauit Point"
         };
-        if (ImGui::Combo("Eruption Vent", &plume_index, vent_names, 5))
+        if (ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names)))
         {
             Plume& holder = PlumeManager::getInstance()->getPlumes()[plume_index];
             this->fR0 = *holder.get_r_0();
@@ -288,6 +288,19 @@ void SimulatorInputScreen::showEruptionParameters()
             this->fRho0 = *holder.get_rho_0();
             this->fZ0 = *holder.get_z_0();
         }
+
+        if (ImGui::Button("Enable all"))
+        {
+            PlumeManager::getInstance()->setToUpdate(true);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset") &&
+            PlumeManager::getInstance()->getState() == SimulatorState::Stopped)
+        {
+            PlumeManager::getInstance()->setToUpdate(false);
+            PlumeManager::getInstance()->setToUpdate(0, true);
+        }
+
         ImGui::Separator();
 
         Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
