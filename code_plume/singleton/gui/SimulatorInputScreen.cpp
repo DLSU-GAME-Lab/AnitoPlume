@@ -13,10 +13,7 @@ SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
 
     selected = 0;
     wind_alt = 0;
-    fU0 = 150;
-    fRho0 = 200;
-    fR0 = 100;
-    fZ0 = 0;
+    plume_index = 0;
 
     display_billboards = true;
     display_smoke_layers = false;
@@ -272,7 +269,6 @@ void SimulatorInputScreen::showEruptionParameters()
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
-        static int plume_index = 0;
         const char* vent_names[]{
             "Taal Main Crater",
             "Pira-piraso",
@@ -280,21 +276,21 @@ void SimulatorInputScreen::showEruptionParameters()
             "Binintiang Malaki",
             //"Calauit Point"
         };
-        if (ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names)))
-        {
-            Plume& holder = PlumeManager::getInstance()->getPlumes()[plume_index];
-            this->fR0 = *holder.get_r_0();
-            this->fU0 = *holder.get_U_0();
-            this->fRho0 = *holder.get_rho_0();
-            this->fZ0 = *holder.get_z_0();
-        }
+
+        Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
+        double r_0 = plume.get_r_0();
+        double U_0 = plume.get_U_0();
+        double rho_0 = plume.get_rho_0();
+        double z_0 = plume.get_z_0();
+        
+        ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names));
 
         if (ImGui::Button("Enable all"))
         {
             PlumeManager::getInstance()->setToUpdate(true);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Reset") &&
+        if (ImGui::Button("Main crater only") &&
             PlumeManager::getInstance()->getState() == SimulatorState::Stopped)
         {
             PlumeManager::getInstance()->setToUpdate(false);
@@ -302,8 +298,6 @@ void SimulatorInputScreen::showEruptionParameters()
         }
 
         ImGui::Separator();
-
-        Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
 
         bool erupt = erupt_on_play[plume_index];
         if (ImGui::Checkbox("Erupt on play", &erupt))
@@ -322,20 +316,20 @@ void SimulatorInputScreen::showEruptionParameters()
         }
 
         double initial_speed_min = 0., initial_speed_max = 200.;
-        if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &fU0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
-            plume.setU0(fU0);
+        if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
+            plume.set_U_0(U_0);
 
         double initial_density_min = 150., initial_density_max = 250.;
-        if (ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &fRho0, &initial_density_min, &initial_density_max, "%.2f kg/m3"))
-            plume.setRho0(fRho0);
+        if (ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3"))
+            plume.set_rho_0(rho_0);
 
         double vent_ray_min = plume.getMinRadius(), vent_radius_max = plume.getMaxRadius();
-        if (ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &fR0, &vent_ray_min, &vent_radius_max, "%.2f m"))
-            plume.setR0(fR0);
+        if (ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &r_0, &vent_ray_min, &vent_radius_max, "%.2f m"))
+            plume.set_r_0(r_0);
 
         double vent_altitude_min = 0., vent_altitude_max = 8000.;
-        if (ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &fZ0, &vent_altitude_min, &vent_altitude_max, "%.2f m"))
-            plume.setZ0(fZ0);
+        if (ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m"))
+            plume.set_z_0(z_0);
 
         ImGui::PopItemWidth();
         ImGui::Unindent();

@@ -61,24 +61,31 @@ void PlumeTracker::loadData(std::string filePath)
 std::vector<std::string> PlumeTracker::getIntersectingLocations()
 {
     std::vector<std::string> locNames;
+    if (windAngle < 0.0f) return locNames;
+
     float coneRadius = getConeRadius();
     float lowAngle = windAngle - coneRadius;
     float hiAngle = windAngle + coneRadius;
 
     for (int i = 0; i < this->arcStart.size(); i++)
     {
-        float arcStart = this->arcStart[i];
-        float arcEnd = this->arcEnd[i];
+        float locStart = this->arcStart[i];
+        float locEnd = this->arcEnd[i];
 
-        if (arcStart > arcEnd)
+        if (locStart > locEnd)
         {
-            if (windAngle <= 180) arcStart -=360;
-            else if (windAngle > 180) arcEnd += 360;
+            if (windAngle <= 180) locStart -= 360.0f;
+            else if (windAngle > 180) locEnd += 360.0f;
+            std::cout << "loc arc1: " << locStart << ", " << locEnd << "\n";
         }
 
-        if ((arcStart <= lowAngle || arcStart <= hiAngle) &&
-            (arcEnd >= lowAngle || arcEnd >= hiAngle))
+        std::cout << "loc arc1: " << locStart << ", " << locEnd << "\n";
+
+        if ((locStart <= lowAngle || locStart <= hiAngle) &&
+            (locEnd >= lowAngle || locEnd >= hiAngle))
+        {
             locNames.push_back(this->locationNames[i]);
+        }
     }
 
     return locNames;
@@ -138,7 +145,9 @@ float PlumeTracker::getWindDirectionAngle() const
 void PlumeTracker::setWindDirection(vcl::vec3 windVector)
 {
     this->windVector = windVector;
-    this->windAngle = vcl::vector_to_angle(windVector);
+    if (windVector.x == 0 && windVector.y == 0 && windVector.z == 0)
+        this->windAngle = -1.0f;
+    else this->windAngle = vcl::vector_to_angle(windVector);
 }
 
 void PlumeTracker::TrackerData::setData(unsigned int index, vcl::vec3 position, float radius)

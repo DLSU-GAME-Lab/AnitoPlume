@@ -233,7 +233,8 @@ vcl::vec3 PlumeManager::getAverageWindDirection()
 	float winds_squared_z = winds_vec.z * winds_vec.z;
 
 	float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
-	vcl::vec3 avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
+	vcl::vec3 avg_wind_direction = { 0, 0, 0 };
+	if (mag != 0) vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
 	return avg_wind_direction;
 }
 

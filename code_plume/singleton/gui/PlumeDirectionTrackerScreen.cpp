@@ -90,10 +90,14 @@ void PlumeDirectionTrackerScreen::showAffectedAreas()
     std::vector<std::string> affectedAreas = PlumeTracker::getInstance()->getIntersectingLocations();
     ImGui::SetWindowFontScale(1.5f);
     ImGui::TextColored({ 0.9f, 0.0f, 0.1f, 1.0f }, "Affected Areas:");
-    ImGui::Text("None");
-    //for (int i = 0; i < affectedAreas.size(); i++)
-    //    ImGui::Text(affectedAreas[i].c_str());
 
+    if (affectedAreas.empty()) ImGui::Text("None");
+    else
+    {
+        for (int i = 0; i < affectedAreas.size(); i++)
+            ImGui::Text(affectedAreas[i].c_str());
+    }
+    
     ImGui::SetWindowFontScale(1.0f);
     ImGui::EndChild();
 }

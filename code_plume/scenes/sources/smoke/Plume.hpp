@@ -80,19 +80,19 @@ public:
     void remove_smoke_layers();
 
     vcl::vec3 getPosition();
-    double* get_T_0();
-    double* get_theta_0();
-    double* get_U_0();
-    double* get_n_0();
-    double* get_z_0();
-    double* get_r_0();
-    double* get_rho_0();
+    double get_T_0();
+    double get_theta_0();
+    double get_U_0();
+    double get_n_0();
+    double get_z_0();
+    double get_r_0();
+    double get_rho_0();
     double getMaxRadius();
     double getMinRadius();
-    void setU0(double fU0);
-    void setRho0(double fRho0);
-    void setR0(double fR0);
-    void setZ0(double fZ0);
+    void set_U_0(double U_0);
+    void set_rho_0(double rho_0);
+    void set_r_0(double r_0);
+    void set_z_0(double z_0);
 
     unsigned int getID();
     std::string getVentName();

@@ -30,13 +30,8 @@ private:
     int wind_alt;
     float linear_wind_base;
     float timer_scale;
+    int plume_index;
     
-    // Trackers
-    double fU0;
-    double fRho0;
-    double fR0;
-    double fZ0;
-
     // Display settings
     bool display_smoke_layers;
     bool display_free_spheres;

@@ -335,39 +335,39 @@ vcl::vec3 Plume::getPosition()
     return this->vent_position;
 }
 
-double* Plume::get_T_0()
+double Plume::get_T_0()
 {
-    return &this->T_0;
+    return this->T_0;
 }
 
-double* Plume::get_theta_0()
+double Plume::get_theta_0()
 {
-    return &this->theta_0;
+    return this->theta_0;
 }
 
-double* Plume::get_U_0()
+double Plume::get_U_0()
 {
-    return &this->U_0;
+    return this->U_0;
 }
 
-double* Plume::get_n_0()
+double Plume::get_n_0()
 {
-    return &this->n_0;
+    return this->n_0;
 }
 
-double* Plume::get_z_0()
+double Plume::get_z_0()
 {
-    return &this->z_0;
+    return this->z_0;
 }
 
-double* Plume::get_r_0()
+double Plume::get_r_0()
 {
-    return &this->r_0;
+    return this->r_0;
 }
 
-double* Plume::get_rho_0()
+double Plume::get_rho_0()
 {
-    return &this->rho_0;
+    return this->rho_0;
 }
 
 double Plume::getMaxRadius()
@@ -380,24 +380,24 @@ double Plume::getMinRadius()
     return this->fMinRadius;
 }
 
-void Plume::setU0(double fU0)
+void Plume::set_U_0(double U_0)
 {
-    this->U_0 = fU0;
+    this->U_0 = U_0;
 }
 
-void Plume::setRho0(double fRho0)
+void Plume::set_rho_0(double rho_0)
 {
-    this->rho_0 = fRho0;
+    this->rho_0 = rho_0;
 }
 
-void Plume::setR0(double fR0)
+void Plume::set_r_0(double r_0)
 {
-    this->r_0 = fR0;
+    this->r_0 = r_0;
 }
 
-void Plume::setZ0(double fZ0)
+void Plume::set_z_0(double z_0)
 {
-    this->z_0 = fZ0;
+    this->z_0 = z_0;
 }
 
 unsigned int Plume::getID()
