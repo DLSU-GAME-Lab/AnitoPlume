@@ -27,7 +27,7 @@ struct terrain_loader
 
 	void load_all_textures();
 
-	void show_gui(bool* show);
+	void show_gui();
 	void load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
 	void load_terrain_async(std::string terrain_filename, std::string texture_filename);
 };

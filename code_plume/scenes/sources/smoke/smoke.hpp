@@ -16,33 +16,11 @@
 #include <thread>
 #include <future>
 
-// User parameters available in the GUI
-struct gui_parameters
+struct scene_model
 {
-    bool display_smoke_layers;
-    bool display_free_spheres;
-    bool display_subspheres;
-    bool display_spheres_with_subspheres;
-    bool display_billboards;
-    bool display_tooltips;
-};
-
-enum class engine_state {stopped, playing, paused};
-
-struct scene_model : scene_base
-{
-    unsigned int frame_count;
-    vcl::timer_event timer;
-    float dt;
-    float t_step;
-    bool debug_mode;
-    bool replay;
     size_t frame_replay;
-    bool export_data;
-    engine_state state;
 
     // Trackers
-    float sim_time;
     float avg_wind_dir_degrees;
     double fU0;
     double fRho0;
@@ -50,32 +28,15 @@ struct scene_model : scene_base
     double fZ0;
 
     // Meshes
-
-    vcl::mesh_drawable terrain_display;
     GLuint smoke_texture;
-    GLuint pauseIcon;
-    GLuint playIcon;
-    GLuint resetIcon;
     GLuint decal;
 
-    vcl::mesh_drawable subspheres_display;
-
-    std::vector<int> wind_altitudes;
-    std::vector<wind_structure> winds;
-    float linear_wind_base;
-    bool is_wind;
-    int selected;
-    int wind_alt;
-    std::vector<int> deg_angle; // UI wind angles
-    bool all_angles; // UI toggle
-
-    //Wind settings ui
-    float max_altitude;
-    float altitude_step;
-    int altitude_size;
-
-    int direction_tracker_step_size;
-    float direction_tracker_step;
+    vcl::mesh_drawable terrain_display;
+    vcl::mesh_drawable* skysphere_display;
+    vcl::mesh_drawable* torus_display;
+    vcl::mesh_drawable* quad_display;
+    vcl::mesh_drawable* sphere_display;
+    vcl::mesh_drawable* subspheres_display;
 
     // PLUMES
     //std::vector<Plume> plumes;
@@ -94,13 +55,14 @@ struct scene_model : scene_base
 
 public:
     // General functions
-    void setup_data(scene_structure& scene, gui_structure& gui);
+    void setup_resources();
+    void setup_data();
     void setup_plume_params();
 
     void update();
 
-    void frame_draw(scene_structure& scene, gui_structure& gui);
-    void display(scene_structure& scene);
+    void frame_draw();
+    void display();
 
 private:
     void display_smoke_layers(Plume& plume);
@@ -119,12 +81,9 @@ private:
 
 public:
     // Input
-    void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
+    void keyboard_input(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-    void set_gui_playback(gui_structure& gui);
-    void set_gui_profiler(gui_structure& gui);
-
-    gui_parameters gui_param;
+    void set_gui_profiler();
 };
 
 

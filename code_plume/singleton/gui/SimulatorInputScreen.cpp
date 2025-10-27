@@ -43,8 +43,9 @@ void SimulatorInputScreen::drawGUI()
 
     // Can set the speed of the animation
     float scale_min = 0.05f;
-    float scale_max = 5.0f;
-    ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer_scale, &scale_min, &scale_max, "%.2f s");
+    float scale_max = 10.0f;
+    if (ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer_scale, &scale_min, &scale_max, "%.2f s"))
+        PlumeManager::getInstance()->setTimerScale(timer_scale);
 
     // Parameters
     std::vector<Plume>& plume = PlumeManager::getInstance()->getPlumes();

@@ -11,6 +11,9 @@ class PlumeManager
 private:
 	SimulatorState state;
 	vcl::timer_event timer;
+	float t_step;
+	unsigned int frame_count;
+
 	std::vector<Plume> plumes;
 	std::vector<bool> toUpdate;
 	std::vector<int> wind_altitudes;
@@ -33,11 +36,13 @@ public:
 	void createPlume(unsigned int id, std::string ventName, vcl::vec3 ventLoc, EruptionParams eruptParams);
 	void setupTransitionValues(int maxSmoke, float transitionSpeed, float transitionDelay);
 	void removeSmokeLayers();
-	void update(unsigned int dFrameCount);
+	void update();
+
 	bool getToUpdate(unsigned int plumeID);
 	void setToUpdate(bool toUpdate);
 	void setToUpdate(unsigned int plumeID, bool toUpdate);
 
+	void setTimerScale(float scale);
 	void playSimulation();
 	void pauseSimulation();
 	void stopSimulation();
@@ -45,7 +50,6 @@ public:
 
 	SimulatorState getState() const;
 	std::vector<Plume>& getPlumes();
-	void setTStep(float fTStep);
 
 public:
 	void setWindIntensity(unsigned int index, int intensity);

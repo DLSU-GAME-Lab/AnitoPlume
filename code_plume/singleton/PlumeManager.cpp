@@ -3,7 +3,11 @@ PlumeManager* PlumeManager::sharedInstance = nullptr;
 
 PlumeManager::PlumeManager()
 {
+	timer.stop();
 	state = SimulatorState::Stopped;
+	t_step = 0.0f;
+	frame_count = 0;
+
 	all_angles = false;
 	min_altitude = 0;
 	max_altitude = 10000;
@@ -57,14 +61,30 @@ void PlumeManager::removeSmokeLayers()
 		this->plumes[i].remove_smoke_layers();
 	}
 }
-void PlumeManager::update(unsigned int dFrameCount)
+void PlumeManager::update()
 {
+	// Force constant time step
+	float dt = timer.update();
+	t_step = dt <= 1e-6f ? 0.0f : timer.scale * 0.002f; //0.0003f
 
 	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		if (this->toUpdate[i])
-			this->plumes[i].update(dFrameCount);
+		this->plumes[i].set_t_step(t_step);
+
 	}
+
+	//removeCollidingSmoke();
+	removeSmokeLayers();
+
+	for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame < 10; nb_steps_per_frame++)
+	{
+		for (int i = 0; i < this->plumes.size(); i++)
+		{
+			if (this->toUpdate[i]) this->plumes[i].update(frame_count);
+		}
+		frame_count++;
+	}
+	
 }
 
 bool PlumeManager::getToUpdate(unsigned int plumeID)
@@ -83,19 +103,29 @@ void PlumeManager::setToUpdate(unsigned int plumeID, bool toUpdate)
 	this->toUpdate[plumeID] = toUpdate;
 }
 
+void PlumeManager::setTimerScale(float scale)
+{
+	timer.scale = scale;
+}
+
 void PlumeManager::playSimulation()
 {
+	timer.start();
 	state = SimulatorState::Playing;
 }
 
 void PlumeManager::pauseSimulation()
 {
+	timer.stop();
 	state = SimulatorState::Paused;
 }
 
 void PlumeManager::stopSimulation()
 {
+	timer.stop();
+	frame_count = 0;
 	state = SimulatorState::Stopped;
+
 	for (int i = 0; i < this->plumes.size(); i++)
 	{
 		this->plumes[i].reset();
@@ -118,19 +148,6 @@ SimulatorState PlumeManager::getState() const
 std::vector<Plume>& PlumeManager::getPlumes()
 {
 	return this->plumes;
-}
-
-void PlumeManager::setTStep(float fTStep)
-{
-	for (int i = 0; i < this->plumes.size(); i++)
-	{
-		for (int j = 0; j < this->plumes[i].getTransitionLifetime().size(); j++)
-		{
-			this->plumes[i].getTransitionLifetime()[j] += fTStep;
-		}
-		this->plumes[i].set_t_step(fTStep);
-
-	}
 }
 
 void PlumeManager::setLinearWind(float linearWindBase)

@@ -1,4 +1,5 @@
 #include "ShaderManager.hpp"
+#include "vcl/opengl/opengl.hpp"
 
 ShaderManager* ShaderManager::sharedInstance = nullptr;
 
@@ -44,7 +45,7 @@ void ShaderManager::load(std::string dirPath, std::string name, bool hasGeom)
 	}
 }
 
-GLuint ShaderManager::getShader(std::string name)
+unsigned int ShaderManager::getShader(std::string name)
 {
 	return this->shaderMap[name];
 }

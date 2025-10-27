@@ -3,6 +3,7 @@
 #include "singleton/GraphicsEngine.hpp"
 #include "singleton/ShaderManager.hpp"
 #include "singleton/MeshManager.hpp"
+#include "singleton/TextureManager.hpp"
 #include "singleton/GUIManager.hpp"
 #include "singleton/CameraManager.hpp"
 #include "singleton/EngineTime.hpp"
@@ -11,9 +12,6 @@
 // ************************************** //
 // Global data declaration
 // ************************************** //
-
-// General shared elements of the scene such as camera and its controler, visual elements, etc
-scene_structure scene;
 
 // The graphical interface. Contains Window object and GUI related variables
 gui_structure gui;
@@ -30,24 +28,24 @@ void windowSizeCallback(GLFWwindow* window, int width, int height)
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
     CameraManager::getInstance()->update_rotate(window, float(xpos), float(ypos));
-    scene_current.mouse_move(scene, window);
+    //scene_current.mouse_move(window);
 }
 void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)) ImGui::SetWindowFocus(nullptr);
 
     CameraManager::getInstance()->update_mouse_click(window, button, action, mods);
-    scene_current.mouse_click(scene, window, button, action, mods);
+    //scene_current.mouse_click(window, button, action, mods);
 }
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     CameraManager::getInstance()->update_mouse_scroll(window, float(xoffset), float(yoffset));
-    scene_current.mouse_scroll(scene, window, float(xoffset), float(yoffset));
+    //scene_current.mouse_scroll(window, float(xoffset), float(yoffset));
 }
 void keyboardInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     CameraManager::getInstance()->update_move(window, key, scancode, action, mods);
-    scene_current.keyboard_input(scene, window, key, scancode, action, mods);
+    scene_current.keyboard_input(window, key, scancode, action, mods);
 }
 
 AnitoPlume::AnitoPlume()
@@ -59,6 +57,7 @@ AnitoPlume::AnitoPlume()
     std::cout << "*** Init systems ***" << std::endl;
     EngineTime::initialize();
     GraphicsEngine::initialize();
+    TextureManager::initialize();
     ShaderManager::initialize();
     MeshManager::initialize();
     PlumeManager::initialize();
@@ -71,6 +70,13 @@ AnitoPlume::AnitoPlume()
     CameraManager::initialize(GraphicsEngine::getInstance()->getWindow());
 
     GraphicsEngine::getInstance()->openglDebugInformation();
+
+    std::cout << "*** Setup GUI Resources ***" << std::endl;
+    TextureManager::getInstance()->loadWhiteTexture();
+    TextureManager::getInstance()->load("play_icon", "../scenes/sources/smoke/images/play_icon.png");
+    TextureManager::getInstance()->load("pause_icon", "../scenes/sources/smoke/images/pause_icon.png");
+    TextureManager::getInstance()->load("undo_icon", "../scenes/sources/smoke/images/undo_icon.png");
+    std::cout << "\t [OK] GUI Resources loaded" << std::endl;
 
     std::cout << "*** Init imgui ***" << std::endl;
     GUIManager::initialize(GraphicsEngine::getInstance()->getWindow());
@@ -96,35 +102,25 @@ AnitoPlume::AnitoPlume()
     ShaderManager::getInstance()->load("sky_mesh", "sky_mesh");
     std::cout << "\t [OK] Shader loaded" << std::endl;
 
-    std::cout << "*** Setup Meshes ***" << std::endl;
-    MeshManager::getInstance()->loadPrimitive("Generic_Sphere", vcl::mesh_primitive_sphere());
-    MeshManager::getInstance()->loadPrimitive("Subsphere_Disp", vcl::mesh_primitive_subspheres());
-    MeshManager::getInstance()->loadPrimitive("Generic_Torus", mesh_primitive_torus(2.5f, { 0,0,1.5 }, { 0,0,-1.5 }, 30, 30));
-    MeshManager::getInstance()->loadPrimitive("Quad", mesh_primitive_quad({ -1,-1,0 }, { 1,-1,0 }, { 1,1,0 }, { -1,1,0 }));
-    MeshManager::getInstance()->load("Skysphere", "../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
-
-    std::cout << "\t [OK] Meshes loaded" << std::endl;
-    PlumeTracker::getInstance()->loadData("../scenes/sources/smoke/taal_danger_zones.csv");
+    std::cout << "*** Setup Scene resources ***" << std::endl;
+    scene_current.setup_resources();
+    std::cout << "\t [OK] Scene resources loaded" << std::endl;
 
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
     //glFrontFace(GL_CCW);
 
-    scene.frame_camera = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.15f, 0.05f, 0.15f, 0.3f));
-    scene.frame_camera.uniform.transform.scaling = 0.2f;
-    scene.frame_camera.shader = ShaderManager::getInstance()->getShader("mesh");
+    //scene.frame_camera = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.15f, 0.05f, 0.15f, 0.3f));
+    //scene.frame_camera.uniform.transform.scaling = 0.2f;
+    //scene.frame_camera.shader = ShaderManager::getInstance()->getShader("mesh");
 
-    scene.frame_worldspace = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.05f, 0.015f, 0.05f, 0.1f));
-    scene.frame_worldspace.shader = ShaderManager::getInstance()->getShader("mesh");
-
-    const vcl::image_raw white{ 1,1,vcl::image_color_type::rgba,{255,255,255,255} };
-    scene.texture_white = vcl::create_texture_gpu(white);
-    //gui.enabled["Camera Settings"] = true;
-
+    //scene.frame_worldspace = vcl::mesh_drawable(vcl::mesh_primitive_frame(0.05f, 0.015f, 0.05f, 0.1f));
+    //scene.frame_worldspace.shader = ShaderManager::getInstance()->getShader("mesh");
 
     opengl_debug();
     std::cout << "*** Setup Data ***" << std::endl;
-    scene_current.setup_data(scene, gui);
+    PlumeTracker::getInstance()->loadData("../scenes/sources/smoke/taal_danger_zones.csv");
+    scene_current.setup_data();
     std::cout << "\t [OK] Data setup" << std::endl;
     opengl_debug();
 }
@@ -135,6 +131,7 @@ AnitoPlume::~AnitoPlume()
     GUIManager::destroy();
     MeshManager::destroy();
     ShaderManager::destroy();
+    TextureManager::destroy();
     GraphicsEngine::destroy();
     EngineTime::destroy();
     PlumeManager::destroy();
@@ -201,13 +198,13 @@ void AnitoPlume::render()
     GraphicsEngine::getInstance()->clearScreen();
 
     // Set a white image texture by default
-    glBindTexture(GL_TEXTURE_2D, scene.texture_white);
+    glBindTexture(GL_TEXTURE_2D, TextureManager::getInstance()->getTexture("white"));
 
     // Create the basic gui structure with ImGui
     GUIManager::getInstance()->newFrame();
 
     // Perform computation and draw calls for each iteration loop
-    scene_current.frame_draw(scene, gui);
+    scene_current.frame_draw();
     opengl_debug();
 
     // Render GUI and update window

@@ -1,14 +1,11 @@
 #pragma once
-#include "vcl/opengl/opengl.hpp"
 #include <string>
 #include <unordered_map>
-
-using namespace vcl;
 
 class ShaderManager
 {
 private:
-	std::unordered_map<std::string, GLuint> shaderMap;
+	std::unordered_map<std::string, unsigned int> shaderMap;
 
 public:
 	static ShaderManager* getInstance();
@@ -16,7 +13,7 @@ public:
 	static void destroy();
 
 	void load(std::string dirPath, std::string name, bool hasGeom = false);
-	GLuint getShader(std::string name);
+	unsigned int getShader(std::string name);
 
 private:
 	ShaderManager();

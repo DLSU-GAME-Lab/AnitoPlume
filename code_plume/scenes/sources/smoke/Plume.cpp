@@ -78,6 +78,11 @@ void Plume::set_t_step(float t_step)
 {
     this->t_step = t_step;
     this->new_layer_delay += t_step;
+
+    for (int i = 0; i < transition_lifetime.size(); i++)
+    {
+        transition_lifetime[i] += t_step;
+    }
 }
 
 

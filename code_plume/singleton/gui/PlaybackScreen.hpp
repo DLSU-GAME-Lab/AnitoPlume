@@ -3,6 +3,11 @@
 
 class PlaybackScreen : public GUIScreen
 {
+private:
+	unsigned int pauseIcon;
+	unsigned int playIcon;
+	unsigned int resetIcon;
+
 protected:
 	PlaybackScreen();
 	~PlaybackScreen();
