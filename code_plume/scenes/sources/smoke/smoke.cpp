@@ -21,8 +21,6 @@ void scene_model::update()
 
 void scene_model::frame_draw()
 {
-    set_gui_profiler();
-    t_loader.show_gui();
     display();
 }
 
@@ -49,9 +47,23 @@ void scene_model::setup_data()
     srand(time(0));
 
     t_loader.mesh_shader = ShaderManager::getInstance()->getShader("mesh");
-    t_loader.load_all_textures();
 
-    //decal = t_loader.texture_id[1];
+    const char* years[]{ "2023", "2021", "2019", "2016" };
+    for (int i = 0; i < 4; i++)
+    {
+        std::string year = years[i];
+        std::string texture_name = "Taal_Texture_" + year;
+        std::string texture_path = "../scenes/sources/smoke/textures/" + texture_name + ".png";
+        TextureManager::getInstance()->load(texture_name, texture_path);
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        std::string year = years[i];
+        std::string normal_name = "Taal_Normal_" + year;
+        std::string normal_path = "../scenes/sources/smoke/textures/" + normal_name + ".png";
+        TextureManager::getInstance()->load(normal_name, normal_path);
+    }
+
     float seed = time(0);
     srand(seed);
 
@@ -113,7 +125,9 @@ void scene_model::setup_data()
 
     // Direction tracker setup
     PlumeTracker::getInstance()->setWindDirection(PlumeManager::getInstance()->getAverageWindDirection());
-    sim_input = (SimulatorInputScreen*)GUIManager::getInstance()->getGUIScreen("Simulator Input");
+    sim_input_screen = (SimulatorInputScreen*)GUIManager::getInstance()->getGUIScreen("Simulator Input");
+    terrain_screen = (TerrainScreen*)GUIManager::getInstance()->getGUIScreen("Terrain");
+    terrain_screen->initialize();
 }
 
 void scene_model::setup_plume_params()
@@ -131,11 +145,11 @@ void scene_model::setup_plume_params()
     vent_positions[3] = vec3(-3100, 6200, 200);
     //vent_positions[4] = vec3(5850, -6000, 0);
 
-    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
-    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
-    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 500, 250 });
-    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 250, 125 });
-    //erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 1000, 500 });
+    erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 500, 1000 });
+    erupt_params.push_back(EruptionParams{ 50., 0, 20, 50, 125, 250 });
+    erupt_params.push_back(EruptionParams{ 100., 0, 50, 100, 250, 500 });
+    erupt_params.push_back(EruptionParams{ 50., 0, 20, 50, 125, 250 });
+    //erupt_params.push_back(EruptionParams{ 150., 0, 100, 200, 500, 1000 });
     
     for (int i = 0; i < erupt_params.size(); i++)
     {
@@ -158,8 +172,8 @@ void scene_model::display()
     {
         //draw(terrain_display, *camera, ShaderManager::getInstance()->getShader("mesh"), true);
 
-        terrain_display.texture_id = t_loader.current_tex_id;
-        terrain_display.norm_tex_id = t_loader.current_norm_id;
+        terrain_display.texture_id = terrain_screen->getCurrentTex();
+        terrain_display.norm_tex_id = terrain_screen->getCurrentNormTex();
 
         terrain_display.draw_mix(*camera, ShaderManager::getInstance()->getShader("mesh_mix"), terrain_display.texture_id, terrain_display.norm_tex_id, decal, 1);
     }
@@ -172,24 +186,24 @@ void scene_model::display()
     for (int i = 0; i < PlumeManager::getInstance()->getPlumes().size(); i++)
     {
         // billboards
-        if (sim_input->getDisplayBillboards()) display_billboards(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplayBillboards()) display_billboards(PlumeManager::getInstance()->getPlumes()[i]);
         // Display torus
-        if (sim_input->getDisplaySmokeLayers()) display_smoke_layers(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplaySmokeLayers()) display_smoke_layers(PlumeManager::getInstance()->getPlumes()[i]);
         // free + stagnation spheres display
-        if (sim_input->getDisplayFreeSpheres()) display_free_spheres(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplayFreeSpheres()) display_free_spheres(PlumeManager::getInstance()->getPlumes()[i]);
         // spheres+subspheres display (lighter)
-        if (sim_input->getDisplaySpheresWithSubspheres()) display_spheres_with_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplaySpheresWithSubspheres()) display_spheres_with_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
         // subspheres display
-        if (sim_input->getDisplaySubspheres()) display_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplaySubspheres()) display_subspheres(PlumeManager::getInstance()->getPlumes()[i]);
         // falling spheres display
-        if (sim_input->getDisplayFreeSpheres()) display_falling_spheres(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplayFreeSpheres()) display_falling_spheres(PlumeManager::getInstance()->getPlumes()[i]);
         // buffer falling spheres display
-        if (sim_input->getDisplayFreeSpheres()) display_falling_spheres_buffers(PlumeManager::getInstance()->getPlumes()[i]);
+        if (sim_input_screen->getDisplayFreeSpheres()) display_falling_spheres_buffers(PlumeManager::getInstance()->getPlumes()[i]);
     }
     
-    if (sim_input->getDisplayTooltips() == true && camera->mode != view_mode::orbital) tip_loader.draw();
+    if (sim_input_screen->getDisplayTooltips() == true && camera->mode != view_mode::orbital) tip_loader.draw();
 
-    if (sim_input->getDisplayLandmarks()) mark_loader.draw();
+    if (sim_input_screen->getDisplayLandmarks()) mark_loader.draw();
 }
 
 #pragma region Unique Display
@@ -223,14 +237,16 @@ void scene_model::display_billboards(Plume& plume)
         for (int j = 0; j < plume.getTransitionLifetime().size(); j++)
         {
             float animation = fmax(0, sinf(plume.getTransitionSpeed() * plume.getTransitionLifetime()[j]));
-            float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
-            float offset = terrain_display.uniform.transform.translation.z;
+            float initial_radius = plume.get_r_0() / ratio;
+            float half_size = 4.0f;
+            float new_scaling = animation == 0 ? (half_size * 2.0f) : (half_size + (animation * half_size));
+            float offset = (plume.get_z_0() / ratio) + terrain_display.uniform.transform.translation.z;
             vec3 new_translation = vec3(plume.getPosition().x / ratio - 25, plume.getPosition().y / ratio, offset + (animation * (fabs(offset) - 2)));
             float var = vcl::perlin(j, 2);
 
             quad_display->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume.getTransitionSpeed() * plume.getTransitionLifetime()[j] * var) * camera->orientation;
             quad_display->uniform.transform.translation = new_translation;
-            quad_display->uniform.transform.scaling = new_scaling * 1.3;
+            quad_display->uniform.transform.scaling = initial_radius * new_scaling;
             quad_display->uniform.color = { 0.3f,0.3f,0.3f };
             quad_display->uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
             quad_display->shader = ShaderManager::getInstance()->getShader("mesh");
@@ -410,31 +426,31 @@ void scene_model::setup_terrain_preemptive()
     }
 }
 
-void scene_model::set_gui_profiler()
-{
-    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
-    ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-
-    std::string smoke_layers_count = "Smoke Layers: " + std::to_string(plume.smoke_layers.size());
-    std::string free_sphere_count = "Free Spheres: " + std::to_string(plume.free_spheres.size());
-    std::string falling_sphere_count = "Falling Spheres: " + std::to_string(plume.falling_spheres.size());
-    std::string stagnate_sphere_count = "Stagnate Spheres: " + std::to_string(plume.stagnate_spheres.size());
-    std::string subsphere_count = "Subspheres: " + std::to_string(plume.s2_spheres.size() + plume.s3_spheres.size());
-
-    ImGui::Text(smoke_layers_count.c_str());
-    ImGui::Text(free_sphere_count.c_str());
-    ImGui::Text(falling_sphere_count.c_str());
-    ImGui::Text(stagnate_sphere_count.c_str());
-    ImGui::Text(subsphere_count.c_str());
-
-    ImGui::End();
-}
+//void scene_model::set_gui_profiler()
+//{
+//    Plume& plume = PlumeManager::getInstance()->getPlumes()[0];
+//    ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+//
+//    std::string smoke_layers_count = "Smoke Layers: " + std::to_string(plume.smoke_layers.size());
+//    std::string free_sphere_count = "Free Spheres: " + std::to_string(plume.free_spheres.size());
+//    std::string falling_sphere_count = "Falling Spheres: " + std::to_string(plume.falling_spheres.size());
+//    std::string stagnate_sphere_count = "Stagnate Spheres: " + std::to_string(plume.stagnate_spheres.size());
+//    std::string subsphere_count = "Subspheres: " + std::to_string(plume.s2_spheres.size() + plume.s3_spheres.size());
+//
+//    ImGui::Text(smoke_layers_count.c_str());
+//    ImGui::Text(free_sphere_count.c_str());
+//    ImGui::Text(falling_sphere_count.c_str());
+//    ImGui::Text(stagnate_sphere_count.c_str());
+//    ImGui::Text(subsphere_count.c_str());
+//
+//    ImGui::End();
+//}
 
 void scene_model::stop()
 {
     PlumeManager::getInstance()->stopSimulation();
     PlumeTracker::getInstance()->resetPlumePositions();
-    sim_input->resetEruptOnPlay();
+    sim_input_screen->resetEruptOnPlay();
 }
 
 void scene_model::play()

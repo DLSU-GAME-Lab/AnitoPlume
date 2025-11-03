@@ -5,6 +5,7 @@
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
 #include "singleton/gui/SimulatorInputScreen.hpp"
+#include "singleton/gui/TerrainScreen.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -47,7 +48,8 @@ struct scene_model
 
     std::vector<float> sphere_lifetime;
 
-    SimulatorInputScreen* sim_input;
+    SimulatorInputScreen* sim_input_screen;
+    TerrainScreen* terrain_screen;
     terrain_structure terrain_struct;
     terrain_loader t_loader;
     tooltip_loader tip_loader;
@@ -82,8 +84,6 @@ private:
 public:
     // Input
     void keyboard_input(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-    void set_gui_profiler();
 };
 
 

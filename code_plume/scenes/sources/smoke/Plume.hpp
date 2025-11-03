@@ -9,8 +9,8 @@ struct EruptionParams
     double z_0; // initial altitude
     double r_0; // initial radius
     double rho_0; // initial density
-    double maxRadius;
     double minRadius;
+    double maxRadius;
 };
 // TODO: Add getters and setters for encapsulation
 class Plume

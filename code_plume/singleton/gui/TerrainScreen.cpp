@@ -1,4 +1,6 @@
 #include "TerrainScreen.hpp"
+#include "singleton/TextureManager.hpp"
+#include <iostream>
 
 TerrainScreen::TerrainScreen() : GUIScreen("Terrain")
 {
@@ -10,15 +12,24 @@ TerrainScreen::~TerrainScreen()
 
 }
 
+void TerrainScreen::initialize()
+{
+    currentTexID = TextureManager::getInstance()->getTexture("Taal_Texture_2023");
+    currentNormID = TextureManager::getInstance()->getTexture("Taal_Normal_2023");
+}
+
 void TerrainScreen::drawGUI()
 {
     ImGui::Begin("Terrain", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
 
-    static const char* labels[]{ "2023", "2021", "2019", "2016" };
-    if (ImGui::Combo("Year", &currentTex, labels, IM_ARRAYSIZE(labels)))
+    const char* years[]{ "2023", "2021", "2019", "2016" };
+    if (ImGui::Combo("Year", &currentTex, years, IM_ARRAYSIZE(years)))
     {
-        currentTexID = textureID[currentTex];
-        currentNormID = normalID[currentTex];
+        std::string year = years[currentTex];
+        std::string textureName = "Taal_Texture_" + year;
+        std::string normalName = "Taal_Normal_" + year;
+        currentTexID = TextureManager::getInstance()->getTexture(textureName);
+        currentNormID = TextureManager::getInstance()->getTexture(normalName);
     }
 
     //ImGui::InputText("Terrain", ter_input, size, ImGuiInputTextFlags_AutoSelectAll);
@@ -30,4 +41,14 @@ void TerrainScreen::drawGUI()
     //}
 
     ImGui::End();
+}
+
+unsigned int TerrainScreen::getCurrentTex() const
+{
+    return currentTexID;
+}
+
+unsigned int TerrainScreen::getCurrentNormTex() const
+{
+    return currentNormID;
 }

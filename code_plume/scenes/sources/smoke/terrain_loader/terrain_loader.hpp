@@ -17,6 +17,7 @@ struct terrain_loader
 	bool enabled = true;
 
 	const int size = 32;
+	const int terrain_count = 4;
 	std::string current_terrain = "taal_paid.obj";
 	std::string current_texture = "Taal_Texture_2024.png";
 
@@ -25,9 +26,6 @@ struct terrain_loader
 
 	int current_tex = 0;
 
-	void load_all_textures();
-
-	void show_gui();
-	void load_terrain(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
+	void load_terrain(std::string terrain_filename, std::string texture_filename);
 	void load_terrain_async(std::string terrain_filename, std::string texture_filename);
 };

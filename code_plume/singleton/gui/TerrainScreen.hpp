@@ -4,13 +4,15 @@
 class TerrainScreen : GUIScreen
 {
 private:
-	unsigned int shader;
-	unsigned int currentTexID;
-	unsigned int currentNormID;
-	unsigned int textureID[5];
-	unsigned int normalID[5];
+	unsigned int currentTexID = 0;
+	unsigned int currentNormID = 0;
+	int currentTex = 0;
 
-	int currentTex;
+public:
+	void initialize();
+
+	unsigned int getCurrentTex() const;
+	unsigned int getCurrentNormTex() const;
 
 protected:
 	TerrainScreen();
