@@ -91,12 +91,14 @@ std::vector<std::string> PlumeTracker::getIntersectingLocations()
     return locNames;
 }
 
-void PlumeTracker::checkSmokePosition(unsigned int plumeID, float maxAltitude, vcl::vec3 center, float radius)
+void PlumeTracker::checkSmokePosition(Plume& plume, unsigned int smokeIndex)
 {
-    altStep = altStep < minAltStep ? minAltStep : maxAltitude / stepSize;
+    // TODO: fix position check
+    smoke_layer& smoke = plume.smoke_layers[smokeIndex];
+    altStep = 10000.0f / stepSize;
     for (int i = 0; i < stepSize; i++)
     {
-        if (int(center.z) == int(i * altStep) + 1) data[plumeID].setData(i, center, radius);
+        if (int(smoke.center.z) == int(i * altStep)) data[plume.getID()].setData(i, smoke.center, smoke.r);
     }
 }
 

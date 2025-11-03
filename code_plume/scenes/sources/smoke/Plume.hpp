@@ -74,8 +74,6 @@ public:
 
     void set_t_step(float t_step);
 
-    void update(unsigned int frame_count);
-
     void remove_colliding_smoke();
     void remove_smoke_layers();
 
@@ -112,7 +110,6 @@ private:
     void sedimentation(unsigned int i, float& d_mass);
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
-    void smoke_layer_update(unsigned int i);
 
     float compute_gaussian_speed_in_layer(float v_z, float max_r, float r);
     float compute_atm_temperature(float height);
@@ -124,14 +121,22 @@ private:
     void sphere_ground_collision(free_sphere_params& sphere, int idx, unsigned int frame_nb);
     void ground_falling_sphere_update(free_sphere_params& sphere, int idx, unsigned int frame_nb);
     void secondary_columns_creation();
-    void falling_spheres_update(unsigned int frame_nb);
 
     // Free spheres
     void add_free_sphere(unsigned int i, float angle, float size_fac);
     void add_free_spheres_for_one_layer(unsigned int i);
     void subdivide_and_make_falling(unsigned int i);
+
+    public:
+    // Pyroclastic flow : falling spheres
+    void falling_spheres_update(unsigned int frame_nb);
+
+    // Free spheres
     void update_free_spheres();
 
     // Stagnation
     void update_stagnation_spheres();
+
+    void smoke_layer_update(unsigned int i);
+    void update_smoke_layer_init();
 };

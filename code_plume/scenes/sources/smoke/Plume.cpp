@@ -1,6 +1,5 @@
 #include "Plume.hpp"
 #include "singleton/PlumeManager.hpp"
-#include "singleton/PlumeTracker.hpp"
 
 using namespace vcl;
 //------------------------------------------------------------
@@ -47,7 +46,6 @@ Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, Er
         transition_lifetime.push_back(transition_delay * i);
 
     reset();
-    PlumeTracker::getInstance()->addTrackerData();
 }
 
 void Plume::reset()
@@ -83,47 +81,6 @@ void Plume::set_t_step(float t_step)
     {
         transition_lifetime[i] += t_step;
     }
-}
-
-
-
-void Plume::update(unsigned int frame_count)
-{
-    // add smoke layer each x seconds
-    if (smoke_layers.size() == 0 || (new_layer_delay >= r_0 / (2 * U_0) && smoke_layers.size() < 1000000000000000))
-    {
-        add_smoke_layer(U_0, rho_0, r_0, vent_position, false);
-        add_free_spheres_for_one_layer(smoke_layers.size() - 1);
-
-        new_layer_delay = 0;
-        std::cout << vent_name << " - LAYER ADDED OK" << std::endl;
-        std::cout << vent_name << " - Total Layers: " << smoke_layers.size() << std::endl;
-    }
-
-    // update of layer and spheres
-    for (unsigned int id = 0; id < smoke_layers.size(); id++)
-    {
-        smoke_layer_update(id);
-    }
-    update_free_spheres();
-    if (frame_count % 100 == 0) falling_spheres_update(100);
-    update_stagnation_spheres();
-
-    // update subspheres
-    //if (frame_count %50 == 0) update_subspheres_params();
-
-    // export (comment or uncomment)
-    //if (export_data && frame_count % 50 == 0) export_spheres();
-
-    //// store data for replay
-    //if (!export_data && frame_count %50 == 0)
-    //{
-    //    smoke_layers_frames.push_back(smoke_layers);
-    //    free_spheres_frames.push_back(free_spheres);
-    //    stagnate_spheres_frames.push_back(stagnate_spheres);
-    //    falling_spheres_frames.push_back(falling_spheres);
-    //    falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
-    //}
 }
 
 void Plume::add_smoke_layer(float v, float d, float r, vec3 position, bool secondary_plume)
@@ -225,7 +182,6 @@ void Plume::apply_forces_to_smoke_layer(unsigned int i, float d_mass, vec3 wind)
     {
         smoke_layers[i].rising = false;
         smoke_layers[i].begin_falling = true;
-        //std::cout << "layer " << i << " falling frame " << frame_count << std::endl;
     }
 
     // check if stagnates
@@ -296,7 +252,20 @@ void Plume::smoke_layer_update(unsigned int i)
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass, wind); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass, wind);
-    PlumeTracker::getInstance()->checkSmokePosition(id, smoke_layers[0].center.z, smoke_layers[i].center, smoke_layers[i].r);
+}
+
+void Plume::update_smoke_layer_init()
+{
+    // add smoke layer each x seconds
+    if (smoke_layers.size() == 0 || (new_layer_delay >= r_0 / (2 * U_0) && smoke_layers.size() < 1000000000000000))
+    {
+        add_smoke_layer(U_0, rho_0, r_0, vent_position, false);
+        add_free_spheres_for_one_layer(smoke_layers.size() - 1);
+
+        new_layer_delay = 0;
+        std::cout << vent_name << " - LAYER ADDED OK" << std::endl;
+        std::cout << vent_name << " - Total Layers: " << smoke_layers.size() << std::endl;
+    }
 }
 
 void Plume::remove_colliding_smoke()

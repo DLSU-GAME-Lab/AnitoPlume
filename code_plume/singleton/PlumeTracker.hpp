@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vcl/vcl.hpp"
+#include "scenes/sources/smoke/Plume.hpp"
 #include <unordered_map>
 #include <string>
 #include <vector>
@@ -43,7 +44,7 @@ public:
 	static void destroy();
 
 	void addTrackerData();
-	void checkSmokePosition(unsigned int plumeID, float maxAltitude, vcl::vec3 center, float radius);
+	void checkSmokePosition(Plume& plume, unsigned int smokeIndex);
 	void resetPlumePositions();
 	void loadData(std::string filePath);
 
