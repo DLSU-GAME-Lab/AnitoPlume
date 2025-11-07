@@ -44,6 +44,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
     {
         for (int i = 0; i < PlumeTracker::getInstance()->getDataCount(); i++)
         {
+            if (PlumeTracker::getInstance()->getPositions(i).empty()) continue;
             std::vector<vcl::vec3> positions = PlumeTracker::getInstance()->getPositions(i);
             std::vector<float> radii = PlumeTracker::getInstance()->getRadii(i);
             for (int i = 0; i < positions.size(); i++)

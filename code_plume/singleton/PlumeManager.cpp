@@ -83,7 +83,7 @@ void PlumeManager::update()
 				for (unsigned int id = 0; id < this->plumes[i].smoke_layers.size(); id++)
 				{
 					this->plumes[i].smoke_layer_update(id);
-					PlumeTracker::getInstance()->checkSmokePosition(this->plumes[i], id);
+					PlumeTracker::getInstance()->checkSmokePosition(&this->plumes[i], id);
 				}
 				this->plumes[i].update_free_spheres();
 				if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
@@ -149,7 +149,7 @@ void PlumeManager::stopSimulation()
 	timer.stop();
 	frame_count = 0;
 	state = SimulatorState::Stopped;
-
+	PlumeTracker::getInstance()->resetPlumePositions();
 	for (int i = 0; i < this->plumes.size(); i++)
 	{
 		this->plumes[i].reset();
@@ -172,6 +172,11 @@ SimulatorState PlumeManager::getState() const
 std::vector<Plume>& PlumeManager::getPlumes()
 {
 	return this->plumes;
+}
+
+Plume& PlumeManager::getPlume(unsigned int plumeID)
+{
+	return this->plumes[plumeID];
 }
 
 void PlumeManager::setLinearWind(float linearWindBase)

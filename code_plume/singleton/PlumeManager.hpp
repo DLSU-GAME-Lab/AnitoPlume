@@ -49,6 +49,7 @@ public:
 
 	SimulatorState getState() const;
 	std::vector<Plume>& getPlumes();
+	Plume& getPlume(unsigned int plumeID);
 
 public:
 	void setWindIntensity(unsigned int index, int intensity);

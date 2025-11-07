@@ -24,7 +24,7 @@ private:
 	std::vector<float> arcStart;
 	std::vector<float> arcEnd;
 
-	const int stepSize = 20;
+	const int stepSize = 10;
 	const float minAltStep = 100.0f;
 	float altStep = 1000.0f;
 
@@ -44,7 +44,7 @@ public:
 	static void destroy();
 
 	void addTrackerData();
-	void checkSmokePosition(Plume& plume, unsigned int smokeIndex);
+	void checkSmokePosition(Plume* plume, unsigned int smokeIndex);
 	void resetPlumePositions();
 	void loadData(std::string filePath);
 

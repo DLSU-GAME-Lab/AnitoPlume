@@ -449,7 +449,6 @@ void scene_model::setup_terrain_preemptive()
 void scene_model::stop()
 {
     PlumeManager::getInstance()->stopSimulation();
-    PlumeTracker::getInstance()->resetPlumePositions();
     sim_input_screen->resetEruptOnPlay();
 }
 

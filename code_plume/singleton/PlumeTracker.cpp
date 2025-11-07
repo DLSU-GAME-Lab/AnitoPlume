@@ -91,15 +91,16 @@ std::vector<std::string> PlumeTracker::getIntersectingLocations()
     return locNames;
 }
 
-void PlumeTracker::checkSmokePosition(Plume& plume, unsigned int smokeIndex)
+void PlumeTracker::checkSmokePosition(Plume* plume, unsigned int smokeIndex)
 {
-    // TODO: fix position check
-    smoke_layer& smoke = plume.smoke_layers[smokeIndex];
-    altStep = 10000.0f / stepSize;
     for (int i = 0; i < stepSize; i++)
     {
-        if (int(smoke.center.z) == int(i * altStep)) data[plume.getID()].setData(i, smoke.center, smoke.r);
+        int step = i * altStep;
+        int alt = plume->smoke_layers[smokeIndex].center.z;
+        if (alt >= step - 10 && alt <= step + 10)
+            data[plume->getID()].setData(i, plume->smoke_layers[smokeIndex].center, plume->smoke_layers[smokeIndex].r);
     }
+    //std::cout << altStep << std::endl;
 }
 
 unsigned int PlumeTracker::getDataCount()
@@ -154,6 +155,7 @@ void PlumeTracker::setWindDirection(vcl::vec3 windVector)
 
 void PlumeTracker::TrackerData::setData(unsigned int index, vcl::vec3 position, float radius)
 {
+    //std::cout << "setting data for: " << index << " x: " << position.x << " y: " << position.y << " z: " << position.z << " r: " << radius << std::endl;
     if (index == this->positions.size())
     {
         this->positions.push_back(position);
