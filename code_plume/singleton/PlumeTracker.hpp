@@ -55,8 +55,8 @@ public:
 	std::vector<vcl::vec3>& getPositions(unsigned int plumeID);
 	std::vector<float>& getRadii(unsigned int plumeID);
 	float getConeRadius() const;
-	
 	std::vector<std::string> getIntersectingLocations();
+	std::vector<std::string> getIntersectingLocations(float coneRadius, float angle = -1.0f);
 	vcl::vec3 getWindDirection() const;
 	float getWindDirectionAngle() const;
 

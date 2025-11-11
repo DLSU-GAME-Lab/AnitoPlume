@@ -280,8 +280,18 @@ vcl::vec3 PlumeManager::getAverageWindDirection()
 
 	float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
 	vcl::vec3 avg_wind_direction = { 0, 0, 0 };
-	if (mag != 0) vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
+	if (mag != 0) avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
 	return avg_wind_direction;
+}
+
+float PlumeManager::getAverageWindAngle()
+{
+	vcl::vec3 windDir = getAverageWindDirection();
+	float windAngle = -1.0f;
+
+	if (windDir.x != 0 || windDir.y != 0 || windDir.z != 0)
+		windAngle = vcl::vector_to_angle(windDir);
+	return windAngle;
 }
 
 std::vector<int>& PlumeManager::getWindAlts()

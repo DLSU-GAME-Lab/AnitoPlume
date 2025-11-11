@@ -23,7 +23,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
     winPos.x += 8; winPos.y += 27;
     ImVec2 start = ImVec2(winPos.x + halfSize, winPos.y + halfSize);
     
-    float windAngle = PlumeTracker::getInstance()->getWindDirectionAngle();
+    float windAngle = PlumeManager::getInstance()->getAverageWindAngle();
     float coneRadius = PlumeTracker::getInstance()->getConeRadius() / ratio;
     int maxAltitude = PlumeManager::getInstance()->getMaxAlt();
 
@@ -60,7 +60,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
                     pos.y > -map_r && pos.y < map_r)
                 {
                     ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
-                    float radius = radii[i] / ratio;
+                    float radius = (radii[i] / ratio) + 1;
 
                     if (int(positions[i].z) >= int(maxAltitude) + 1)
                         radius *= ((i * altitudeStep) / maxAltitude) + 0.1f;
@@ -88,7 +88,8 @@ void PlumeDirectionTrackerScreen::drawGUI()
 void PlumeDirectionTrackerScreen::showAffectedAreas()
 {
     ImGui::BeginChild("Affected Areas", { 200.0f, imgSize }, true);
-    std::vector<std::string> affectedAreas = PlumeTracker::getInstance()->getIntersectingLocations();
+    float coneRadius = PlumeTracker::getInstance()->getConeRadius() / ratio;
+    std::vector<std::string> affectedAreas = PlumeTracker::getInstance()->getIntersectingLocations(coneRadius);
     ImGui::SetWindowFontScale(1.5f);
     ImGui::TextColored({ 0.9f, 0.0f, 0.1f, 1.0f }, "Affected Areas:");
 

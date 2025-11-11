@@ -53,19 +53,22 @@ void PlumeTracker::loadData(std::string filePath)
             this->arcEnd.push_back(std::atof(cell[2].c_str()));
         }
     }
-    else std::cout << "ERROR: File with path " << filePath << " could not be opened.";
+    else std::cout << "[PlumeTracker] ERROR: File with path " << filePath << " could not be opened." << std::endl;
 
     file.close();
 }
 
-std::vector<std::string> PlumeTracker::getIntersectingLocations()
+std::vector<std::string> PlumeTracker::getIntersectingLocations(float coneRadius, float angle)
 {
     std::vector<std::string> locNames;
-    if (windAngle < 0.0f) return locNames;
+    if (angle < 0.0f)
+    {
+        angle = this->windAngle;
+        if (this->windAngle < 0.0f) return locNames;
+    }
 
-    float coneRadius = getConeRadius();
-    float lowAngle = windAngle - coneRadius;
-    float hiAngle = windAngle + coneRadius;
+    float lowAngle = angle - coneRadius;
+    float hiAngle = angle + coneRadius;
 
     for (int i = 0; i < this->arcStart.size(); i++)
     {
@@ -74,12 +77,9 @@ std::vector<std::string> PlumeTracker::getIntersectingLocations()
 
         if (locStart > locEnd)
         {
-            if (windAngle <= 180) locStart -= 360.0f;
-            else if (windAngle > 180) locEnd += 360.0f;
-            std::cout << "loc arc1: " << locStart << ", " << locEnd << "\n";
+            if (angle <= 180) locStart -= 360.0f;
+            else if (angle > 180) locEnd += 360.0f;
         }
-
-        std::cout << "loc arc1: " << locStart << ", " << locEnd << "\n";
 
         if ((locStart <= lowAngle || locStart <= hiAngle) &&
             (locEnd >= lowAngle || locEnd >= hiAngle))
@@ -89,6 +89,11 @@ std::vector<std::string> PlumeTracker::getIntersectingLocations()
     }
 
     return locNames;
+}
+
+std::vector<std::string> PlumeTracker::getIntersectingLocations()
+{
+    return getIntersectingLocations(windAngle, getConeRadius());
 }
 
 void PlumeTracker::checkSmokePosition(Plume* plume, unsigned int smokeIndex)
@@ -135,16 +140,6 @@ void PlumeTracker::resetPlumePositions()
     for (int i = 0; i < data.size(); i++) data[i].reset();
 }
 
-vcl::vec3 PlumeTracker::getWindDirection() const
-{
-    return this->windVector;
-}
-
-float PlumeTracker::getWindDirectionAngle() const
-{
-    return this->windAngle;
-}
-
 void PlumeTracker::setWindDirection(vcl::vec3 windVector)
 {
     this->windVector = windVector;
@@ -175,4 +170,14 @@ void PlumeTracker::TrackerData::reset()
     this->positions.clear();
     this->radii.clear();
     this->maxRadius = 0.0f;
+}
+
+vcl::vec3 PlumeTracker::getWindDirection() const
+{
+    return this->windVector;
+}
+
+float PlumeTracker::getWindDirectionAngle() const
+{
+    return this->windAngle;
 }

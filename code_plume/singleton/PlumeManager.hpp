@@ -63,6 +63,7 @@ public:
 
 	vcl::vec3 computeWindVector(float height);
 	vcl::vec3 getAverageWindDirection();
+	float getAverageWindAngle();
 	std::vector<int>& getWindAlts();
 	std::vector<wind_structure>& getWinds();
 	std::vector<int>& getDegAngle();
