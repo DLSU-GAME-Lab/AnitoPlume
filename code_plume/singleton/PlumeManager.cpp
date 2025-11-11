@@ -66,49 +66,41 @@ void PlumeManager::update()
 
 	for (int i = 0; i < this->plumes.size(); i++)
 	{
-		this->plumes[i].set_t_step(t_step);
-		//this->plumes[i].remove_colliding_smoke();
-		this->plumes[i].remove_smoke_layers();
-	}
-
-	for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame < 10; nb_steps_per_frame++)
-	{
-		for (int i = 0; i < this->plumes.size(); i++)
+		if (this->toUpdate[i])
 		{
-			if (this->toUpdate[i])
+			this->plumes[i].set_t_step(t_step);
+			//this->plumes[i].remove_colliding_smoke();
+			this->plumes[i].remove_smoke_layers();
+			this->plumes[i].update_smoke_layer_init();
+
+			// update of layer and spheres
+			for (unsigned int id = 0; id < this->plumes[i].smoke_layers.size(); id++)
 			{
-				this->plumes[i].update_smoke_layer_init();
-
-				// update of layer and spheres
-				for (unsigned int id = 0; id < this->plumes[i].smoke_layers.size(); id++)
-				{
-					this->plumes[i].smoke_layer_update(id);
-					PlumeTracker::getInstance()->checkSmokePosition(&this->plumes[i], id);
-				}
-				this->plumes[i].update_free_spheres();
-				if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
-				this->plumes[i].update_stagnation_spheres();
-
-				// update subspheres
-				//if (frame_count %50 == 0) update_subspheres_params();
-
-				// export (comment or uncomment)
-				//if (export_data && frame_count % 50 == 0) export_spheres();
-
-				//// store data for replay
-				//if (!export_data && frame_count %50 == 0)
-				//{
-				//    smoke_layers_frames.push_back(smoke_layers);
-				//    free_spheres_frames.push_back(free_spheres);
-				//    stagnate_spheres_frames.push_back(stagnate_spheres);
-				//    falling_spheres_frames.push_back(falling_spheres);
-				//    falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
-				//}
+				this->plumes[i].smoke_layer_update(id);
+				PlumeTracker::getInstance()->checkSmokePosition(&this->plumes[i], id);
 			}
+			this->plumes[i].update_free_spheres();
+			if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
+			this->plumes[i].update_stagnation_spheres();
+
+			// update subspheres
+			//if (frame_count %50 == 0) update_subspheres_params();
+
+			// export (comment or uncomment)
+			//if (export_data && frame_count % 50 == 0) export_spheres();
+
+			//// store data for replay
+			//if (!export_data && frame_count %50 == 0)
+			//{
+			//    smoke_layers_frames.push_back(smoke_layers);
+			//    free_spheres_frames.push_back(free_spheres);
+			//    stagnate_spheres_frames.push_back(stagnate_spheres);
+			//    falling_spheres_frames.push_back(falling_spheres);
+			//    falling_spheres_buffers_frames.push_back(falling_spheres_buffers);
+			//}
 		}
-		frame_count++;
 	}
-	
+	frame_count++;
 }
 
 bool PlumeManager::getToUpdate(unsigned int plumeID)
