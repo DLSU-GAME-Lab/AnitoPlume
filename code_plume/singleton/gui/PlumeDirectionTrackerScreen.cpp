@@ -47,6 +47,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
             if (PlumeTracker::getInstance()->getPositions(i).empty()) continue;
             std::vector<vcl::vec3> positions = PlumeTracker::getInstance()->getPositions(i);
             std::vector<float> radii = PlumeTracker::getInstance()->getRadii(i);
+            float mult = PlumeTracker::getInstance()->getMagnitude(i) / 20000.0f;
             for (int i = 0; i < positions.size(); i++)
             {
                 vcl::vec2 pos = vcl::vec2(positions[i].x, positions[i].y);
@@ -54,18 +55,15 @@ void PlumeDirectionTrackerScreen::drawGUI()
                 pos.x += xOffset;
                 pos.y *= -1;
 
-                float map_r = (imgSize / 2) - 32;
+                float mapRadius = (imgSize / 2) - 32;
 
-                if (pos.x > -map_r && pos.x < map_r &&
-                    pos.y > -map_r && pos.y < map_r)
+                if (pos.x > -mapRadius && pos.x < mapRadius &&
+                    pos.y > -mapRadius && pos.y < mapRadius)
                 {
                     ImVec2 center = ImVec2(start.x + pos.x, start.y + pos.y);
-                    float radius = (radii[i] / ratio) + 1;
+                    float radius = ((radii[i] + (radii[i] * mult)) / ratio) + 1;
 
-                    if (int(positions[i].z) >= int(maxAltitude) + 1)
-                        radius *= ((i * altitudeStep) / maxAltitude) + 0.1f;
-
-                    int col = 64 + (192 * (i / (steps * 0.75f)));
+                    int col = 64 + (192 * mult);
                     if (col > 255) col = 255;
                     drawList->AddCircleFilled(center, radius, IM_COL32(col, col, col, 200));
                 }

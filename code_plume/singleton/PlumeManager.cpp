@@ -77,11 +77,13 @@ void PlumeManager::update()
 			for (unsigned int id = 0; id < this->plumes[i].smoke_layers.size(); id++)
 			{
 				this->plumes[i].smoke_layer_update(id);
-				PlumeTracker::getInstance()->checkSmokePosition(&this->plumes[i], id);
 			}
+
 			this->plumes[i].update_free_spheres();
 			if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
 			this->plumes[i].update_stagnation_spheres();
+
+			PlumeTracker::getInstance()->checkSmokePosition(&this->plumes[i]);
 
 			// update subspheres
 			//if (frame_count %50 == 0) update_subspheres_params();
@@ -174,10 +176,11 @@ Plume& PlumeManager::getPlume(unsigned int plumeID)
 void PlumeManager::setLinearWind(float linearWindBase)
 {
 	for (unsigned int i = 0; i < winds.size(); i++)
-	{
-		winds[i].intensity = i * linearWindBase;
+	{		
 		if (i > 3) winds[i].intensity = 3 * linearWindBase;
-		if (winds[i].intensity == min_altitude) winds[i].intensity = 1;
+		else winds[i].intensity = i * linearWindBase;
+
+		if (winds[i].intensity == 0) winds[i].intensity = 1;
 		winds[i] = wind_structure(winds[i].intensity, deg_angle[i]);
 		winds[i].recalc_wind_vector();
 	}
