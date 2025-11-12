@@ -9,7 +9,6 @@ SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
     linear_wind_base = 15.;
     max_altitude = 10000;
     altitude_step = 2000;
-    timer_scale = 1.0f;
 
     selected = 0;
     wind_alt = 0;
@@ -39,29 +38,10 @@ void SimulatorInputScreen::drawGUI()
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
-    ImGui::PushItemWidth(200);
 
-    // Can set the speed of the animation
-    float scale_min = 0.05f;
-    float scale_max = 10.0f;
-    if (ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer_scale, &scale_min, &scale_max, "%.2f s"))
-        PlumeManager::getInstance()->setTimerScale(timer_scale);
-
-    // Parameters
-    std::vector<Plume>& plume = PlumeManager::getInstance()->getPlumes();
-    unsigned int spheres_min = 0, spheres_max = 500;
-    static unsigned int subspheres_number = 0, subsubspheres_number = 0;
-    if (ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max))
-        for (int i = 0; i < plume.size(); i++) plume[i].subspheres_number = subspheres_number;
-
-    if (ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max))
-        for (int i = 0; i < plume.size(); i++) plume[i].subsubspheres_number = subsubspheres_number;
-
-    ImGui::PopItemWidth();
-
-    showDisplaySettings();
     showWindSettings();
     showEruptionParameters();
+    showDisplaySettings();
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
@@ -72,9 +52,23 @@ void SimulatorInputScreen::showDisplaySettings()
 {
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 6.25f));
+        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 8.25f));
         ImGui::Spacing();
         ImGui::Indent(indent_width);
+
+        ImGui::PushItemWidth(200);
+
+        // Parameters
+        std::vector<Plume>& plume = PlumeManager::getInstance()->getPlumes();
+        unsigned int spheres_min = 0, spheres_max = 500;
+        static unsigned int subspheres_number = 0, subsubspheres_number = 0;
+        if (ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max))
+            for (int i = 0; i < plume.size(); i++) plume[i].subspheres_number = subspheres_number;
+
+        if (ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max))
+            for (int i = 0; i < plume.size(); i++) plume[i].subsubspheres_number = subsubspheres_number;
+
+        ImGui::PopItemWidth();
 
         ImGui::Checkbox("Display billboards", &display_billboards);
         ImGui::Checkbox("Display torus layers", &display_smoke_layers);
@@ -344,16 +338,6 @@ void SimulatorInputScreen::resetEruptOnPlay()
     {
         if (erupt_on_play[i]) PlumeManager::getInstance()->setToUpdate(i, true);
     }
-}
-
-float SimulatorInputScreen::getTimerScale() const
-{
-    return this->timer_scale;
-}
-
-void SimulatorInputScreen::setTimerScale(float timer_scale)
-{
-    this->timer_scale = timer_scale;
 }
 
 bool SimulatorInputScreen::getDisplaySmokeLayers() const

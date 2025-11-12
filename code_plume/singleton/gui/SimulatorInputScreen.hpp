@@ -29,7 +29,6 @@ private:
     int selected;
     int wind_alt;
     float linear_wind_base;
-    float timer_scale;
     int plume_index;
     
     // Display settings
@@ -55,8 +54,6 @@ private:
 public:
     void resetEruptOnPlay();
 
-    float getTimerScale() const;
-    void setTimerScale(float timer_scale);
     bool getDisplaySmokeLayers() const;
     void setDisplaySmokeLayers(bool display);
     bool getDisplayFreeSpheres() const;

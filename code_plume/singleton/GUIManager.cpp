@@ -59,10 +59,13 @@ GUIManager::GUIManager(GLFWwindow* window)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-
+    
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");
-    ImGui::StyleColorsDark();
+    ImGui::SetupImGuiStyle();
+
+    //io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Medium.ttf", 16.0f);
+    io.Fonts->AddFontFromFileTTF("../assets/fonts/OpenSans-Medium.ttf", 16.0f);
 
     MenuScreen* menuScreen = new MenuScreen();
     this->guiTable[menuScreen->name] = menuScreen;

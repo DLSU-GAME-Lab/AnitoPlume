@@ -7,7 +7,7 @@ using namespace vcl;
 
 void tooltip_loader::setup_tooltips()
 {
-    std::string tooltip_path = "../scenes/sources/smoke/tooltips/Tooltip.obj";
+    std::string tooltip_path = "../assets/tooltips/Tooltip.obj";
 
     std::cout << "TOOLTIP LOADER: Loading tooltip..." << "\n";
     
@@ -26,7 +26,7 @@ void tooltip_loader::setup_tooltips()
     for (int i = 0; i < 5; i++)
     {
         std::string name = tooltips[i];
-        std::string texture_path = "../scenes/sources/smoke/tooltips/" + name + ".png";
+        std::string texture_path = "../assets/tooltips/" + name + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
         opengl_debug();
     }

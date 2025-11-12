@@ -1,10 +1,11 @@
 #include "PlumeDirectionTrackerScreen.hpp"
+#include "singleton/TextureManager.hpp"
 #include "singleton/PlumeTracker.hpp"
 #include "singleton/PlumeManager.hpp"
 
 PlumeDirectionTrackerScreen::PlumeDirectionTrackerScreen() : GUIScreen("Plume Direction Tracker")
 {
-    dangerZoneImage = vcl::create_texture_gpu(vcl::image_load_png("../scenes/sources/smoke/images/danger_zones.png"));
+    dangerZoneImage = TextureManager::getInstance()->getTexture("danger_zones");
 }
 
 PlumeDirectionTrackerScreen::~PlumeDirectionTrackerScreen()

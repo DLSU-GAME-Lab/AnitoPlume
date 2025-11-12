@@ -4,9 +4,14 @@
 class PlaybackScreen : public GUIScreen
 {
 private:
+	float timer_scale;
 	unsigned int pauseIcon;
 	unsigned int playIcon;
 	unsigned int resetIcon;
+
+public:
+	float getTimerScale() const;
+	void setTimerScale(float timer_scale);
 
 protected:
 	PlaybackScreen();

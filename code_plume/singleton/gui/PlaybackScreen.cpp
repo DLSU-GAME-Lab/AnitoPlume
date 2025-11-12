@@ -4,6 +4,7 @@
 
 PlaybackScreen::PlaybackScreen() : GUIScreen("Playback")
 {
+    timer_scale = 1.0f;
     pauseIcon = TextureManager::getInstance()->getTexture("pause_icon");
     playIcon = TextureManager::getInstance()->getTexture("play_icon");
     resetIcon = TextureManager::getInstance()->getTexture("reset_icon");
@@ -16,7 +17,17 @@ PlaybackScreen::~PlaybackScreen()
 
 void PlaybackScreen::drawGUI()
 {
-    ImGui::Begin("Playback", &enabled, ImVec2(100, 73), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &enabled, ImVec2(100, 73), -1.0f, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::PushItemWidth(200);
+
+    // Can set the speed of the animation
+    float scale_min = 0.05f;
+    float scale_max = 10.0f;
+    if (ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer_scale, &scale_min, &scale_max, "%.2f s"))
+        PlumeManager::getInstance()->setTimerScale(timer_scale);
+
+    ImGui::PopItemWidth();
 
     // Start and stop animation
     SimulatorState state = PlumeManager::getInstance()->getState();
@@ -44,4 +55,14 @@ void PlaybackScreen::drawGUI()
         }
     }
     ImGui::End();
+}
+
+float PlaybackScreen::getTimerScale() const
+{
+    return this->timer_scale;
+}
+
+void PlaybackScreen::setTimerScale(float timer_scale)
+{
+    this->timer_scale = timer_scale;
 }

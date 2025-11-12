@@ -5,8 +5,8 @@ using namespace vcl;
 
 void terrain_loader::load_terrain(std::string terrain_filename, std::string texture_filename)
 {
-    std::string terrain_path = "../scenes/sources/smoke/terrains/" + terrain_filename;
-    std::string texture_path = "../scenes/sources/smoke/textures/" + texture_filename;
+    std::string terrain_path = "../assets/terrains/" + terrain_filename;
+    std::string texture_path = "../assets/textures/" + texture_filename;
 
     //if (check_file_exist(terrain_path) && check_file_exist(texture_path))
     //{

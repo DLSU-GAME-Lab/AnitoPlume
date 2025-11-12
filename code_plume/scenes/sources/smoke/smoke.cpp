@@ -31,15 +31,15 @@ void scene_model::frame_draw()
 void scene_model::setup_resources()
 {
     //Textures
-    TextureManager::getInstance()->load("smoke", "../scenes/sources/smoke/smoke_tex/smoke-tex-0.png");
-    TextureManager::getInstance()->load("skysphere", "../scenes/sources/smoke/Skydome/Skysphere_Tex.png");
+    TextureManager::getInstance()->load("smoke", "../assets/smoke_tex/smoke-tex-0.png");
+    TextureManager::getInstance()->load("skysphere", "../assets/Skydome/Skysphere_Tex.png");
 
     //Meshes
     MeshManager::getInstance()->loadPrimitive("Sphere", vcl::mesh_primitive_sphere());
     MeshManager::getInstance()->loadPrimitive("Subspheres", vcl::mesh_primitive_subspheres());
     MeshManager::getInstance()->loadPrimitive("Torus", mesh_primitive_torus(2.5f, { 0,0,1.5 }, { 0,0,-1.5 }, 30, 30));
     MeshManager::getInstance()->loadPrimitive("Quad", mesh_primitive_quad({ -1,-1,0 }, { 1,-1,0 }, { 1,1,0 }, { -1,1,0 }));
-    MeshManager::getInstance()->load("Skysphere", "../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
+    MeshManager::getInstance()->load("Skysphere", "../assets/Skydome/Taal_Skydome.obj");
 }
 
 void scene_model::setup_data()
@@ -53,14 +53,14 @@ void scene_model::setup_data()
     {
         std::string year = years[i];
         std::string texture_name = "Taal_Texture_" + year;
-        std::string texture_path = "../scenes/sources/smoke/textures/" + texture_name + ".png";
+        std::string texture_path = "../assets/textures/" + texture_name + ".png";
         TextureManager::getInstance()->load(texture_name, texture_path);
     }
     for (int i = 0; i < 4; i++)
     {
         std::string year = years[i];
         std::string normal_name = "Taal_Normal_" + year;
-        std::string normal_path = "../scenes/sources/smoke/textures/" + normal_name + ".png";
+        std::string normal_path = "../assets/textures/" + normal_name + ".png";
         TextureManager::getInstance()->load(normal_name, normal_path);
     }
 
@@ -114,8 +114,8 @@ void scene_model::setup_data()
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
-    //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
-    //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
+    //terrain_display.texture_id = create_texture_gpu(image_load_png("../assets/terrains/Taal_Texture_BaseColor_2016.png"));
+    //terrain_display.norm_tex_id = add_normal_map(image_load_png("../assets/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
 
     fU0 = 150;
@@ -419,7 +419,7 @@ void scene_model::setup_terrain_preemptive()
         terrain_display.uniform.shading.ambiant = 1.0f;
         terrain_display.uniform.color = { 1,1,1 };
 
-        //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
+        //terrain_display.norm_tex_id = add_normal_map(image_load_png("../assets/textures/Taal_Texture_normal_2024.png"));
 
 
         std::cout << "Pre-emptive terrain setup triggered" << "\n";

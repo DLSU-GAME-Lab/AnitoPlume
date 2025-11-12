@@ -37,13 +37,13 @@ void landmark_loader::setup_landmarks()
 
     std::cout << "LANDMARK LOADER: Loading landmarks..." << "\n";
 
-    MeshManager::getInstance()->load("Landmark", "../scenes/sources/smoke/Landmarks/Landmark.obj");
+    MeshManager::getInstance()->load("Landmark", "../assets/Landmarks/Landmark.obj");
     landmark = MeshManager::getInstance()->getMesh("Landmark");
     shader = ShaderManager::getInstance()->getShader("mesh");
     
     for (int i = 0; i < landmark_count; i++)
     {
-        std::string texture_path = "../scenes/sources/smoke/Landmarks/" + landmark_names[i] + ".png";
+        std::string texture_path = "../assets/Landmarks/" + landmark_names[i] + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
         opengl_debug();
     }

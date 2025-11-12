@@ -1,6 +1,6 @@
 #pragma once
 
-#include "third_party/imgui/imgui.h"
+#include "third_party/imgui/imgui_styles.h"
 #include "third_party/imgui/imgui_impl_glfw.h"
 #include "third_party/imgui/imgui_impl_opengl3.h"
 

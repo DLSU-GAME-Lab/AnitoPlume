@@ -73,9 +73,10 @@ AnitoPlume::AnitoPlume()
 
     std::cout << "*** Setup GUI Resources ***" << std::endl;
     TextureManager::getInstance()->loadWhiteTexture();
-    TextureManager::getInstance()->load("play_icon", "../scenes/sources/smoke/images/play_icon.png");
-    TextureManager::getInstance()->load("pause_icon", "../scenes/sources/smoke/images/pause_icon.png");
-    TextureManager::getInstance()->load("undo_icon", "../scenes/sources/smoke/images/undo_icon.png");
+    TextureManager::getInstance()->load("play_icon", "../assets/images/play_icon.png");
+    TextureManager::getInstance()->load("pause_icon", "../assets/images/pause_icon.png");
+    TextureManager::getInstance()->load("undo_icon", "../assets/images/undo_icon.png");
+    TextureManager::getInstance()->load("danger_zones", "../assets/images/danger_zones.png");
     std::cout << "\t [OK] GUI Resources loaded" << std::endl;
 
     std::cout << "*** Init imgui ***" << std::endl;
@@ -119,7 +120,7 @@ AnitoPlume::AnitoPlume()
 
     opengl_debug();
     std::cout << "*** Setup Data ***" << std::endl;
-    PlumeTracker::getInstance()->loadData("../scenes/sources/smoke/taal_danger_zones.csv");
+    PlumeTracker::getInstance()->loadData("../assets/data/taal_danger_zones.csv");
     scene_current.setup_data();
     std::cout << "\t [OK] Data setup" << std::endl;
     opengl_debug();
