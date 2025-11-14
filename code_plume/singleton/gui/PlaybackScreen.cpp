@@ -7,7 +7,7 @@ PlaybackScreen::PlaybackScreen() : GUIScreen("Playback")
     timer_scale = 1.0f;
     pauseIcon = TextureManager::getInstance()->getTexture("pause_icon");
     playIcon = TextureManager::getInstance()->getTexture("play_icon");
-    resetIcon = TextureManager::getInstance()->getTexture("reset_icon");
+    stopIcon = TextureManager::getInstance()->getTexture("stop_icon");
 }
 
 PlaybackScreen::~PlaybackScreen()
@@ -28,7 +28,7 @@ void PlaybackScreen::drawGUI()
         PlumeManager::getInstance()->setTimerScale(timer_scale);
 
     ImGui::PopItemWidth();
-
+    ImGui::Indent(104.0f);
     // Start and stop animation
     SimulatorState state = PlumeManager::getInstance()->getState();
     if (state == SimulatorState::Stopped || state == SimulatorState::Paused)
@@ -49,7 +49,7 @@ void PlaybackScreen::drawGUI()
     if (state == SimulatorState::Playing || state == SimulatorState::Paused)
     {
         ImGui::SameLine();
-        if (ImGui::ImageButton((ImTextureID)resetIcon, ImVec2(32, 32)))
+        if (ImGui::ImageButton((ImTextureID)stopIcon, ImVec2(32, 32)))
         {
             PlumeManager::getInstance()->stopSimulation();
         }

@@ -7,7 +7,7 @@ private:
 	float timer_scale;
 	unsigned int pauseIcon;
 	unsigned int playIcon;
-	unsigned int resetIcon;
+	unsigned int stopIcon;
 
 public:
 	float getTimerScale() const;

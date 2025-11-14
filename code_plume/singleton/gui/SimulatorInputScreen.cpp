@@ -36,15 +36,10 @@ void SimulatorInputScreen::drawGUI()
 {
     ImGui::Begin("Simulator Input", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
-
     showWindSettings();
     showEruptionParameters();
     showDisplaySettings();
 
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();
     ImGui::End();
 }
 
@@ -52,8 +47,7 @@ void SimulatorInputScreen::showDisplaySettings()
 {
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 8.25f));
-        ImGui::Spacing();
+        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 8.5f), true);
         ImGui::Indent(indent_width);
 
         ImGui::PushItemWidth(200);
@@ -85,8 +79,7 @@ void SimulatorInputScreen::showWindSettings()
 {
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 13.5f));
-        ImGui::Spacing();
+        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 12.75f), true);
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
@@ -222,7 +215,7 @@ void SimulatorInputScreen::showWindSettings()
         }
         ImGui::PopItemWidth();
 
-        if (ImGui::Button("Set to 2020 Eruption Params"))
+        if (ImGui::Button("Set to 2020 Eruption Winds"))
         {
             //U_0 = 200;
             //rho_0 = 250;
@@ -259,8 +252,7 @@ void SimulatorInputScreen::showEruptionParameters()
 {
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 7.5f));
-        ImGui::Spacing();
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 7.75f), true);
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
