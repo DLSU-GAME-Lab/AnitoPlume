@@ -98,7 +98,7 @@ void camera_scene::apply_translation_in_world_axis(float tr_x, float tr_y, float
     //const float alpha = scale/scale0;
 
     vec3 new_translation = translation + (/*(alpha + 0.5f) * */10.0f * vec3 { tr_x, tr_y, tr_z });
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 
 void camera_scene::apply_translation_in_screen_plane(float tr_x, float tr_y)
@@ -106,13 +106,13 @@ void camera_scene::apply_translation_in_screen_plane(float tr_x, float tr_y)
     //const float alpha = scale/scale0;
     
     vec3 new_translation = translation + (/*(alpha + 0.5f) * */10.0f * orientation * vec3 { tr_x, tr_y, 0.0f });
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 void camera_scene::apply_translation_orthogonal_to_screen_plane(float tr)
 {
     //const float alpha = scale/scale0;
     vec3 new_translation = translation + (/*(alpha+0.5f) * */10.0f * orientation * vec3{0.0f, 0.0f, tr});
-    limit_translation(new_translation);
+    sphere_limit_translation(new_translation);
 }
 
 static vec3 trackball_projection(float x, float y, float radius=1.0f)
@@ -139,9 +139,7 @@ void camera_scene::apply_rotation(float x0, float y0, float x1, float y1)
 
         spherical_coordinates.x -= dtheta;
         const float new_phi = spherical_coordinates.y + dphi;
-        if (new_phi > lower_phi_limit &&
-            (mode != view_mode::orbital && new_phi < upper_phi_limit ||
-             mode == view_mode::orbital && new_phi < orbit_phi_limit))
+        if (check_cam_rotate_limits(new_phi))
             spherical_coordinates.y = new_phi;
 
         const float theta = spherical_coordinates.x;
@@ -176,9 +174,7 @@ void camera_scene::apply_rotation(float x0, float y0, float x1, float y1)
 void camera_scene::apply_rotation_absolute(float theta, float phi)
 {
     spherical_coordinates.x = theta;
-    if (phi > lower_phi_limit &&
-        (mode != view_mode::orbital && phi < upper_phi_limit ||
-         mode == view_mode::orbital && phi < orbit_phi_limit))
+    if (check_cam_rotate_limits(phi))
         spherical_coordinates.y = phi;
 
     const mat3 Rx = { 1,      0        ,     0           ,
@@ -211,6 +207,19 @@ void camera_scene::limit_translation(vec3 new_t)
     if (-new_t.z <= upper_limit && -new_t.z >= lower_limit) translation.z = new_t.z;
 }
 
+void camera_scene::sphere_limit_translation(vec3 new_t)
+{
+    float sqr_mag = (new_t.x * new_t.x) + (new_t.y * new_t.y) + (new_t.z * new_t.z);
+
+    if (sqr_mag < near_radial_limit * near_radial_limit)
+        new_t = (new_t / sqrtf(sqr_mag)) * near_radial_limit;
+    else if (sqr_mag > far_radial_limit * far_radial_limit)
+         new_t = (new_t / sqrtf(sqr_mag)) * far_radial_limit;
+
+    if (-new_t.z < lower_limit) new_t.z = -lower_limit;
+    translation = new_t;
+}
+
 void camera_scene::reset_translation()
 {
     last_translation = translation;
@@ -230,6 +239,14 @@ void camera_scene::snap_to_height(float height)
             (mode == view_mode::aerial && translation.z > height))
             translation.z = height;
     }
+}
+
+bool camera_scene::check_cam_rotate_limits(float phi) const
+{
+    return (mode != view_mode::orbital && phi > upper_phi_limit ||
+        mode == view_mode::orbital && phi > upper_orbit_phi_limit) &&
+        (mode != view_mode::orbital && phi < lower_phi_limit ||
+            mode == view_mode::orbital && phi < lower_orbit_phi_limit);
 }
 
 vec3 camera_scene::camera_position() const

@@ -45,7 +45,7 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
 }
 
 
-void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id)
+void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, vec3 color, float alpha)
 {
     // If shader is, skip display
     if(shader==0)
@@ -77,10 +77,16 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     }
 
     // Send all uniform values to the shader
+    if (color[0] == 1 && color[1] == 1 && color[2] == 1)
+        uniform(shader, "color", drawable.uniform.color);
+    else uniform(shader, "color", color);                                        opengl_debug();
+
+    if (alpha == 1.0f)
+        uniform(shader, "color_alpha", drawable.uniform.color_alpha);
+    else uniform(shader, "color_alpha", alpha);                                  opengl_debug();
+
     uniform(shader, "rotation", drawable.uniform.transform.rotation);            opengl_debug();
     uniform(shader, "translation", drawable.uniform.transform.translation);      opengl_debug();
-    uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
-    uniform(shader, "color_alpha", drawable.uniform.color_alpha);                opengl_debug();
     uniform(shader, "scaling", drawable.uniform.transform.scaling);              opengl_debug();
     uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);    opengl_debug();
 
@@ -92,7 +98,13 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
-    
+
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
+    uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
+    uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
+    uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
+    uniform(shader, "fog_fade_height", camera.fog_fade_height); opengl_debug();
+    uniform(shader, "fog_max_height", camera.fog_max_height);   opengl_debug();
 
     vcl::draw(drawable.data); opengl_debug();
 
@@ -151,12 +163,64 @@ void draw(const mesh_drawable& drawable, const camera_scene& camera, GLuint shad
     uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
     uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
 
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
+    uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
+    uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
+    uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
+    uniform(shader, "fog_fade_height", camera.fog_fade_height); opengl_debug();
+    uniform(shader, "fog_max_height", camera.fog_max_height);   opengl_debug();
+
     vcl::draw(drawable.data); opengl_debug();
-
-
 }
 
-void drawMix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float mix_prog)
+void draw_sky(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id)
+{
+    // If shader is, skip display
+    if (shader == 0)
+    {
+        std::cout << "display  skipped" << std::endl;
+        return;
+    }
+
+    // Check that the shader is a valid one
+    if (glIsProgram(shader) == GL_FALSE)
+    {
+        std::cout << "No valid shader set to display mesh: skip display" << std::endl;
+        return;
+    }
+
+    // Switch shader program only if necessary
+    GLint current_shader = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
+    if (shader != GLuint(current_shader))
+        glUseProgram(shader); opengl_debug();
+
+    if (texture_id != 0)
+    {
+        assert(glIsTexture(texture_id));
+        //glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
+    }
+
+    uniform(shader, "rotation", drawable.uniform.transform.rotation);         opengl_debug();
+    uniform(shader, "translation", drawable.uniform.transform.translation);   opengl_debug();
+    uniform(shader, "scaling", drawable.uniform.transform.scaling);           opengl_debug();
+    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis); opengl_debug();
+
+    uniform(shader, "perspective", camera.perspective.matrix());              opengl_debug();
+    uniform(shader, "view", camera.view_matrix());                            opengl_debug();
+
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
+    uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
+    uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
+    uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
+    uniform(shader, "fog_fade_height", camera.fog_fade_height); opengl_debug();
+    uniform(shader, "fog_max_height", camera.fog_max_height);   opengl_debug();
+
+    vcl::draw(drawable.data); opengl_debug();
+}
+
+void draw_mix(const mesh_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id, GLuint norm_tex_id, GLuint mix_tex_id, float mix_prog)
 {
     // If shader is, skip display
     if (shader == 0)
@@ -178,39 +242,45 @@ void drawMix(const mesh_drawable& drawable, const camera_scene& camera, GLuint s
         glUseProgram(shader); opengl_debug();
 
     // Bind texture only if id != 0
-    if (norm_tex_id != 0)
-    {
-        assert(glIsTexture(norm_tex_id));
-        //glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
-    }
+    //if (norm_tex_id != 0)
+    //{
+    //    assert(glIsTexture(norm_tex_id));
+    //    //glActiveTexture(GL_TEXTURE1);
+    //    glBindTexture(GL_TEXTURE_2D, norm_tex_id);  opengl_debug();
+    //}
     if (texture_id != 0) {
         assert(glIsTexture(texture_id));
         //glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_id);  opengl_debug();
     }
-    if (mix_tex_id != 0)
-    {
-        assert(glIsTexture(mix_tex_id));
-        //glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mix_tex_id);  opengl_debug();
-    }
-    uniform(shader, "rotation", drawable.uniform.transform.rotation);            opengl_debug();
-    uniform(shader, "translation", drawable.uniform.transform.translation);      opengl_debug();
-    uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
-    uniform(shader, "color_alpha", drawable.uniform.color_alpha);                opengl_debug();
-    uniform(shader, "scaling", drawable.uniform.transform.scaling);              opengl_debug();
-    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);    opengl_debug();
+    //if (mix_tex_id != 0)
+    //{
+    //    assert(glIsTexture(mix_tex_id));
+    //    //glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, mix_tex_id);  opengl_debug();
+    //}
+    uniform(shader, "rotation", drawable.uniform.transform.rotation);           opengl_debug();
+    uniform(shader, "translation", drawable.uniform.transform.translation);     opengl_debug();
+    uniform(shader, "color", drawable.uniform.color);                           opengl_debug();
+    uniform(shader, "color_alpha", drawable.uniform.color_alpha);               opengl_debug();
+    uniform(shader, "scaling", drawable.uniform.transform.scaling);             opengl_debug();
+    uniform(shader, "scaling_axis", drawable.uniform.transform.scaling_axis);   opengl_debug();
 
-    uniform(shader, "perspective", camera.perspective.matrix());         opengl_debug();
-    uniform(shader, "view", camera.view_matrix());                       opengl_debug();
-    uniform(shader, "camera_position", camera.camera_position());        opengl_debug();
+    uniform(shader, "perspective", camera.perspective.matrix());    opengl_debug();
+    uniform(shader, "view", camera.view_matrix());                  opengl_debug();
+    uniform(shader, "camera_position", camera.camera_position());   opengl_debug();
 
-    uniform(shader, "ambiant", drawable.uniform.shading.ambiant);      opengl_debug();
-    uniform(shader, "diffuse", drawable.uniform.shading.diffuse);      opengl_debug();
-    uniform(shader, "specular", drawable.uniform.shading.specular);    opengl_debug();
-    uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent); opengl_debug();
-    uniform(shader, "blend_progress", mix_prog);
+    uniform(shader, "ambiant", drawable.uniform.shading.ambiant);                       opengl_debug();
+    uniform(shader, "diffuse", drawable.uniform.shading.diffuse);                       opengl_debug();
+    uniform(shader, "specular", drawable.uniform.shading.specular);                     opengl_debug();
+    uniform(shader, "specular_exponent", drawable.uniform.shading.specular_exponent);   opengl_debug();
+
+    uniform(shader, "gamma", camera.gamma);                     opengl_debug();
+    uniform(shader, "fog_color", camera.fog_color);             opengl_debug();
+    uniform(shader, "fog_start", camera.fog_start);             opengl_debug();
+    uniform(shader, "fog_density", camera.fog_density);         opengl_debug();
+    uniform(shader, "fog_fade_height", camera.fog_fade_height); opengl_debug();
+    uniform(shader, "fog_max_height", camera.fog_max_height);   opengl_debug();
 
     vcl::draw(drawable.data); opengl_debug();
 

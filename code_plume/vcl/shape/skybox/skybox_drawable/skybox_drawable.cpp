@@ -29,6 +29,8 @@ namespace vcl
 
     void draw(const skybox_drawable& drawable, const camera_scene& camera, GLuint shader, GLuint texture_id)
     {
+        GLenum error = 0;
+
         // If shader is, skip display
         if (shader == 0)
             return;
@@ -40,9 +42,13 @@ namespace vcl
             return;
         }
 
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+
         // Switch shader program only if necessary
         GLint current_shader = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current_shader); opengl_debug();
+
         if (shader != GLuint(current_shader))
             glUseProgram(shader); opengl_debug();
 
@@ -54,14 +60,14 @@ namespace vcl
         }
 
         // Send all uniform values to the shader
-        //uniform(shader, "color", drawable.uniform.color);                            opengl_debug();
-
-        uniform(shader, "perspective", camera.perspective.matrix());         opengl_debug();
-        uniform(shader, "view", camera.view_matrix());                       opengl_debug();
-        //uniform(drawable.shader, "camera_position", camera.camera_position());        opengl_debug();
+        //uniform(shader, "color", drawable.uniform.color);             opengl_debug();
+        uniform(shader, "perspective", camera.perspective.matrix());    opengl_debug();
+        uniform(shader, "view", camera.view_matrix());                  opengl_debug();
 
         vcl::draw(drawable.data); opengl_debug();
 
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
     }
 
 }

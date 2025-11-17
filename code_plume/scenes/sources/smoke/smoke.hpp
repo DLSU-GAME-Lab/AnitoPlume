@@ -4,6 +4,9 @@
 #include "scenes/sources/smoke/smokeLayer.hpp"
 #include "scenes/sources/smoke/terrain_structure.hpp"
 #include "scenes/sources/smoke/terrain_loader/terrain_loader.hpp"
+#include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
+#include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
+#include "scenes/sources/smoke/direction_tracker/direction_tracker.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -18,14 +21,14 @@
 struct wind_structure
 {
     int intensity;
-    int angle;
+    float angle;
     vcl::vec3 wind_vector; // horizontal
 
     wind_structure() : intensity(0), angle(0), wind_vector(1,0,0) {}
-    wind_structure(int intensity, int angle) : intensity(intensity), angle(angle)
+    wind_structure(int intensity, int angle) : intensity(intensity), angle(angle * (3.14159 / 180))
     {
-        wind_vector = intensity * vcl::vec3(cos(angle), sin(angle), 0);
     }
+    void recalc_wind_vector();
 };
 
 // User parameters available in the GUI
@@ -36,6 +39,7 @@ struct gui_parameters
     bool display_subspheres;
     bool display_spheres_with_subspheres;
     bool display_billboards;
+    bool display_tooltips;
 };
 
 enum class engine_state {stopped, playing, paused};
@@ -45,19 +49,30 @@ struct scene_model : scene_base
     unsigned int frame_count;
     vcl::timer_event timer;
     float dt;
-    bool debug_mode;
     float t_step;
+    bool debug_mode;
     bool replay;
     size_t frame_replay;
     bool export_data;
     engine_state state;
+    std::vector<int> deg_angle;
+    bool all_angles;
+    int gui_index;
 
     // Trackers
+    float sim_time;
     float new_layer_delay;
     unsigned int total_layers_ejected;
     unsigned int nb_of_iterations;
     unsigned int last_ppe_layer_idx;
     float decal_progress = 1.f;
+    float avg_wind_dir_degrees;
+    std::vector<std::string> tooltip_names;
+    std::vector<std::string> landmark_names;
+
+    unsigned short free_sphere_id;
+    unsigned short falling_sphere_id;
+
     // Meshes
     vcl::mesh mesh_terrain;
 
@@ -65,14 +80,18 @@ struct scene_model : scene_base
     vcl::mesh_drawable generic_sphere_mesh;
     vcl::mesh_drawable layer_mesh;
     vcl::mesh_drawable terrain;
+    vcl::mesh_drawable skysphere;
     vcl::mesh_drawable terrain_display;
+    vcl::mesh_drawable tooltip_display[4];
+    vcl::mesh_drawable landmark_display[11];
     vcl::mesh_drawable sphere;
+    vcl::mesh_drawable sky_sphere;
     vcl::mesh_drawable quad;
     vcl::curve_drawable sphere_circle;
     vcl::skybox_drawable skybox;
-
+    vcl::vec3 avg_wind_direction;
     GLuint skybox_tex;
-    GLuint smoke_textures[5];
+    GLuint smoke_texture;
     GLuint pauseIcon;
     GLuint playIcon;
     GLuint resetIcon;
@@ -83,15 +102,15 @@ struct scene_model : scene_base
     vcl::mesh_drawable subspheres_display;
 
     // Parameters : to be chosen by user
-    float T_0; // initial temp
-    float theta_0; // initial angle
-    float U_0; // initial speed
-    float n_0; // initial gas mass fraction
-    float z_0; // initial altitude
-    float r_0; // initial radius
-    float rho_0; // initial density
-    float air_incorporation_coeff;
-    float stagnation_speed;
+    double T_0; // initial temp
+    double theta_0; // initial angle
+    double U_0; // initial speed
+    double n_0; // initial gas mass fraction
+    double z_0; // initial altitude
+    double r_0; // initial radius
+    double rho_0; // initial density
+    double air_incorporation_coeff;
+    double stagnation_speed;
 
     unsigned int subspheres_number;
     unsigned int subsubspheres_number;
@@ -105,6 +124,23 @@ struct scene_model : scene_base
 
     // Parameters : constants
     float g;
+    double min_lifetime;
+    double max_lifetime;
+
+    float tooltip_dist;
+    float landmark_min_dist;
+    float landmark_max_dist;
+
+    int max_smoke;
+    float transition_speed;
+    float transition_delay;
+
+    float max_altitude;
+    float altitude_step;
+    int altitude_size;
+
+    int direction_tracker_step_size;
+    float direction_tracker_step;
 
     // Data structures
     std::vector<smoke_layer> smoke_layers;
@@ -114,9 +150,14 @@ struct scene_model : scene_base
     std::vector<free_sphere_params> stagnate_spheres;
     std::vector<free_sphere_params> falling_spheres;
     std::vector< std::vector<free_sphere_params> > falling_spheres_buffers;
+    std::vector<float> sphere_lifetime;
+    std::vector<float> transition_lifetime;
 
     terrain_structure terrain_struct;
     terrain_loader t_loader;
+    direction_tracker direction_tracker;
+    tooltip_loader tip_loader;
+    landmark_loader mark_loader;
 
     // For replay feature
     std::vector< std::vector<smoke_layer> > smoke_layers_frames;
@@ -155,6 +196,7 @@ struct scene_model : scene_base
 
     // Smoke layer computation
     vcl::vec3 compute_wind_vector(float height);
+    void calculate_avg_wind_dir();
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);
     void edit_smoke_layer_properties(unsigned int i, float& d_mass);
     void apply_forces_to_smoke_layer(unsigned int i, float d_mass);
@@ -162,6 +204,9 @@ struct scene_model : scene_base
     void pyroclastic_flow_computation_step(unsigned int i);
     void complete_plume_layer_properties_update(unsigned int i);
     void smoke_layer_update(unsigned int i);
+    void check_smoke_position(unsigned int i);
+    void remove_colliding_smoke();
+    void remove_smoke_layers();
 
     // Pyroclastic flow : falling spheres
     float field_height_at(float x, float y);
@@ -188,10 +233,13 @@ struct scene_model : scene_base
     void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
                            vcl::mesh_drawable terrain);
 
+    // Input
+    void keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods);
+
     // Init
-    void set_gui();
-    void set_gui_playback();
-    void set_gui_profiler();
+    void set_gui(gui_structure& gui);
+    void set_gui_playback(gui_structure& gui);
+    void set_gui_profiler(gui_structure& gui);
 
     gui_parameters gui_param;
 };

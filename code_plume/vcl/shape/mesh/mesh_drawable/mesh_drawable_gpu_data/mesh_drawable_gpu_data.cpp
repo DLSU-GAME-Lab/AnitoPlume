@@ -89,12 +89,12 @@ mesh_drawable_gpu_data::mesh_drawable_gpu_data(const mesh &mesh_cpu_arg)
 
     // tangents at layout 4
     glBindBuffer(GL_ARRAY_BUFFER, vbo_tangent);
-    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     
     // bitangents at layout 5
     glBindBuffer(GL_ARRAY_BUFFER, vbo_bitangent);
-    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(5);
     glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

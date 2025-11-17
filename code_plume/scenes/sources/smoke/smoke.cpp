@@ -83,24 +83,41 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
     setup_terrain_preemptive();
 
     dt = timer.update();
-    set_gui();
-    set_gui_playback();
-    set_gui_profiler();
-    t_loader.show_gui();
+    set_gui(gui);
+    set_gui_playback(gui);
+    set_gui_profiler(gui);
+    t_loader.show_gui(&gui.enabled["Terrain"]);
+    direction_tracker.show_gui(&gui.enabled["Direction Tracker"]);
 
     terrain_display.texture_id = t_loader.current_tex_id;
     terrain_display.norm_tex_id = t_loader.current_norm_id;
     //std::cout << terrain_display.texture_id << std::endl;
     //std::cout << t_loader.current_tex_id << std::endl;
+    for (int i = 0; i < 4; i++)
+    {
+        tooltip_display[i].uniform.transform.rotation = scene.camera.orientation;
+    }
+    for (int i = 0; i < 11; i++)
+    {
+        landmark_display[i].uniform.transform.rotation = scene.camera.orientation;
+    }
 
 
     // Force constant time step
     t_step = dt<=1e-6f? 0.0f : timer.scale*0.002f; //0.0003f
     new_layer_delay += t_step;
 
-
     if (!replay)
     {
+        sim_time += t_step;
+        //remove_colliding_smoke();
+        remove_smoke_layers();
+
+        for (int i = 0; i < transition_lifetime.size(); i++)
+        {
+            transition_lifetime[i] += t_step;
+        }
+
         for (unsigned int nb_steps_per_frame = 0; nb_steps_per_frame<10; nb_steps_per_frame++)
         {
             // add smoke layer each x seconds
@@ -141,10 +158,10 @@ void scene_model::frame_draw(std::map<std::string,GLuint>& shaders, scene_struct
             }
 
             
-            if (decal_progress > 0)
+    /*        if (decal_progress > 0)
             {
-                decal_progress -= .01 * dt;
-            }
+                decal_progress -= .01 * t_step;
+            }*/
             frame_count++;
         }
     }
@@ -207,6 +224,23 @@ vcl::vec3 scene_model::compute_wind_vector(float height)
     }
 }
 
+void scene_model::calculate_avg_wind_dir()
+{
+    vcl::vec3 winds_vec = { 0,0,0 };
+    for (int i = 0; i < winds.size(); i++)
+    {
+        winds_vec += winds[i].wind_vector;
+    }
+
+    float winds_squared_x = winds_vec.x * winds_vec.x;
+    float winds_squared_y = winds_vec.y * winds_vec.y;
+    float winds_squared_z = winds_vec.z * winds_vec.z;
+
+    float mag = sqrt(winds_squared_x + winds_squared_y + winds_squared_z);
+    this->avg_wind_direction = vcl::vec3(winds_vec.x, winds_vec.y, winds_vec.z) / mag;
+    direction_tracker.set_wind_direction(this->avg_wind_direction);
+}
+
 void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
 {
     // get wind at altitude
@@ -245,8 +279,6 @@ void scene_model::edit_smoke_layer_properties(unsigned int i, float& d_mass)
     float rho_new = mass_new/volume_new;
     float r_new = cbrt(volume_new/3.14);
     smoke_layers[i].thickness = r_new;
-    smoke_layers[i].lifespan -= dt;
-
 
     // new speed due to conservation of energy (old)
     //float energy = 0.5 * total_smoke_mass * smoke_layers[i].v.z * smoke_layers[i].v.z;
@@ -378,9 +410,69 @@ void scene_model::sedimentation(unsigned int i, float& d_mass)
 void scene_model::smoke_layer_update(unsigned int i)
 {
     float d_mass = 0; // to track mass change for equation of dynamics
+    smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
+
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
     if (smoke_layers[i].rising && !smoke_layers[i].stagnates_long) edit_smoke_layer_properties(i, d_mass); // convection if v_z > 0 (convection causes air entrainment)
     apply_forces_to_smoke_layer(i, d_mass);
+    check_smoke_position(i);
+}
+
+void scene_model::check_smoke_position(unsigned int i)
+{
+    float max_layer_altitude = smoke_layers[0].center.z;
+    direction_tracker_step = direction_tracker_step < 100.0f ? 100.0f : max_layer_altitude / direction_tracker_step_size;
+    direction_tracker.set_altitude_step(direction_tracker_step);
+    for (int j = 0; j < direction_tracker_step_size; j++)
+    {
+        if (int(smoke_layers[i].center.z) == int(j * direction_tracker_step) + 1)
+        {
+            direction_tracker.set_plume_positions(j, smoke_layers[i].center, smoke_layers[i].r);
+        }
+    }
+}
+
+void scene_model::remove_colliding_smoke()
+{
+    if (!free_spheres.empty())
+    {
+        float ratio = 100.0f;
+        float crater_r = 20.0f;
+        float y_offset = -10.0f;
+        for (int i = free_spheres.size() - 1; i >= 0; i--)
+        {
+            if (abs(free_spheres[i].center.x / ratio) > crater_r && free_spheres[i].center.y - (free_spheres[i].r / ratio) + y_offset < 0)
+                free_spheres.erase(free_spheres.begin() + i);
+        }
+    }
+}
+
+void scene_model::remove_smoke_layers()
+{
+    /*
+    * if sim time is greater than max lifetime
+    * and the beginning of smoke layers vector is less that max lifetime
+    * erase the layer that's over max lifetime and repeat
+    * do the same for sphere params
+    */
+    if (!smoke_layers.empty())
+    {
+        //std::cout << "lifetime: " << smoke_layers[0].lifetime << " max: " << max_lifetime << " t_step: " << t_step << "\n";
+        while (smoke_layers[0].lifetime > max_lifetime)
+        {
+            smoke_layers.erase(smoke_layers.begin());
+
+            for (int i = 0; i < free_spheres.size(); i++)
+            {
+                free_spheres[i].closest_layer_idx--;
+            }
+
+            while (free_spheres[0].closest_layer_idx < 0)
+            {
+                free_spheres.erase(free_spheres.begin());
+            }
+        }
+    }
 }
 
 
@@ -503,7 +595,7 @@ void scene_model::ground_falling_sphere_update(free_sphere_params& sphere, int i
 
     sphere.speed = v;
     sphere.center = p;
-    sphere.lifespan -= dt;
+    sphere.lifetime = sphere.lifetime + t_step;
 
     if (!sphere.falling_disappeared) sphere_ground_collision(sphere, idx, frame_nb);
 }
@@ -648,7 +740,8 @@ void scene_model::falling_spheres_update(unsigned int frame_nb)
 
 void scene_model::add_free_sphere(unsigned int i, float angle, float size_fac)
 {
-    free_sphere_params sphere(smoke_layers[i].center, angle, size_fac * smoke_layers[i].r, smoke_layers[i].v.z);
+    free_sphere_params sphere(free_sphere_id, smoke_layers[i].center, angle, size_fac * smoke_layers[i].r, smoke_layers[i].v.z);
+    free_sphere_id++;
     sphere.size_factor = size_fac;
     sphere.rho = smoke_layers[i].rho;
     float volume = 4.0/3.0 * 3.14 * sphere.r*sphere.r*sphere.r;
@@ -741,7 +834,8 @@ void scene_model::subdivide_and_make_falling(unsigned int i)
     {
         if (s2_spheres[j].parent_id == i)
         {
-            free_sphere_params sphere = free_sphere_params(s2_spheres[j].center, s2_spheres[j].r, free_spheres[i].rho);
+            free_sphere_params sphere = free_sphere_params(falling_sphere_id, s2_spheres[j].center, s2_spheres[j].r, free_spheres[i].rho);
+            falling_sphere_id++;
             sphere.falling = true;
             sphere.stagnate = false;
             falling_spheres.push_back(sphere);
@@ -759,8 +853,9 @@ void scene_model::subdivide_and_make_falling(unsigned int i)
             float rand_theta = 2*3.14 * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             vec3 rand_vec(sin(rand_theta)*cos(rand_phi), sin(rand_theta)*sin(rand_phi), cos(rand_theta));
             vec3 new_center = free_spheres[i].center + rand_r * rand_vec; //random position inside free sphere
-            free_sphere_params sphere = free_sphere_params(new_center, falling_ray, free_spheres[i].rho);
+            free_sphere_params sphere = free_sphere_params(falling_sphere_id, new_center, falling_ray, free_spheres[i].rho);
             falling_spheres.push_back(sphere);
+            falling_sphere_id++;
         }
     }
 
@@ -774,6 +869,7 @@ void scene_model::update_free_spheres()
     for (int i = free_spheres.size()-1; i>=0; i--)
     {
         free_sphere_params& sphere_i = free_spheres[i];
+        sphere_i.lifetime = sphere_i.lifetime + t_step;
 
         if (!sphere_i.stagnate_long && !sphere_i.falling)
         {
@@ -790,6 +886,7 @@ void scene_model::update_free_spheres()
                     closest_layer_id = j;
                 }
             }
+
             if (sphere_i.secondary_column) closest_layer_id = sphere_i.closest_layer_idx;
             if (sphere_i.stagnate || sphere_i.stagnate_long) closest_layer_id = sphere_i.closest_layer_idx;
             closest_layer_id = sphere_i.closest_layer_idx;
@@ -856,7 +953,6 @@ void scene_model::update_free_spheres()
                 sphere_i.r = new_r;
                 sphere_i.relative_distance = norm(sphere_i.center-smoke_layers[closest_layer_id].center);
                 sphere_i.rho = smoke_layers[closest_layer_id].rho;
-                sphere_i.lifespan -= dt;
 
                 if (!sphere_i.stagnate && smoke_layers[closest_layer_id].theta >1)
                 {
@@ -1157,18 +1253,24 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     total_layers_ejected = 0;
     nb_of_iterations = 0;
     frame_count = 0;
+    sim_time = 0;
+    min_lifetime = 180.0;
+    max_lifetime = 240.0;
     export_data = false;
     state = engine_state::stopped;
+    all_angles = false;
     srand(time(0));
 
     t_loader.mesh_shader = shaders["mesh"];
     t_loader.load_all_textures();
+    tip_loader.load_all_textures();
 
     gui_param.display_smoke_layers = false;
     gui_param.display_free_spheres = false;
     gui_param.display_subspheres = false;
     gui_param.display_spheres_with_subspheres = false;
     gui_param.display_billboards = true;
+    gui_param.display_tooltips = true;
     //decal = t_loader.texture_id[1];
     debug_mode = true;
     float seed = time(0);
@@ -1180,12 +1282,17 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     }
 
     gui.show_frame_camera = false; std::cout << "replay becomes false 0" << std::endl;
+    gui.enabled["Simulator Input"] = true;
+    gui.enabled["Direction Tracker"] = true;
+    gui.enabled["Playback"] = true;
+    gui.enabled["Profiler"] = true;
+    gui.enabled["Terrain"] = true;
 
     // camera setup
-    scene.camera.apply_rotation(0,0,1.5,.78f);
-    scene.camera.apply_scaling(100.0);
-    scene.camera.apply_translation_in_screen_plane(0, -0.5);
-    scene.camera.apply_translation_in_world_axis(.75,.75,0.f);
+    scene.camera.set_scale(scene.camera_control.orbit_distance);
+    scene.camera.translation = { 0.0f, 0.0f, -10.0f };
+    scene.camera.apply_rotation_absolute(0.0f, 1.0f);
+    scene.camera.last_translation = { 0.0f, 100.0f, -10.0f };
 
 
     // Meshes setup
@@ -1222,35 +1329,51 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
     subspheres.uniform.shading.diffuse = 0.8f;
     subspheres.uniform.shading.specular = 0.0f;
 
-    GLuint texture_billboard;
-    for (int i = 0; i < 5; i++)
-    {
-        std::string path = "../scenes/sources/smoke/smoke_tex/smoke-tex-";
-        path += std::to_string(i) + ".png";
-        texture_billboard = create_texture_gpu(image_load_png(path));
-        smoke_textures[i] = texture_billboard;
-    }
-
+    smoke_texture = create_texture_gpu(image_load_png("../scenes/sources/smoke/smoke_tex/smoke-tex-0.png"));
     quad = mesh_drawable(mesh_primitive_quad({-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}));
     quad.uniform.shading.ambiant = 1.0;
     quad.uniform.shading.diffuse = 0.0;
     quad.uniform.shading.specular = 0.0;
 
-    //skybox setup
-    std::vector<image_raw> skybox_tex_raw;
-    for (int i = 0; i < 6; i++)
-    {
-        std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
-        path += std::to_string(i) + ".png";
-        skybox_tex_raw.push_back(image_load_png(path));
-    }
-    skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
-    skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+    max_smoke = 20;
+    transition_speed = 5.0f;
+    transition_delay = 0.2f;
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
 
-    auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
-    sphere_circle = curve_drawable(circle);
-    sphere_circle.shader = shaders["curve"];
-    sphere_circle.uniform.color = {1,0,0};
+    //sky mesh setup
+    sphere = mesh_drawable(mesh_primitive_sphere(100.0f));
+    sphere.shader = shaders["sky_mesh"];
+    sphere.uniform.color = { 1,1,1 };
+    sphere.texture_id = scene.texture_white;
+
+    mesh sky = mesh_load_file_obj("../scenes/sources/smoke/Skydome/Taal_Skydome.obj");
+    skysphere = mesh_drawable(sky);
+    //skysphere = mesh_drawable(mesh_primitive_sphere(100.0f));
+    skysphere.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/Skydome/Skysphere_Tex.png"));
+    skysphere.uniform.color = { 1, 1, 1 };
+    skysphere.uniform.shading.specular = 100.0f;
+    skysphere.uniform.shading.ambiant = 1.0f;
+    skysphere.uniform.shading.diffuse = 1.0f;
+    skysphere.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
+    skysphere.uniform.transform.scaling = 1.0f;
+    skysphere.uniform.transform.translation = { 0,0,0 };
+
+    ////skybox setup
+    //std::vector<image_raw> skybox_tex_raw;
+    //for (int i = 0; i < 6; i++)
+    //{
+    //    std::string path = "../scenes/sources/smoke/skybox_tex/skybox-partial-";
+    //    path += std::to_string(i) + ".png";
+    //    skybox_tex_raw.push_back(image_load_png(path));
+    //}
+    //skybox_tex = create_texture_cube_map_gpu(skybox_tex_raw);
+    //skybox = skybox_drawable(vcl::skybox(), shaders["skybox"], skybox_tex);
+
+    //auto circle = vcl::curve_primitve_circle(30, 1.0, {0,0,0}, {0,0,1});
+    //sphere_circle = curve_drawable(circle);
+    //sphere_circle.shader = shaders["curve"];
+    //sphere_circle.uniform.color = {1,0,0};
 
     //sampling subpheres
     {
@@ -1337,37 +1460,93 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
         subspheres_display.uniform.shading.diffuse = 0.3f;
         subspheres_display.uniform.shading.specular = 0.0f;
     }
+    // tooltip names
+    tooltip_names.push_back("Tooltip-Balantoc") ;
+    tooltip_names.push_back("Tooltip-Malaki") ;
+    tooltip_names.push_back("Tooltip-Munti") ;
+    tooltip_names.push_back("Tooltip-Piraso") ;
+    //landmark names
+    landmark_names.push_back("Landmark_Lipa");
+    landmark_names.push_back("Landmark_SantaTeresita");
+    landmark_names.push_back("Landmark_Tagaytay");
+    landmark_names.push_back("Landmark_Tanauan");
+    landmark_names.push_back("Landmark-Talisay");
+    landmark_names.push_back("Landmark-Agoncillo");
+    landmark_names.push_back("Landmark-Alitagtag");
+    landmark_names.push_back("Landmark-Balete");
+    landmark_names.push_back("Landmark-Cuenca");
+    landmark_names.push_back("Landmark-Laurel");
+    landmark_names.push_back("Landmark-Mataasnakahoy");
     
-    t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2023.png");
+
+
+    //load terrain
+    t_loader.load_terrain("Taal-Spherical-2_0.obj", "Taal_Texture_2023.png");
 
     terrain_display = t_loader.terrain;
     terrain_display.uniform.transform.scaling = .25f;
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
+    //load tooltips
+    for (int i = 0; i < tooltip_names.size(); i++)
+    {
+        tip_loader.load_tooltip("Tooltip.obj", tooltip_names[i] + ".png");
+        tooltip_display[i] = tip_loader.tooltip;
+        tooltip_display[i].uniform.transform.scaling = 4.f;
+        tooltip_display[i].uniform.shading.ambiant = 1.f;
+    }
 
-   
+    //setup tooltips
+    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
+    tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
+    tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
+    tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
 
-    //t_loader.load_terrain("taal_paid.obj", "Taal_Texture_2021.png");
-
-    //terrain_replace = t_loader.terrain;
-    //terrain_replace.uniform.transform.scaling = .25f;
-    ////terrain_display.texture_id = create_texture_gpu(image_load_png("../scenes/sources/smoke/terrains/Taal_Texture_BaseColor_2016.png"));
-    //terrain_replace.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
-    //terrain_replace.uniform.color = { 1,1,1 };
-
-  
-
+    //load landmark
+    for (int i = 0; i < landmark_names.size(); i++)
+    {
+        mark_loader.load_landmark("Landmark.obj", landmark_names[i] + ".png");
+        landmark_display[i] = mark_loader.tooltip;
+        landmark_display[i].uniform.transform.scaling = 10.f;
+        landmark_display[i].uniform.shading.ambiant = 1.f;
+    }
+    // lipa
+    landmark_display[0].uniform.transform.translation = { 285.f,-130.f,5.f };
+    // sta terisita
+    landmark_display[1].uniform.transform.translation = { -35,-215.f,5.f };
+    //tagaytay
+    landmark_display[2].uniform.transform.translation = { -100,255.f,5.f };
+    // tanauan
+    landmark_display[3].uniform.transform.translation = { 255,130.f,5.f };
+    //talisay
+    landmark_display[4].uniform.transform.translation = { 0,150,5.f };
+    //Agoncillo
+    landmark_display[5].uniform.transform.translation = { -100,0,5.f };
+    //Alitagtag
+    landmark_display[6].uniform.transform.translation = { 0,-300,5.f };
+    //Balete
+    landmark_display[7].uniform.transform.translation = { 255,50,5.f };
+    //Cuenca
+    landmark_display[8].uniform.transform.translation = { 100,-250,5.f };
+    //Laurel
+    landmark_display[9].uniform.transform.translation = {-125,100.f,5.f };
+    //Mataas na Kahoy
+    landmark_display[10].uniform.transform.translation = { 225, -50.f,5.f };
     
     // Params setup
     is_wind = false;
     linear_wind_base = 15.;
-    for(unsigned int i = 0; i<6; i++)
+    max_altitude = 10000;
+    altitude_step = 2000;
+    altitude_size = int(max_altitude / altitude_step) + 1;
+    for(unsigned int i = 0; i < altitude_size; i++)
     {
-        wind_altitudes.push_back(i*4000);
+        wind_altitudes.push_back(i* altitude_step);
         winds.push_back(wind_structure(0,0));
+        this->deg_angle.push_back(0);
     }
-    
+
     is_wind = false;
     linear_wind_base = 15.;
     selected = 0;
@@ -1375,10 +1554,17 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     stagnation_speed = 50;
 
+    // Direction tracker setup
+    direction_tracker_step = 1000.0f;
+    direction_tracker_step_size = 20;
+    direction_tracker.initialize(max_altitude, direction_tracker_step_size);
+    direction_tracker.load_data("../scenes/sources/smoke/taal_danger_zones.csv");
+    calculate_avg_wind_dir();
+
     // coeff init
     air_incorporation_coeff = 5.;
 
-    subspheres_number = 200;
+    subspheres_number = 0;
     subsubspheres_number = 0;
 
     // Parameters : to be chosen by user
@@ -1392,17 +1578,22 @@ void scene_model::setup_data(std::map<std::string,GLuint>& shaders, scene_struct
 
     // Parameters : constants
     g = 9.81; // (m.s-2)
+    tooltip_dist = 100;
+    landmark_min_dist = 80;
+    landmark_max_dist = 30;
 }
 
 
 void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& )
 {
-    //draw(skybox, scene.camera, shaders["skybox"], skybox_tex);
+    if (scene.sky_enabled)
+        draw_sky(skysphere, scene.camera, shaders["sky_mesh"], skysphere.texture_id);
+        //draw_sky(sky_sphere, scene.camera, shaders["sky_mesh"], scene.texture_white);
 
     if (terrain_display.data.number_triangles > 0)
     {
         //draw(terrain_display, scene.camera, shaders["mesh"], true);
-        drawMix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
+        draw_mix(terrain_display, scene.camera, shaders["mesh_mix"], terrain_display.texture_id, terrain_display.norm_tex_id, decal, decal_progress);
     }
     //draw(terrain, scene.camera, shaders["wireframe"]);
 
@@ -1417,7 +1608,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         smoke_layer lay = smoke_layers[i];
 
         generic_torus_mesh.uniform.transform.scaling = lay.r/ratio;
-        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio);
+        generic_torus_mesh.uniform.transform.translation = vec3(lay.center.x/ratio-25, lay.center.y/ratio, lay.center.z/ratio - 2);
         generic_torus_mesh.uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta-3.14/2.0);
         if(gui_param.display_smoke_layers) draw(generic_torus_mesh, scene.camera);
     }
@@ -1430,29 +1621,54 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     if(gui_param.display_billboards)
     {
         glDepthMask(false);
+
+        // transition smoke
+        for (int j = 0; j < transition_lifetime.size(); j++)
+        {
+            float animation = fmax(0, sinf(transition_speed * transition_lifetime[j]));
+            float new_scaling = animation == 0 ? 4 : 2.0f + (animation * 2.0f);
+            float offset = terrain_display.uniform.transform.translation.z;
+            vec3 new_translation = vec3(0, 0, offset + (animation * (fabs(offset) - 2)));
+            float var = vcl::perlin(j, 2);
+
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), transition_speed * transition_lifetime[j] * var) * scene.camera.orientation;
+            quad.uniform.transform.translation = new_translation;
+            quad.uniform.transform.scaling = new_scaling * 1.3;
+            quad.uniform.color_alpha = (0.8 + 0.3f * (2 * var - 1.0f)) * fmax(0.2f, animation);
+
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, { 0.3f,0.3f,0.3f });
+        }
+
+
         for (unsigned int j = 0; j<free_spheres.size(); j++)
         {
 
             mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
             float new_scaling = free_spheres[j].r/ratio;
             //if (j==0) std::cout << new_scaling << std::endl;
-            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio);
+            vec3 new_translation = vec3(free_spheres[j].center.x/ratio-25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = R;
             generic_sphere_mesh.uniform.color = {1,1,1};
 
-            float var = vcl::perlin(j,2);
+            float var = vcl::perlin(free_spheres[j].id,2);
 
             //quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, scene.camera.orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * scene.camera.orientation;
-            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), j * var) * scene.camera.orientation;
+            quad.uniform.transform.rotation = rotation_from_axis_angle_mat3(scene.camera.orientation.col(2), free_spheres[j].id * var) * scene.camera.orientation;
             quad.uniform.transform.translation = new_translation;
             quad.uniform.transform.scaling = new_scaling*1.3;
-            quad.uniform.color_alpha = 0.8+0.3f*(2*var-1.0f);
-           /* draw(quad, scene.camera, shaders["mesh"]);*/
-            int texNumber = j % 5;
+            quad.uniform.color_alpha = 0.8 + 0.3f * (2 * var - 1.0f);
+           
+            float l = (free_spheres[j].lifetime / 120) + 0.3f;
+            if (l > 1) l = 1;
 
-            draw(quad, scene.camera, shaders["mesh"], smoke_textures[texNumber]);
+            float end_fade = 1.0f;
+            if (free_spheres[j].lifetime >= min_lifetime)
+                end_fade -= (free_spheres[j].lifetime - min_lifetime) / (max_lifetime - min_lifetime);
+            end_fade *= quad.uniform.color_alpha;
+
+            draw(quad, scene.camera, shaders["mesh"], smoke_texture, {l,l,l}, end_fade);
         }
         glDepthMask(true);
     }
@@ -1468,7 +1684,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio  - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1493,7 +1709,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
             {
                 mat3 const R = rotation_from_axis_angle_mat3(free_spheres[j].rotation_axis, free_spheres[j].current_angle);
                 float r = free_spheres[j].r/ratio;
-                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio);
+                vec3 t = vec3(free_spheres[j].center.x / ratio - 25, free_spheres[j].center.y / ratio, free_spheres[j].center.z / ratio - 2);
                 float rho = free_spheres[j].rho;
                 float disp_rho = 1. - rho;
                 if (disp_rho < 0) disp_rho = 0.;
@@ -1535,7 +1751,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
     for (unsigned int j = 0; j<falling_spheres.size(); j++)
     {
         float new_scaling = falling_spheres[j].r/ratio;
-        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio};
+        vec3 new_translation = {falling_spheres[j].center.x/ratio, falling_spheres[j].center.y/ratio, falling_spheres[j].center.z/ratio - 2 };
         generic_sphere_mesh.uniform.transform.translation = new_translation;
         generic_sphere_mesh.uniform.transform.scaling = new_scaling;
         generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
@@ -1549,7 +1765,7 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
         for (unsigned int j = 0; j<falling_spheres_buffers[k].size(); j++)
         {
             float new_scaling = falling_spheres_buffers[k][j].r/ratio;
-            vec3 new_translation = {falling_spheres_buffers[k][j].center.x/ratio, falling_spheres_buffers[k][j].center.y/ratio, falling_spheres_buffers[k][j].center.z/ratio};
+            vec3 new_translation = {falling_spheres_buffers[k][j].center.x/ratio, falling_spheres_buffers[k][j].center.y/ratio, falling_spheres_buffers[k][j].center.z/ratio + 5};
             generic_sphere_mesh.uniform.transform.translation = new_translation;
             generic_sphere_mesh.uniform.transform.scaling = new_scaling;
             generic_sphere_mesh.uniform.transform.rotation = mat3::identity();
@@ -1561,6 +1777,43 @@ void scene_model::display(std::map<std::string,GLuint>& shaders, scene_structure
 
     glBindTexture(GL_TEXTURE_2D, scene.texture_white);
 
+    if (gui_param.display_tooltips == true  && scene.camera.mode != view_mode::orbital )
+    {
+        glDepthMask(false);
+        for (int i = 0; i < 4; i++)
+        {
+            vec3 tt_vec = tooltip_display[i].uniform.transform.translation + scene.camera.translation;
+            float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
+            
+            if (sqr_mag <= tooltip_dist * tooltip_dist)
+                tooltip_display[i].texture_id =  tip_loader.texture_id[i];
+            else
+                tooltip_display[i].texture_id = tip_loader.texture_id[4];
+
+            draw(tooltip_display[i], scene.camera, shaders["mesh"], false);
+
+        }
+       
+
+        glDepthMask(true);
+    }
+
+    glDepthMask(false);
+    for (int i = 0; i < 11; i++)
+    {
+        vec3 lm_vec = landmark_display[i].uniform.transform.translation + scene.camera.translation;
+        float sqr_mag = (lm_vec.x * lm_vec.x) + (lm_vec.y * lm_vec.y) + (lm_vec.z * lm_vec.z);
+        float alpha = 1.0f;
+
+        if (sqr_mag < landmark_min_dist * landmark_min_dist)
+        {
+            alpha = (sqr_mag - (landmark_max_dist * landmark_max_dist)) / (landmark_min_dist * landmark_min_dist);
+            if (alpha < 0.0f) alpha = 0.0f;
+        }
+        
+        draw(landmark_display[i], scene.camera, shaders["mesh"], landmark_display[i].texture_id, {1,1,1}, alpha);
+    }
+    glDepthMask(true);
 }
 
 void scene_model::display_replay(std::map<std::string,GLuint>& shaders, scene_structure& scene, gui_structure& gui, size_t frame)
@@ -1724,8 +1977,14 @@ void scene_model::reset_simulation()
     falling_spheres.clear();
     stagnate_spheres.clear();
     falling_spheres_buffers.clear();
+    direction_tracker.reset_plume_positions();
     frame_count = 0;
+    sim_time = 0;
     decal_progress = 1.f;
+
+    transition_lifetime.clear();
+    for (int i = 0; i < max_smoke; i++)
+        transition_lifetime.push_back(transition_delay * i);
 
     smoke_layers_frames.clear();
     free_spheres_frames.clear();
@@ -1746,7 +2005,9 @@ void scene_model::setup_terrain_preemptive()
 
         terrain_display = t_loader.terrain;
         terrain_display.uniform.transform.scaling = .25f;
+        terrain_display.uniform.shading.ambiant = 1.0f;
         terrain_display.uniform.color = { 1,1,1 };
+
         //terrain_display.norm_tex_id = add_normal_map(image_load_png("../scenes/sources/smoke/textures/Taal_Texture_normal_2024.png"));
 
 
@@ -1755,26 +2016,32 @@ void scene_model::setup_terrain_preemptive()
 }
 
 
-void scene_model::set_gui()
+void scene_model::set_gui(gui_structure& gui)
 {
-    ImGui::Begin("Simulator Input", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Simulator Input", &gui.enabled["Simulator Input"], ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.1f));
-    float indent_width = 5;
+    ImGui::PushItemWidth(200);
+
+    const float indent_width = 5;
+    const float child_width = 380;
     
     // Can set the speed of the animation
     float scale_min = 0.05f;
-    float scale_max = 2.0f;
+    float scale_max = 5.0f;
     ImGui::SliderScalar("Time scale", ImGuiDataType_Float, &timer.scale, &scale_min, &scale_max, "%.2f s");
 
     // Parameters
     unsigned int spheres_min = 0, spheres_max = 500;
     ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max);
     ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max);
+    ImGui::PopItemWidth();
 
     if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Display", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
+        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 5.25f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
 
         ImGui::Checkbox("Display billboards", &gui_param.display_billboards);
@@ -1782,7 +2049,7 @@ void scene_model::set_gui()
         ImGui::Checkbox("Display free spheres", &gui_param.display_free_spheres);
         //ImGui::Checkbox("Display subspheres", &gui_param.display_subspheres);
         ImGui::Checkbox("Display spheres with subspheres", &gui_param.display_spheres_with_subspheres);
-
+        ImGui::Checkbox("Display Tooltips", &gui_param.display_tooltips);
         ImGui::Unindent();
         ImGui::EndChild();
     }
@@ -1795,8 +2062,10 @@ void scene_model::set_gui()
     // Initial conditions
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 4));
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 4.25f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
+        ImGui::PushItemWidth(200);
 
         float initial_speed_min = 0., initial_speed_max = 200.;
         ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Float, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s");
@@ -1807,6 +2076,7 @@ void scene_model::set_gui()
         float vent_altitude_min = 0., vent_altitude_max = 8000.;
         ImGui::SliderScalar("Vent altitude", ImGuiDataType_Float, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m");
 
+        ImGui::PopItemWidth();
         ImGui::Unindent();
         ImGui::EndChild();
 
@@ -1814,70 +2084,101 @@ void scene_model::set_gui()
     // Wind presets
     if (ImGui::CollapsingHeader("Wind Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Wind", ImVec2(0, ImGui::GetItemsLineHeightWithSpacing() * 14));
+        ImGui::BeginChild("Wind", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 13.5f));
+        ImGui::Spacing();
         ImGui::Indent(indent_width);
+        ImGui::PushItemWidth(200);
 
-        if (ImGui::Button("No wind"))
-        {
-            is_wind = false;
-            for (unsigned int i = 0; i < winds.size(); i++)
-            {
-                winds[i].intensity = 0;
-                winds[i].angle = 0;
-                winds[i].wind_vector = vec3(1, 0, 0);
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Linear Wind"))
-        {
-            is_wind = true;
-            for (unsigned int i = 0; i < winds.size(); i++)
-            {
-                winds[i].intensity = i * linear_wind_base;
-                if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                if (winds[i].intensity == 0) winds[i].intensity = 1;
-                winds[i].angle = 0;
-                winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle), 0);
-            }
-        }
-
-        // Wind
-
-        float lin_windbase_min = 0., lin_windbase_max = 35.;
-        if (ImGui::SliderScalar("Linear wind speed", ImGuiDataType_Float, &linear_wind_base, &lin_windbase_min, &lin_windbase_max, "%1.f m/s"))
-        {
-            if (is_wind)
-            {
-                for (unsigned int i = 0; i < winds.size(); i++)
-                {
-                    winds[i].intensity = i * linear_wind_base;
-                    if (i > 3) winds[i].intensity = 3 * linear_wind_base;
-                    if (winds[i].intensity == 0) winds[i].intensity = 1;
-                    winds[i].angle = 0;
-                    winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle), 0);
-                }
-            }
-        }
-
-        int wind_min = 0;
-        int wind_max = 300;
-        int angle_min = 0, angle_max = 360;
-
-        //for (int i = 0; i < wind_altitudes.size(); i++)
-        //{
-        //    std::string alti = "Intensity (" + std::to_string(wind_altitudes[i]) + "m)";
-        //    std::string angl = "Angle (" + std::to_string(wind_altitudes[i]) + "m)";
-        //    if (ImGui::SliderScalar(alti.c_str(), ImGuiDataType_S32, &winds[i].intensity, &wind_min, &wind_max))
-        //        winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle),0);
-        //    if (ImGui::SliderScalar(angl.c_str(), ImGuiDataType_S32, &winds[i].angle, &angle_min, &angle_max))
-        //        winds[i].wind_vector = winds[i].intensity * vec3(cos(winds[i].angle), sin(winds[i].angle),0);
-        //}
-
-        const int wind_alt_step = 4000;
         const int wind_size = 6;
         bool altitude_selected = false;
 
-        if (ImGui::InputInt("Wind Altitude", &wind_alt, wind_alt_step, wind_alt_step * 2))
+        int alt_min = 0, alt_max = max_altitude;
+        int wind_min = 0, wind_max = 200;
+        int angle_min = 0, angle_max = 360;
+
+        const float indent_w = 29;
+        const float slider_width = 25;
+        const float plot_width = 330;
+        const float plot_height = 100;
+
+        float intensity[wind_size] = {};
+        float angle[wind_size] = {};
+
+        for (int i = 0; i < wind_size; i++)
+        {
+            intensity[i] = winds[i].intensity;
+            angle[i] = this->deg_angle[i];
+        }
+
+        const int x_offset = ImGui::GetCursorScreenPos().x;
+        const int plot_start = ImGui::GetCursorScreenPos().y;
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        const float plot_grid_offset = x_offset + slider_width + 11;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 1; j < wind_size - 1; j++)
+            {
+                float plot_division = (float)j / (wind_size - 1);
+                float plot_grid = (plot_division * (plot_width - 8)) + plot_grid_offset;
+
+                float total_height = plot_start + plot_height * i + (i * 3);
+                ImVec2 start = ImVec2(plot_grid, total_height);
+                ImVec2 end;
+
+                if (i == 2) end = ImVec2(plot_grid, total_height + 22);
+                else end = ImVec2(plot_grid, total_height + plot_height);
+
+                draw_list->AddLine(start, end, IM_COL32(255, 255, 255, 100), 1.0f);
+            }
+        }
+
+        if (ImGui::VSliderScalar("##Intensity Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
+        {
+            winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+            winds[selected].recalc_wind_vector();
+            calculate_avg_wind_dir();
+        }
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
+        ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity (m/s)", wind_min, wind_max, ImVec2(plot_width, plot_height));
+        ImGui::PopStyleColor();
+
+        if (ImGui::VSliderScalar("##Angle Slider", ImVec2(slider_width, plot_height), ImGuiDataType_S32, &this->deg_angle[selected], &angle_min, &angle_max))
+        {
+            if (all_angles)
+            {
+                for (int i = 0; i < wind_size; i++)
+                {
+                    this->deg_angle[i] = this->deg_angle[selected];
+                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                    winds[i].recalc_wind_vector();
+                }
+            }
+            else
+            {
+                winds[selected] = wind_structure(winds[selected].intensity, this->deg_angle[selected]);
+                winds[selected].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
+        }
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
+        ImGui::PlotLines("##Wind Angle", angle, wind_size, 0, "Wind Angle (degrees)", angle_min, angle_max, ImVec2(plot_width, plot_height));
+        ImGui::PopStyleColor();
+
+        float plot_div = (float)selected / (wind_size - 1);
+        float plot_x = (plot_div * (plot_width - 8)) + plot_grid_offset;
+
+        ImVec2 start = ImVec2(plot_x, plot_start);
+        ImVec2 end = ImVec2(plot_x, plot_start + (plot_height * 2) + 3);
+        draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 3.0f);
+
+        ImGui::Indent(indent_w);
+        ImGui::PushItemWidth(plot_width + 7);
+        if (ImGui::SliderScalar("##Altitude", ImGuiDataType_S32, &wind_alt, &alt_min, &alt_max, "%d meters in altitude"))
         {
             for (int i = 0; i < wind_size && !altitude_selected; i++)
             {
@@ -1890,75 +2191,113 @@ void scene_model::set_gui()
 
             if (!altitude_selected)
             {
-                selected = clamp(wind_alt / wind_alt_step, 0, wind_size - 1);
+                selected = clamp(((float)wind_alt / altitude_step) + 0.5f, 0, wind_size - 1);
                 wind_alt = wind_altitudes[selected];
             }
         }
+        ImGui::PopItemWidth();
+        ImGui::Unindent(indent_w);
+        ImGui::Spacing();
 
-        //if (ImGui::BeginCombo("Wind Altitude", std::to_string(wind_altitudes[selected]).c_str()))
-        //{
-        //    for (int i = 0; i < wind_altitudes.size(); i++)
-        //    {
-        //        const bool is_selected = selected == i;
-        //        if (ImGui::Selectable(std::to_string(wind_altitudes[i]).c_str(), is_selected))
-        //        {
-        //            selected = i;
-        //            std::cout << "selected: " << i << "\n";
-        //        }
-
-        //        if (is_selected) ImGui::SetItemDefaultFocus();
-        //    }
-        //    ImGui::EndCombo();
-        //}
-
-        if (ImGui::SliderScalar("Intensity", ImGuiDataType_S32, &winds[selected].intensity, &wind_min, &wind_max))
-            winds[selected].wind_vector = winds[selected].intensity * vec3(cos(winds[selected].angle), sin(winds[selected].angle), 0);
-        if (ImGui::SliderScalar("Angle", ImGuiDataType_S32, &winds[selected].angle, &angle_min, &angle_max))
-            winds[selected].wind_vector = winds[selected].intensity * vec3(cos(winds[selected].angle), sin(winds[selected].angle), 0);
-
-        float intensity[wind_size] = {};
-        float angle[wind_size] = {};
-
-        for (int i = 0; i < wind_size; i++)
+        if (ImGui::Button("No wind"))
         {
-            intensity[i] = winds[i].intensity;
-            angle[i] = winds[i].angle;
+            is_wind = false;
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                this->deg_angle[i] = angle_min;
+                winds[i] = wind_structure(wind_min, this->deg_angle[i]);
+                winds[i].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
         }
 
+        ImGui::SameLine();
+        if (ImGui::Button("Linear Wind"))
+        {
+            is_wind = true;
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                winds[i].intensity = i * linear_wind_base;
+                if (i > 3) winds[i].intensity = 3 * linear_wind_base;
+                if (winds[i].intensity == wind_min) winds[i].intensity = 1;
+                winds[i].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
+        }
 
-        const int x_offset = ImGui::GetCursorScreenPos().x;
-        const int plot_start = ImGui::GetCursorScreenPos().y;
+        ImGui::SameLine();
+        if (ImGui::Button("Max Intensity"))
+        {
+            is_wind = true;
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                winds[i].intensity = wind_max;
+                winds[i].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
+        }
 
-        float plot_width = 360;
-        float plot_height = 100;
-        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.8f, 0.1f, 0.1f, 1.0f));
-        ImGui::PlotLines("##Wind Intensity", intensity, wind_size, 0, "Wind Intensity", wind_min, wind_max, ImVec2(plot_width, plot_height));
-        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        ImGui::Checkbox("All Angles", &all_angles);
 
-        ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(0.1f, 0.8f, 0.1f, 1.0f));
-        ImGui::PlotLines("##Wind Angle", angle, wind_size, 0, "Wind Angle", angle_min, angle_max, ImVec2(plot_width, plot_height));
-        ImGui::PopStyleColor();
+        // Wind
+        float lin_windbase_min = 0., lin_windbase_max = 35.;
+        if (ImGui::SliderScalar("Linear wind speed", ImGuiDataType_Float, &linear_wind_base, &lin_windbase_min, &lin_windbase_max, "%1.f m/s"))
+        {
+            if (is_wind)
+            {
+                for (unsigned int i = 0; i < winds.size(); i++)
+                {
+                    winds[i].intensity = i * linear_wind_base;
+                    if (i > 3) winds[i].intensity = 3 * linear_wind_base;
+                    if (winds[i].intensity == wind_min) winds[i].intensity = 1;
+                    winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                    winds[i].recalc_wind_vector();
+                }
+                calculate_avg_wind_dir();
+            }
+        }
+        ImGui::PopItemWidth();
 
-        float plot_div = (float)selected / (wind_size - 1);
-        float plot_x = (plot_div * plot_width) + x_offset;
+        if (ImGui::Button("Set to 2020 Eruption Params"))
+        {
+            //U_0 = 200;
+            //rho_0 = 250;
 
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 start = ImVec2(plot_x, plot_start);
-        ImVec2 end = ImVec2(plot_x, plot_start + (plot_height * 2) + 3);
-        draw_list->AddLine(start, end, IM_COL32(240, 220, 40, 255), 2.0f);
+            winds[0].intensity = 1;
+            winds[1].intensity = 14;
+            winds[2].intensity = 20;
+            winds[3].intensity = 30;
+            winds[4].intensity = 40;
+            winds[5].intensity = 58;
+
+            this->deg_angle[0] = 0;
+            this->deg_angle[1] = 30;
+            this->deg_angle[2] = 330;
+            this->deg_angle[3] = 90;
+            this->deg_angle[4] = 120;
+            this->deg_angle[5] = 135;
+
+            for (unsigned int i = 0; i < winds.size(); i++)
+            {
+                winds[i] = wind_structure(winds[i].intensity, this->deg_angle[i]);
+                winds[i].recalc_wind_vector();
+            }
+            calculate_avg_wind_dir();
+        }
 
         ImGui::Unindent();
         ImGui::EndChild();
     }
-    
+
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     ImGui::End();
 }
 
-void scene_model::set_gui_playback()
+void scene_model::set_gui_playback(gui_structure& gui)
 {
-    ImGui::Begin("Playback", NULL, ImVec2(64, 32), -1.0f, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Playback", &gui.enabled["Playback"], ImVec2(100, 73), -1.0f, ImGuiWindowFlags_NoResize);
 
     // Start and stop animation
     if (state == engine_state::stopped || state == engine_state::paused)
@@ -1987,40 +2326,12 @@ void scene_model::set_gui_playback()
             state = engine_state::stopped;
         }
     }
-
-   /* if (ImGui::Button("Replay"))
-    {
-        if (!export_data)
-        {
-            timer.stop();
-            frame_replay = 0;
-            replay = true; std::cout << "replay becomes true" << std::endl;
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Stop Replay"))
-    {
-        timer.start();
-        replay = false; std::cout << "replay becomes false" << std::endl;
-    }
-
-    if (ImGui::Button("Export data during simulation"))
-    {
-        export_data = true;
-        replay = false;
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-    {
-        ImGui::SetTooltip("(slow, no replay, activate before starting simulation)");
-    }*/
-
     ImGui::End();
 }
 
-void scene_model::set_gui_profiler()
+void scene_model::set_gui_profiler(gui_structure& gui)
 {
-    ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Profiler", &gui.enabled["Profiler"], ImGuiWindowFlags_AlwaysAutoResize);
 
     std::string smoke_layers_count = "Smoke Layers: " + std::to_string(smoke_layers.size());
     std::string free_sphere_count = "Free Spheres: " + std::to_string(free_spheres.size());
@@ -2034,11 +2345,36 @@ void scene_model::set_gui_profiler()
     ImGui::Text(stagnate_sphere_count.c_str());
     ImGui::Text(subsphere_count.c_str());
 
-    //if (tracked_smoke)
-    //{
-    //    std::string subsphere_count = "Tracked smoke lifespan: " + std::to_string(tracked_smoke->lifespan);
-    //    ImGui::Text(subsphere_count.c_str());
-    //}
-
     ImGui::End();
+}
+
+void scene_model::keyboard_input(scene_structure& scene, GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    const bool key_escape = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
+    const bool key_space = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+    if (key_escape)
+    {
+        reset_simulation();
+        state = engine_state::stopped;
+    }
+
+    if (key_space)
+    {
+         if (state == engine_state::stopped || state == engine_state::paused)
+         {
+             timer.start();
+             state = engine_state::playing;
+         }
+         else if (state == engine_state::playing)
+         {
+             timer.stop();
+             state = engine_state::paused;
+         }
+    }
+}
+
+void wind_structure::recalc_wind_vector()
+{
+    wind_vector = intensity * vcl::vec3(cos(angle), sin(angle), 0);
 }

@@ -1,7 +1,7 @@
 #include "curve_gpu.hpp"
 
 #include "vcl/base/base.hpp"
-#include "vcl/opengl/debug/opengl_debug.hpp"
+#include "vcl/opengl/opengl_debug/opengl_debug.hpp"
 
 namespace vcl
 {

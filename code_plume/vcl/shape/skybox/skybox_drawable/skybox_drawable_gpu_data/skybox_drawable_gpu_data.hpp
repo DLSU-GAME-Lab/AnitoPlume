@@ -17,7 +17,9 @@ namespace vcl
         void clear();
 
         GLuint vao;
+        unsigned int number_triangles;
 
+        GLuint vbo_index;      // Triplet (i,j,k) of triangle index
         GLuint vbo_vertices;   // (x,y,z) coordinates
     };
 

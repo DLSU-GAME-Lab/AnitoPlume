@@ -1,0 +1,88 @@
+---
+layout: default
+title: Home
+---
+
+<!DOCTYPE html>
+<html lang ="en">
+  <style>
+  .flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  .flex-item {
+    flex: 1 1 48%; /* Two items per row with some spacing */
+  }
+
+  .flex-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+</style>
+
+<body>
+<img src="assets/images/banner.png" alt="AnitoPlume Banner" style="width:100%; height:auto;">
+
+<h1>About AnitoPlume</h1>
+<p>
+  AnitoPlume is a real-time Taal Volcano simulator. It is part of Project Anito, a DOST-PCIEERD funded project worked on within DLSU GAME Lab.
+</p>
+<img src="assets/images/AboutTheProject.png" style="width:100%; height:auto;">
+
+<h1>Team Members</h1>
+<p>The project is being developed by undergraduate students in De La Salle University as part of their capstone. The members of Siklab Studios are as follows:</p>
+<ul>
+  <li>Onesimus Dela Torre</li>
+  <li>Carlos Miguel Arquillo</li>
+  <li>Vaughn Vincent Cordero</li>
+  <li>Joaquin Lorenzo Sales</li>
+  <li>Stephen Lance Yarte</li>
+</ul>
+<p>Under the advisory of Neil Patrick Del Gallego, Ph.D.</p>
+
+<h1>Videos</h1>
+<p>
+  The AnitoPlume simulator comes with customized terrain viewers for years 2016, 2019, 2021 and 2023. The GUI also includes graph visualizations of the wind intensity and angle, which is further supplemented by a plume direction tracker to display which provinces are predicted to be affected by the plumes.
+</p>
+<video width=100% height=auto controls autoplay muted loop>
+  <source src="assets/videos/AP_Terrain.webm" type="video/webm">
+  <source src="assets/videos/AP_Terrain.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width=100% height=auto controls autoplay muted loop>
+  <source src="assets/videos/AP_Camera.webm" type="video/webm">
+  <source src="assets/videos/AP_Camera.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width=100% height=auto controls autoplay muted loop>
+  <source src="assets/videos/AP_DirectionTracker.webm" type="video/webm">
+  <source src="assets/videos/AP_DirectionTracker.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width=100% height=auto controls autoplay muted loop>
+  <source src="assets/videos/AP_InputAndPlayback.webm" type="video/webm">
+  <source src="assets/videos/AP_InputAndPlayback.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<h1>Supplementary media and Results</h1>
+<div class="flex-container">
+  <div class="flex-item"><img src="assets/images/Plume.png"></div>
+  <div class="flex-item"><img src="assets/images/TaalTexture.png"></div>
+  <div class="flex-item"><img src="assets/images/Surland.png"></div>
+  <div class="flex-item"><img src="assets/images/Surland2.png"></div>
+  <div class="flex-item"><img src="assets/images/SSIM.png"></div>
+  <div class="flex-item"><img src="assets/images/RMSE.png"></div>
+  <div class="flex-item"><img src="assets/images/RMSE2.png"></div>
+  <div class="flex-item"><img src="assets/images/Comparison.png"></div>
+</div>
+</body>
+</html>

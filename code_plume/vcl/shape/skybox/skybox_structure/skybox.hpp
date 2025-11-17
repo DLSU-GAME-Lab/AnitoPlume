@@ -15,6 +15,9 @@ namespace vcl
         /** Per-vertex attributes */
         buffer<vec3> vertices;
 
+        /** Triangle connectivity */
+        buffer<uint3> connectivity;
+
         skybox();
     };
 

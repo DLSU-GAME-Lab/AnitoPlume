@@ -51,15 +51,27 @@ struct camera_scene
     vec2 spherical_coordinates = {0,0};
 
 
-    view_mode mode = view_mode::aerial;
+    view_mode mode = view_mode::orbital;
     vec3 last_translation = {};
 
+    float near_radial_limit = 100.f;
+    float far_radial_limit = 200.f;
+    float lower_limit = 5.0f;
     float upper_limit = 100.f;
-    float lower_limit = 0.0f;
     float perimiter_limit = 100.f;
-    float lower_phi_limit = 0.0f;
-    float upper_phi_limit = 3.0f;
-    float orbit_phi_limit = 1.5f;
+
+    // No clip tool tips 0.3f
+    float upper_phi_limit = 0.0f;
+    float lower_phi_limit = 3.0f;
+    float upper_orbit_phi_limit = 0.0f;
+    float lower_orbit_phi_limit = 1.5f;
+
+    float gamma = 1.0f;
+    vec3 fog_color = { 0.5f, 0.6f, 1.0f };
+    float fog_start = 200.0f;
+    float fog_density = 0.001f;
+    float fog_fade_height = 50.0f;
+    float fog_max_height = 100.0f;
 
     // Apply transformation to camera
     void apply_translation_in_world_axis(float tr_x, float tr_y, float tr_z);
@@ -72,9 +84,11 @@ struct camera_scene
     void set_scale(float s);
 
     void limit_translation(vec3 new_t);
+    void sphere_limit_translation(vec3 new_t);
     void reset_translation();
     void apply_last_translation();
     void snap_to_height(float height);
+    bool check_cam_rotate_limits(float phi) const;
 };
 
 

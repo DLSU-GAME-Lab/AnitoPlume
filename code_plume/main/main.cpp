@@ -68,26 +68,25 @@ int main()
     std::cout<<"\t [OK] Data setup"<<std::endl;
     opengl_debug();
 
-
     // ************************************** //
     // Animation loop
     // ************************************** //
 
     std::cout<<"*** Start GLFW animation loop ***"<<std::endl;
 
-    //const int FRAME_LIMIT = 60;
-    //const float FRAME_TIME = 1000.0f / FRAME_LIMIT;
+    const int FRAME_LIMIT = 120;
+    const float FRAME_TIME = 1000.0f / FRAME_LIMIT;
 
     vcl::glfw_fps_counter fps_counter;
 
     while( !glfwWindowShouldClose(gui.window) )
     {
-        //auto startTime = std::chrono::high_resolution_clock::now();
+        auto startTime = std::chrono::high_resolution_clock::now();
 
         opengl_debug();
 
         // Clear all color and zbuffer information before drawing on the screen
-        clear_screen();opengl_debug();
+        clear_screen(scene);opengl_debug();
         // Set a white image texture by default
         glBindTexture(GL_TEXTURE_2D,scene.texture_white);
 
@@ -96,7 +95,7 @@ int main()
 
         gui_main_menu_bar(gui, scene);
         gui_start_basic_structure(gui, scene);
-        gui_camera_settings(scene);
+        gui_camera_settings(gui, scene);
 
         // Perform computation and draw calls for each iteration loop
         scene_current.frame_draw(shaders, scene, gui);
@@ -115,14 +114,14 @@ int main()
         glfwPollEvents();
         opengl_debug();
 
-        //auto endTime = std::chrono::high_resolution_clock::now();
-        //std::chrono::duration<float, std::milli> elapsedTime = endTime - startTime;
-        //float sleepTime = FRAME_TIME - elapsedTime.count();
+        auto endTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float, std::milli> elapsedTime = endTime - startTime;
+        float sleepTime = FRAME_TIME - elapsedTime.count();
 
-        //if (sleepTime > 0)
-        //{
-        //    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepTime)));
-        //}
+        if (sleepTime > 0)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepTime)));
+        }
     }
     std::cout<<"*** Stop GLFW loop ***"<<std::endl;
 

@@ -4,14 +4,14 @@ using namespace vcl;
 
 void terrain_loader::load_all_textures()
 {
-    const char* years[]{ "2023", "2021", "2019", "2016", "2015" };
-    for (int i = 0; i < 5; i++)
+    const char* years[]{ "2023", "2021", "2019", "2016" };
+    for (int i = 0; i < 4; i++)
     {
         std::string year = years[i];
         std::string texture_path = "../scenes/sources/smoke/textures/Taal_Texture_" + year + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
     }
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 4; i++)
     {
         std::string year = years[i];
         std::string normal_path = "../scenes/sources/smoke/textures/Taal_Normal_" + year + ".png";
@@ -22,11 +22,12 @@ void terrain_loader::load_all_textures()
     current_norm_id = normal_id[0];
 }
 
-void terrain_loader::show_gui()
+void terrain_loader::show_gui(bool* show)
 {
-    ImGui::Begin("Terrain", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Terrain", &enabled, ImGuiWindowFlags_AlwaysAutoResize);
+    *show = enabled;
 
-    static const char* labels[]{ "2023", "2021", "2019", "2016", "2015" };
+    static const char* labels[]{ "2023", "2021", "2019", "2016" };
     if (ImGui::Combo("Year", &current_tex, labels, IM_ARRAYSIZE(labels)))
     {
         current_tex_id = texture_id[current_tex];
@@ -70,9 +71,10 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     terrain.shader = mesh_shader;
     terrain.uniform.color = { 1,1,1 };
     terrain.uniform.shading.specular = 0.0f;
+    terrain.uniform.shading.diffuse = 1.0f;
     terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
     terrain.uniform.transform.scaling = 1.f;
-    terrain.uniform.transform.translation = { 0.f,0.f,0.f };
+    terrain.uniform.transform.translation = { 0.f,0.f,-10.f };
     if (isTrans)
         terrain.uniform.color_alpha = 0.f;
     else

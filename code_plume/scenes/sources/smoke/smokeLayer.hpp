@@ -12,17 +12,18 @@ struct subsphere_params
     vcl::vec3 center;
     float r;
     float size_ratio;
-    float lifespan;
+    float lifetime;
 
     subsphere_params()
     {
-        lifespan = 31 + (std::rand() % 30);
+        lifetime = 0;
     }
 };
 
 struct free_sphere_params
 {
     // characteristics
+    unsigned short id;
     vcl::vec3 center;
     float r;
 
@@ -30,7 +31,7 @@ struct free_sphere_params
     float mass;
     float rho;
     float relative_distance;
-    float lifespan;
+    float lifetime;
 
     // rotation informations
     float angular_speed;
@@ -61,13 +62,13 @@ struct free_sphere_params
 
     free_sphere_params() {}
     // constructor used for spheres attached to newly emitted slice
-    free_sphere_params(vcl::vec3 ring_center, float angle_on_ring, float r, float speed, bool sec_column=false) : r(r), speed({0,0,speed}), secondary_column(sec_column)
+    free_sphere_params(unsigned short sphere_id, vcl::vec3 ring_center, float angle_on_ring, float r, float speed, bool sec_column=false) : id(sphere_id), r(r), speed({0,0,speed}), secondary_column(sec_column)
     {
         vcl::vec3 angle_normal = {cos(angle_on_ring), sin(angle_on_ring),0};
         angle_vector = angle_normal;
         center = ring_center + r*angle_normal;
         rotation_axis = {-sin(angle_on_ring), cos(angle_on_ring),0};
-        lifespan = 31 + (std::rand() % 30);
+        lifetime = 0;
         angular_speed = speed/r;
         current_angle = 0;
         perturbation = 0;
@@ -77,10 +78,10 @@ struct free_sphere_params
         falling_disappeared = false;
     }
     // constructor used for falling spheres
-    free_sphere_params(vcl::vec3 center, float r, float rho) : r(r), center(center), rho(rho), speed({ 0,0,0 }), angular_speed(0), rotation_axis({ 1,0,0 }), current_angle(0),
+    free_sphere_params(unsigned short sphere_id, vcl::vec3 center, float r, float rho) : id(sphere_id), r(r), center(center), rho(rho), speed({ 0,0,0 }), angular_speed(0), rotation_axis({ 1,0,0 }), current_angle(0),
         angle_vector({ 0,1,0 }), mass(rho * 4. / 3. * 3.14 * r * r * r), size_factor(1.), falling_under_atm_rho(false), stagnate(false), stagnate_long(false), falling(true), falling_disappeared(false)
     {
-        lifespan = 31 + (std::rand() % 30);
+        lifetime = 0;
     }
 };
 
@@ -99,7 +100,7 @@ struct smoke_layer
     float temperature; // (Kelvin)
     float rho; // density (kg.m-3)
     float thickness; // (m)
-    float lifespan;
+    float lifetime;
 
     // identify state of layers
     bool rising;
@@ -127,7 +128,7 @@ struct smoke_layer
         rising(true), begin_falling(false), falling(false), plume(false), stagnates(false), stagnates_long(false), secondary_plume(secondary_plume) {
         if (norm(v) == v.z) theta_axis = vcl::vec3(1,0,0);
         else theta_axis = normalize(vcl::cross(v,vcl::vec3(0,0,1)));
-        lifespan = 31 + (std::rand() % 30);
+        lifetime = 0;
     }
 };
 

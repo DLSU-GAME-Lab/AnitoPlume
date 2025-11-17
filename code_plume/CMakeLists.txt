@@ -33,7 +33,7 @@ file(
     scenes/*.[ch]pp
     scenes/*.glsl
     )
-add_executable(pgm ${source_files})
+add_executable(pgm ${source_files} "scenes/sources/smoke/landmark_loader/landmark_loader.cpp")
 
 
 if(UNIX)

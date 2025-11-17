@@ -9,8 +9,8 @@ GLFWwindow* create_window(const std::string& window_title)
 {
     const int opengl_version_major = 3;
     const int opengl_version_minor = 3;
-    const int window_width  = 1280;
-    const int window_height = 1000;
+    const int window_width  = 1920;
+    const int window_height = 1080;
 
     GLFWwindow* window = vcl::glfw_create_window(window_width, window_height, window_title, opengl_version_major, opengl_version_minor);
     return window;
@@ -24,7 +24,7 @@ void initialize_interface(gui_structure& gui)
 
 
     std::cout<<"*** Create window ***"<<std::endl;
-    gui.window_title = "OpenGL Window";
+    gui.window_title = "AnitoPlume";
     gui.window = create_window(gui.window_title);
     std::cout<<"\t [OK] Window Created"<<std::endl;
 
@@ -56,12 +56,12 @@ void load_shaders(std::map<std::string,GLuint>& shaders)
     shaders["normals"] = create_shader_program("scenes/shared_assets/shaders/normals/shader.vert.glsl","scenes/shared_assets/shaders/normals/shader.geom.glsl","scenes/shared_assets/shaders/normals/shader.frag.glsl");
     shaders["skybox"] = create_shader_program("scenes/shared_assets/shaders/skybox/shader.vert.glsl","scenes/shared_assets/shaders/skybox/shader.frag.glsl");
     shaders["mesh_mix"] = create_shader_program("scenes/shared_assets/shaders/mesh_mix/shader.vert.glsl", "scenes/shared_assets/shaders/mesh_mix/shader.frag.glsl");
+    shaders["sky_mesh"] = create_shader_program("scenes/shared_assets/shaders/sky_mesh/shader.vert.glsl", "scenes/shared_assets/shaders/sky_mesh/shader.frag.glsl");
     std::cout<<"\t [OK] Shader loaded"<<std::endl;
 }
 
 void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std::string,GLuint>& shaders)
 {
-
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
     //glFrontFace(GL_CCW);
@@ -77,16 +77,19 @@ void setup_scene(scene_structure &scene, gui_structure& gui, const std::map<std:
     glfwGetWindowSize(gui.window, &width, &height);
     const float aspect_ratio = width/static_cast<float>(height);
 
-    scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 2000.0f);
+    scene.camera.perspective = perspective_structure( 40*3.14f/180, aspect_ratio, 0.01f, 3000.0f);
 
+    scene.sky_enabled = true;
+    scene.clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
     const image_raw white{1,1,image_color_type::rgba,{255,255,255,255}};
     scene.texture_white = create_texture_gpu(white);
 
+    gui.enabled["Camera Settings"] = true;
 }
 
-void clear_screen()
+void clear_screen(scene_structure& scene)
 {
-    glClearColor(0.7f, 0.9f, 1.0f, 1.0f);
+    glClearColor(scene.clear_color[0], scene.clear_color[1], scene.clear_color[2], scene.clear_color[3]);
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -141,8 +144,26 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
 
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::Checkbox("Enable Sky", &scene.sky_enabled);
+            ImGui::SliderFloat("Gamma", &scene.camera.gamma, 0.0f, 5.0f, "%.2f");
+            ImGui::ColorEdit3("Viewport Clear Color", &scene.clear_color[0]);
+            ImGui::Separator();
+            ImGui::ColorEdit3("Fog Color", &scene.camera.fog_color[0]);
+            ImGui::InputFloat("Fog Density", &scene.camera.fog_density, 0.0f, 0.1f, "%.4f");
+            ImGui::SliderFloat("Fog Start Distance", &scene.camera.fog_start, 0, 300, "%.2f");
+            ImGui::SliderFloat("Fog Fade Height", &scene.camera.fog_fade_height, -100, 300, "%.2f");
+            ImGui::SliderFloat("Fog Max Height", &scene.camera.fog_max_height, -100, 300, "%.2f");
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Window"))
         {
+            for (auto it = gui.enabled.begin(); it != gui.enabled.end(); it++)
+            {
+                if (ImGui::MenuItem(it->first.c_str()))
+                    gui.enabled[it->first] = !gui.enabled[it->first];
+            }
 
             ImGui::EndMenu();
         }
@@ -160,10 +181,9 @@ void gui_main_menu_bar(gui_structure& gui, scene_structure& scene)
     }
 }
 
-void gui_camera_settings(scene_structure& scene)
+void gui_camera_settings(gui_structure& gui, scene_structure& scene)
 {
-
-    ImGui::Begin("Camera Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Camera Settings", &gui.enabled["Camera Settings"], ImGuiWindowFlags_AlwaysAutoResize);
     
     ImGui::SliderScalar(
         "Speed",
@@ -202,6 +222,7 @@ void gui_camera_settings(scene_structure& scene)
         case view_mode::aerial:
         {
             scene.camera.set_scale(scene.camera.distance);
+            scene.camera.translation = scene.camera.last_translation;
             scene.camera.apply_rotation_absolute(0.0f, 1.0f);
             break;
         }
@@ -209,7 +230,8 @@ void gui_camera_settings(scene_structure& scene)
         case view_mode::orbital:
         {
             scene.camera.set_scale(scene.camera_control.orbit_distance);
-            scene.camera.reset_translation();
+            scene.camera.last_translation = scene.camera.translation;
+            scene.camera.translation = { 0.0f, 0.0f, -10.0f };
             scene.camera.apply_rotation_absolute(0.0f, 1.0f);
             break;
         }

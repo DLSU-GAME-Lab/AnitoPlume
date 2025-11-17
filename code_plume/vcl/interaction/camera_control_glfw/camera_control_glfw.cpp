@@ -107,11 +107,11 @@ void camera_control_glfw::update_mouse_scroll(camera_scene& camera, GLFWwindow* 
 
     float new_distance = camera.scale0 - (yoffset * scroll_speed * dt);
 
-    if (new_distance >= orbit_min && new_distance <= orbit_max)
-    {
-        orbit_distance = new_distance;
-        camera.set_scale(orbit_distance);
-    }
+    if (new_distance < orbit_min) new_distance = orbit_min;
+    else if (new_distance > orbit_max) new_distance = orbit_max;
+    else orbit_distance = new_distance;
+
+    camera.set_scale(orbit_distance);
 }
 
 void camera_control_glfw::update_timer()
@@ -175,12 +175,12 @@ void camera_control_glfw::update_move(terrain_structure& terrain_struct, camera_
 {
     assert(window != nullptr);
 
-    const bool upward = (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS);
-    const bool downward = (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS);
-    const bool rightward = (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-    const bool leftward = (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
-    const bool forward = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-    const bool backward = (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+    const bool upward = (glfwGetKey(window, GLFW_KEY_E) != GLFW_RELEASE);
+    const bool downward = (glfwGetKey(window, GLFW_KEY_Q) != GLFW_RELEASE);
+    const bool rightward = (glfwGetKey(window, GLFW_KEY_D) != GLFW_RELEASE);
+    const bool leftward = (glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE);
+    const bool forward = (glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE);
+    const bool backward = (glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE);
 
     
     if (update == false || camera.mode == view_mode::orbital)

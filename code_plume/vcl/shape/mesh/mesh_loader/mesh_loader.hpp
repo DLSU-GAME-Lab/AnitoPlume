@@ -1,3 +1,3 @@
 #pragma once
 
-#include "obj/obj.hpp"
+#include "mesh_buffer/mesh_buffer.hpp"
