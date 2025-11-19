@@ -1,5 +1,6 @@
 #include "PlumeManager.hpp"
 #include "PlumeTracker.hpp"
+#include <algorithm>
 
 PlumeManager* PlumeManager::sharedInstance = nullptr;
 
@@ -41,6 +42,13 @@ void PlumeManager::createPlume(unsigned int id, std::string ventName, vcl::vec3 
 	this->plumes.push_back(Plume(id, ventName, ventLoc, eruptParams));
 	this->toUpdate.push_back(false);
 	PlumeTracker::getInstance()->addTrackerData();
+
+	this->sortedPlumes.clear();
+	for (int i = 0; i < this->plumes.size(); i++)
+	{
+		this->sortedPlumes.push_back(&this->plumes[i]);
+	}
+
 }
 void PlumeManager::setupTransitionValues(int dMaxSmoke, float fTransitionSpeed, float fTransitionDelay)
 {
@@ -171,6 +179,17 @@ void PlumeManager::reset()
 	}
 }
 
+void PlumeManager::sortNearestPlumes(vcl::vec3 camPos)
+{
+	std::sort(this->sortedPlumes.begin(), this->sortedPlumes.end(),
+		[camPos](Plume* a, Plume* b)
+		{
+			float distA = vcl::sqr_mag(a->getPosition() - camPos);
+			float distB = vcl::sqr_mag(b->getPosition() - camPos);
+			return distA > distB;
+		});
+}
+
 SimulatorState PlumeManager::getState() const
 {
 	return this->state;
@@ -179,6 +198,11 @@ SimulatorState PlumeManager::getState() const
 std::vector<Plume>& PlumeManager::getPlumes()
 {
 	return this->plumes;
+}
+
+std::vector<Plume*>& PlumeManager::getSortedPlumes()
+{
+	return this->sortedPlumes;
 }
 
 Plume& PlumeManager::getPlume(unsigned int plumeID)

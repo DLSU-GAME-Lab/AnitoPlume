@@ -15,6 +15,7 @@ private:
 	unsigned int frame_count;
 
 	std::vector<Plume> plumes;
+	std::vector<Plume*> sortedPlumes;
 	std::vector<bool> toUpdate;
 	std::vector<int> wind_altitudes;
 	std::vector<wind_structure> winds;
@@ -46,9 +47,11 @@ public:
 	void pauseSimulation();
 	void stopSimulation();
 	void reset();
+	void sortNearestPlumes(vcl::vec3 camPos);
 
 	SimulatorState getState() const;
 	std::vector<Plume>& getPlumes();
+	std::vector<Plume*>& getSortedPlumes();
 	Plume& getPlume(unsigned int plumeID);
 
 public:

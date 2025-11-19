@@ -5,7 +5,7 @@
 #include "scenes/sources/smoke/tooltip_loader/tooltip_loader.hpp"
 #include "scenes/sources/smoke/landmark_loader/landmark_loader.hpp"
 #include "singleton/gui/SimulatorInputScreen.hpp"
-#include "singleton/gui/TerrainScreen.hpp"
+#include "singleton/gui/DisplaySettingsScreen.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -47,9 +47,10 @@ struct scene_model
     unsigned short vent_index;
 
     std::vector<float> sphere_lifetime;
+    vcl::vec3 last_cam_pos;
 
     SimulatorInputScreen* sim_input_screen;
-    TerrainScreen* terrain_screen;
+    DisplaySettingsScreen* display_screen;
     terrain_structure terrain_struct;
     terrain_loader t_loader;
     tooltip_loader tip_loader;
@@ -67,13 +68,13 @@ public:
     void display();
 
 private:
-    void display_smoke_layers(Plume& plume);
-    void display_billboards(Plume& plume);
-    void display_free_spheres(Plume& plume);
-    void display_spheres_with_subspheres(Plume& plume);
-    void display_subspheres(Plume& plume);
-    void display_falling_spheres(Plume& plume);
-    void display_falling_spheres_buffers(Plume& plume);
+    void display_smoke_layers(Plume* plume);
+    void display_billboards(Plume* plume);
+    void display_free_spheres(Plume* plume);
+    void display_spheres_with_subspheres(Plume* plume);
+    void display_subspheres(Plume* plume);
+    void display_falling_spheres(Plume* plume);
+    void display_falling_spheres_buffers(Plume* plume);
 
     void setup_terrain_preemptive();
 

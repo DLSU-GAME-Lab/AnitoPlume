@@ -31,21 +31,11 @@ private:
     float linear_wind_base;
     int plume_index;
     
-    // Display settings
-    bool display_smoke_layers;
-    bool display_free_spheres;
-    bool display_subspheres;
-    bool display_spheres_with_subspheres;
-    bool display_billboards;
-    bool display_tooltips;
-    bool display_landmarks;
-
 	SimulatorInputScreen();
 	~SimulatorInputScreen();
 
 	virtual void drawGUI() override;
 
-    void showDisplaySettings();
     void showWindSettings();
     void showEruptionParameters();
 
@@ -54,18 +44,4 @@ private:
 public:
     void resetEruptOnPlay();
 
-    bool getDisplaySmokeLayers() const;
-    void setDisplaySmokeLayers(bool display);
-    bool getDisplayFreeSpheres() const;
-    void setDisplayFreeSpheres(bool display);
-    bool getDisplaySubspheres() const;
-    void setDisplaySubspheres(bool display);
-    bool getDisplaySpheresWithSubspheres() const;
-    void setDisplaySpheresWithSubspheres(bool display);
-    bool getDisplayBillboards() const;
-    void setDisplayBillboards(bool display);
-    bool getDisplayTooltips() const;
-    void setDisplayTooltips(bool display);
-    bool getDisplayLandmarks() const;
-    void setDisplayLandmarks(bool display);
 };

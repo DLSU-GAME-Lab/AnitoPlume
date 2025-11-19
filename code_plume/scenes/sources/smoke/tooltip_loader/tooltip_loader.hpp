@@ -5,11 +5,12 @@
 struct tooltip_loader
 {
 	vcl::mesh_drawable* tooltip;
-	vcl::mesh_drawable tooltip_display[4];
+	std::vector<vcl::mesh_drawable> tooltip_display;
 
 	GLuint shader;
 	GLuint texture_id[5];
 	float tooltip_dist = 100.0f;
+	vcl::vec3 last_cam_pos = {};
 
 	void setup_tooltips();
 	void draw();

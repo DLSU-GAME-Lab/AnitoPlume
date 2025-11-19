@@ -33,7 +33,7 @@ void tooltip_loader::setup_tooltips()
 
     for (int i = 0; i < 4; i++)
     {
-        tooltip_display[i] = *tooltip;
+        tooltip_display.push_back(*tooltip);
         tooltip_display[i].shader = shader;
         tooltip_display[i].uniform.transform.scaling = 4.f;
         tooltip_display[i].uniform.shading.ambiant = 1.f;
@@ -53,6 +53,20 @@ void tooltip_loader::setup_tooltips()
 void tooltip_loader::draw()
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::mat4 cam_mat = camera->camera_matrix();
+    vcl::vec3 cam_pos = { cam_mat.xw, cam_mat.yw, cam_mat.zw };
+    if (cam_pos.x != last_cam_pos.x || cam_pos.y != last_cam_pos.y || cam_pos.z != last_cam_pos.z)
+    {
+        last_cam_pos = cam_pos;
+        std::sort(tooltip_display.begin(), tooltip_display.end(),
+            [cam_pos](mesh_drawable a, mesh_drawable b)
+            {
+                float distA = vcl::sqr_mag(a.uniform.transform.translation - cam_pos);
+                float distB = vcl::sqr_mag(a.uniform.transform.translation - cam_pos);
+                return distA > distB;
+            });
+    }
+
     glDepthMask(false);
     for (int i = 0; i < 4; i++)
     {

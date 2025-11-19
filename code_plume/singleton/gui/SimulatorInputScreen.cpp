@@ -14,14 +14,6 @@ SimulatorInputScreen::SimulatorInputScreen() : GUIScreen("Simulator Input")
     wind_alt = 0;
     plume_index = 0;
 
-    display_billboards = true;
-    display_smoke_layers = false;
-    display_free_spheres = false;
-    display_subspheres = false;
-    display_spheres_with_subspheres = false;
-    display_tooltips = true;
-    display_landmarks = true;
-
     erupt_on_play.push_back(true);
     for (int i = 1; i < 5; i++)
         erupt_on_play.push_back(false);
@@ -38,41 +30,8 @@ void SimulatorInputScreen::drawGUI()
 
     showWindSettings();
     showEruptionParameters();
-    showDisplaySettings();
 
     ImGui::End();
-}
-
-void SimulatorInputScreen::showDisplaySettings()
-{
-    if (ImGui::CollapsingHeader("Display Settings", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::BeginChild("Display", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 8.5f), true);
-        ImGui::Indent(indent_width);
-
-        ImGui::PushItemWidth(200);
-
-        // Parameters
-        std::vector<Plume>& plume = PlumeManager::getInstance()->getPlumes();
-        unsigned int spheres_min = 0, spheres_max = 500;
-        static unsigned int subspheres_number = 0, subsubspheres_number = 0;
-        if (ImGui::SliderScalar("Number of subspheres", ImGuiDataType_S32, &subspheres_number, &spheres_min, &spheres_max))
-            for (int i = 0; i < plume.size(); i++) plume[i].subspheres_number = subspheres_number;
-
-        if (ImGui::SliderScalar("Number of subsubspheres", ImGuiDataType_S32, &subsubspheres_number, &spheres_min, &spheres_max))
-            for (int i = 0; i < plume.size(); i++) plume[i].subsubspheres_number = subsubspheres_number;
-
-        ImGui::PopItemWidth();
-
-        ImGui::Checkbox("Display billboards", &display_billboards);
-        ImGui::Checkbox("Display torus layers", &display_smoke_layers);
-        ImGui::Checkbox("Display free spheres", &display_free_spheres);
-        ImGui::Checkbox("Display spheres with subspheres", &display_spheres_with_subspheres);
-        ImGui::Checkbox("Display Tooltips", &display_tooltips);
-        ImGui::Checkbox("Display Landmarks", &display_landmarks);
-        ImGui::Unindent();
-        ImGui::EndChild();
-    }
 }
 
 void SimulatorInputScreen::showWindSettings()
@@ -264,25 +223,31 @@ void SimulatorInputScreen::showEruptionParameters()
             //"Calauit Point"
         };
 
-        Plume& plume = PlumeManager::getInstance()->getPlumes()[plume_index];
+        Plume& plume = PlumeManager::getInstance()->getPlume(plume_index);
         double r_0 = plume.get_r_0();
         double U_0 = plume.get_U_0();
         double rho_0 = plume.get_rho_0();
         double z_0 = plume.get_z_0();
-        
-        ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names));
 
-        if (ImGui::Button("Enable all"))
+        if (ImGui::Button("Enable all vents"))
         {
             PlumeManager::getInstance()->setToUpdate(true);
+            for (int i = 0; i < erupt_on_play.size(); i++) erupt_on_play[i] = true;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Main crater only") &&
-            PlumeManager::getInstance()->getState() == SimulatorState::Stopped)
+        if (ImGui::Button("Enable selected vent only"))
         {
-            PlumeManager::getInstance()->setToUpdate(false);
-            PlumeManager::getInstance()->setToUpdate(0, true);
+            for (int i = 0; i < erupt_on_play.size(); i++) erupt_on_play[i] = false;
+            erupt_on_play[plume_index] = true;
+
+            if (PlumeManager::getInstance()->getState() == SimulatorState::Stopped)
+            {
+                PlumeManager::getInstance()->setToUpdate(false);
+                PlumeManager::getInstance()->setToUpdate(plume_index, true);
+            }
         }
+
+        ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names));
 
         ImGui::Separator();
 
@@ -330,74 +295,4 @@ void SimulatorInputScreen::resetEruptOnPlay()
     {
         if (erupt_on_play[i]) PlumeManager::getInstance()->setToUpdate(i, true);
     }
-}
-
-bool SimulatorInputScreen::getDisplaySmokeLayers() const
-{
-    return this->display_smoke_layers;
-}
-
-void SimulatorInputScreen::setDisplaySmokeLayers(bool display)
-{
-    this->display_smoke_layers = display;
-}
-
-bool SimulatorInputScreen::getDisplayFreeSpheres() const
-{
-    return this->display_free_spheres;
-}
-
-void SimulatorInputScreen::setDisplayFreeSpheres(bool display)
-{
-    this->display_free_spheres = display;
-}
-
-bool SimulatorInputScreen::getDisplaySubspheres() const
-{
-    return this->display_subspheres;
-}
-
-void SimulatorInputScreen::setDisplaySubspheres(bool display)
-{
-    this->display_subspheres = display;
-}
-
-bool SimulatorInputScreen::getDisplaySpheresWithSubspheres() const
-{
-    return this->display_spheres_with_subspheres;
-}
-
-void SimulatorInputScreen::setDisplaySpheresWithSubspheres(bool display)
-{
-    this->display_spheres_with_subspheres = display;
-}
-
-bool SimulatorInputScreen::getDisplayBillboards() const
-{
-    return this->display_billboards;
-}
-
-void SimulatorInputScreen::setDisplayBillboards(bool display)
-{
-    this->display_billboards = display;
-}
-
-bool SimulatorInputScreen::getDisplayTooltips() const
-{
-    return this->display_tooltips;
-}
-
-void SimulatorInputScreen::setDisplayTooltips(bool display)
-{
-    this->display_tooltips;
-}
-
-bool SimulatorInputScreen::getDisplayLandmarks() const
-{
-    return this->display_landmarks;
-}
-
-void SimulatorInputScreen::setDisplayLandmarks(bool display)
-{
-    this->display_landmarks = display;
 }
