@@ -211,7 +211,7 @@ void SimulatorInputScreen::showEruptionParameters()
 {
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 7.75f), true);
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 9.0f), true);
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
@@ -224,6 +224,7 @@ void SimulatorInputScreen::showEruptionParameters()
         };
 
         Plume& plume = PlumeManager::getInstance()->getPlume(plume_index);
+        unsigned int vei = plume.getVEI();
         double r_0 = plume.get_r_0();
         double U_0 = plume.get_U_0();
         double rho_0 = plume.get_rho_0();
@@ -267,6 +268,11 @@ void SimulatorInputScreen::showEruptionParameters()
             }
         }
 
+        unsigned int initial_vei_min = 1, initial_vei_max = 6;
+        if (ImGui::SliderScalar("Volcanic Eruption Index", ImGuiDataType_U32, &vei, &initial_vei_min, &initial_vei_max))
+            plume.setVEI(vei);
+
+        ImGui::Spacing();
         double initial_speed_min = 0., initial_speed_max = 200.;
         if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
             plume.set_U_0(U_0);
@@ -275,11 +281,11 @@ void SimulatorInputScreen::showEruptionParameters()
         if (ImGui::SliderScalar("Initial plume density", ImGuiDataType_Double, &rho_0, &initial_density_min, &initial_density_max, "%.2f kg/m3"))
             plume.set_rho_0(rho_0);
 
-        double vent_ray_min = plume.getMinRadius(), vent_radius_max = plume.getMaxRadius();
+        double vent_ray_min = 0., vent_radius_max = plume.getMaxRadius();
         if (ImGui::SliderScalar("Vent radius", ImGuiDataType_Double, &r_0, &vent_ray_min, &vent_radius_max, "%.2f m"))
             plume.set_r_0(r_0);
 
-        double vent_altitude_min = 0., vent_altitude_max = 8000.;
+        double vent_altitude_min = 0., vent_altitude_max = 1000.;
         if (ImGui::SliderScalar("Vent altitude", ImGuiDataType_Double, &z_0, &vent_altitude_min, &vent_altitude_max, "%.2f m"))
             plume.set_z_0(z_0);
 

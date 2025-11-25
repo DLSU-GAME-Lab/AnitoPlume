@@ -9,7 +9,6 @@ struct EruptionParams
     double z_0; // initial altitude
     double r_0; // initial radius
     double rho_0; // initial density
-    double minRadius;
     double maxRadius;
 };
 // TODO: Add getters and setters for encapsulation
@@ -31,7 +30,6 @@ private:
     float t_step;
     float new_layer_delay;
     float fMaxRadius;
-    float fMinRadius;
     double air_incorporation_coeff;
     double stagnation_speed;
 
@@ -86,11 +84,12 @@ public:
     double get_r_0();
     double get_rho_0();
     double getMaxRadius();
-    double getMinRadius();
+    unsigned int getVEI();
     void set_U_0(double U_0);
     void set_rho_0(double rho_0);
     void set_r_0(double r_0);
     void set_z_0(double z_0);
+    void setVEI(unsigned int vei);
 
     unsigned int getID();
     std::string getVentName();

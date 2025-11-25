@@ -6,9 +6,9 @@
 class SimulatorInputScreen : public GUIScreen
 {
 private:
-    const int alt_min = 0, alt_max = 10000;
-    const int wind_min = 0, wind_max = 200;
-    const int angle_min = 0, angle_max = 360;
+    const int alt_min = 0, alt_max = 10000; //meters
+    const int wind_min = 0, wind_max = 200; // km/h
+    const int angle_min = 0, angle_max = 360; // degrees
 
     const float indent_width = 5;
     const float child_width = 380;

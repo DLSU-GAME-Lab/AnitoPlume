@@ -21,7 +21,6 @@ Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, Er
     r_0 = eruptParams.r_0; // initial radius (m)
     rho_0 = eruptParams.rho_0;
 
-    fMinRadius = (float)eruptParams.minRadius;
     fMaxRadius = (float)eruptParams.maxRadius;
 
 
@@ -349,9 +348,11 @@ double Plume::getMaxRadius()
     return this->fMaxRadius;
 }
 
-double Plume::getMinRadius()
+unsigned int Plume::getVEI()
 {
-    return this->fMinRadius;
+    // TODO: fix this formula
+    float height = (U_0 * 50) / rho_0;
+    return clamp(unsigned int((height + 10) / 9), 1, 6);
 }
 
 void Plume::set_U_0(double U_0)
@@ -372,6 +373,12 @@ void Plume::set_r_0(double r_0)
 void Plume::set_z_0(double z_0)
 {
     this->z_0 = z_0;
+}
+
+void Plume::setVEI(unsigned int vei)
+{
+    // TODO: get the inverse of the formula from getVEI()
+    this->U_0 = (vei * 9) - 25;
 }
 
 unsigned int Plume::getID()
