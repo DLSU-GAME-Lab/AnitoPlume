@@ -11,20 +11,9 @@ Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, Er
     this->id = id;
     this->vent_name = vent_name;
     this->vent_position = vent_position;
-
-    // Parameters : to be chosen by user
-    T_0 = 1273.; // initial temp (K)
-    theta_0 = 0.; // initial angle (rad)
-    U_0 = eruptParams.U_0; // initial speed (m.s-1)
-    n_0 = 0.03; // initial gas mass fraction
-    z_0 = eruptParams.z_0; // initial altitude (m)
-    r_0 = eruptParams.r_0; // initial radius (m)
-    rho_0 = eruptParams.rho_0;
-
-    fMaxRadius = (float)eruptParams.maxRadius;
-
-
-    vent_position.z = (float)z_0;
+	erupt_params = eruptParams;
+	reset_parameters();
+    fMaxRadius = (float)erupt_params.maxRadius;
 
     subspheres_number = 0;
     subsubspheres_number = 0;
@@ -69,6 +58,19 @@ void Plume::reset()
     transition_lifetime.clear();
     for (int i = 0; i < max_smoke; i++)
         transition_lifetime.push_back(transition_delay * i);
+}
+
+void Plume::reset_parameters()
+{
+    // Parameters : to be chosen by user
+    T_0 = 1273.; // initial temp (K)
+    theta_0 = 0.; // initial angle (rad)
+    U_0 = erupt_params.U_0; // initial speed (m.s-1)
+    n_0 = 0.03; // initial gas mass fraction
+    z_0 = erupt_params.z_0; // initial altitude (m)
+    r_0 = erupt_params.r_0; // initial radius (m)
+    rho_0 = erupt_params.rho_0;
+    vent_position.z = (float)z_0;
 }
 
 void Plume::set_t_step(float t_step)
@@ -350,9 +352,9 @@ double Plume::getMaxRadius()
 
 unsigned int Plume::getVEI()
 {
-    // TODO: fix this formula
-    float height = (U_0 * 50) / rho_0;
-    return clamp(unsigned int((height + 10) / 9), 1, 6);
+    float height = (U_0 * 50) / (rho_0 + r_0);
+	//std::cout << "Height: " << height << std::endl;
+    return vcl::clamp(unsigned int(height / 9), 1, 6);
 }
 
 void Plume::set_U_0(double U_0)
@@ -377,8 +379,8 @@ void Plume::set_z_0(double z_0)
 
 void Plume::setVEI(unsigned int vei)
 {
-    // TODO: get the inverse of the formula from getVEI()
-    this->U_0 = (vei * 9) - 25;
+    this->rho_0 = 150.0;
+    this->U_0 = vcl::clamp((rho_0 + r_0) * (vei * 9) / 50, 0.0, 200.0);
 }
 
 unsigned int Plume::getID()

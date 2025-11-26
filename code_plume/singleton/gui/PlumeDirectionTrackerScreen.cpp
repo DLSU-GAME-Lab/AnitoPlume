@@ -53,7 +53,7 @@ void PlumeDirectionTrackerScreen::drawGUI()
             {
                 vcl::vec2 pos = vcl::vec2(positions[i].x, positions[i].y);
                 pos /= ratio;
-                pos.x += xOffset;
+                pos += vcl::vec2(xOffset, yOffset);
                 pos.y *= -1;
 
                 float mapRadius = (imgSize / 2) - 32;
@@ -90,7 +90,10 @@ void PlumeDirectionTrackerScreen::showAffectedAreas()
     float coneRadius = PlumeTracker::getInstance()->getConeRadius() / ratio;
     std::vector<std::string> affectedAreas = PlumeTracker::getInstance()->getIntersectingLocations(coneRadius);
     ImGui::SetWindowFontScale(1.5f);
-    ImGui::TextColored({ 0.9f, 0.0f, 0.1f, 1.0f }, "Affected Areas:");
+	ImGui::Indent(34.0f);
+    ImGui::TextColored({ 0.9f, 0.0f, 0.1f, 1.0f }, "Affected Areas");
+	ImGui::Unindent(34.0f);
+    ImGui::Separator();
 
     if (affectedAreas.empty()) ImGui::Text("None");
     else

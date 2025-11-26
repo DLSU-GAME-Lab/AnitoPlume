@@ -50,6 +50,7 @@ public:
     float min_lifetime;
     float max_lifetime;
     vcl::vec3 vent_position;
+	EruptionParams erupt_params;
 
     // Data structures
     std::vector<smoke_layer> smoke_layers;
@@ -69,6 +70,7 @@ public:
 public:
     Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, EruptionParams eruptParams);
     void reset();
+	void reset_parameters();
 
     void set_t_step(float t_step);
 

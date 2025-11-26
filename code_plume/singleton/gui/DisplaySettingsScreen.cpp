@@ -47,7 +47,7 @@ void DisplaySettingsScreen::drawGUI()
 
     ImGui::PopItemWidth();
 
-    ImGui::Checkbox("Display Tooltips", &display_tooltips);
+    ImGui::Checkbox("Display Info UI (aerial view only)", &display_tooltips);
     ImGui::Checkbox("Display Landmarks", &display_landmarks);
     ImGui::Checkbox("Display billboards", &display_billboards);
     ImGui::Checkbox("Display free spheres", &display_free_spheres);
