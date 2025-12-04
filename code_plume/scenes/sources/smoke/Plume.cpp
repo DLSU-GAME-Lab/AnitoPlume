@@ -100,6 +100,18 @@ float Plume::compute_atm_density(float height) //(kg.m-3) cf https://www.deleze.
     return 352.995 * pow(1 - 0.0000225577 * height, 5.25516) / (288.15 - 0.0065 * height);
 }
 
+float Plume::computeMER(float frag_factor, float scaling_coeff)
+{
+    double vent_area = PI * r_0 * r_0;
+    return scaling_coeff * rho_0 * vent_area * U_0 * (1.0 + n_0) * frag_factor;
+}
+
+float Plume::computeVEI()
+{
+    double logMER = std::log10(computeMER(1.0f, 1.0f));
+    return (logMER - 3.58) / 0.92;
+}
+
 void Plume::edit_smoke_layer_properties(unsigned int i, float& d_mass, vec3 wind)
 {
     // preliminary computation

@@ -103,6 +103,10 @@ public:
     void setTransitionSpeed(float transition_speed);
     void setTranstionDelay(float transition_delay);
 
+    // VEI computations
+    float computeMER(float frag_factor, float scaling_coeff);
+    float computeVEI();
+
 private:
     // Smoke layer computation
     void add_smoke_layer(float v, float d, float r, vcl::vec3 position, bool secondary_plume);

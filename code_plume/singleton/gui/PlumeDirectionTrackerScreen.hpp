@@ -12,14 +12,15 @@ private:
 
 	const float imgSize = 256.0f;
 	const float halfSize = imgSize / 2.0f;
-	const float ratio = 400.0f;
-	const float xOffset = -9.0f;
-	const float yOffset = -4.0f;
+	const float ratio = 256.0f;
+	const float xOffset = -6.0f;
+	const float yOffset = -6.0f;
 
 	const int steps = 10;
 	const float altitudeStep = 1000.0f;
 
 	unsigned int dangerZoneImage;
+	bool windVectorsEnabled = true;
 	bool layeredViewEnabled = true;
 	bool windConeEnabled = false;
 

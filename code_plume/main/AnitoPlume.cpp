@@ -76,7 +76,7 @@ AnitoPlume::AnitoPlume()
     TextureManager::getInstance()->load("play_icon", "../assets/UI_Icons/play_icon.png");
     TextureManager::getInstance()->load("pause_icon", "../assets/UI_Icons/pause_icon.png");
     TextureManager::getInstance()->load("stop_icon", "../assets/UI_Icons/stop_icon.png");
-    TextureManager::getInstance()->load("danger_zones", "../assets/images/danger_zones.png");
+    TextureManager::getInstance()->load("minimap", "../assets/images/minimap.png");
     std::cout << "\t [OK] GUI Resources loaded" << std::endl;
 
     std::cout << "*** Init imgui ***" << std::endl;

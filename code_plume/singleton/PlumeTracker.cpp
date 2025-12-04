@@ -128,11 +128,6 @@ std::vector<float>& PlumeTracker::getRadii(unsigned int plumeID)
     return data[plumeID].radii;
 }
 
-float PlumeTracker::getMagnitude(unsigned int plumeID) const
-{
-    return data[plumeID].mag;
-}
-
 float PlumeTracker::getConeRadius() const
 {
     float coneRadius = 0.0f;
@@ -167,7 +162,6 @@ void PlumeTracker::TrackerData::setData(unsigned int index, unsigned int maxSize
         this->radii[index] = radius;
         this->maxRadius = radii[radii.size() - 1];
     }
-    this->mag = vcl::mag(position);
 }
 
 void PlumeTracker::TrackerData::reset()
