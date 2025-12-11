@@ -96,6 +96,7 @@ public:
     unsigned int getID();
     std::string getVentName();
     int getMaxSmoke();
+    float getVolume();
     float getTransitionSpeed();
     float getTransitionDelay();
     std::vector<float>& getTransitionLifetime();

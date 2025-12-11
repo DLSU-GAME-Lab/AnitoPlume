@@ -410,6 +410,18 @@ int Plume::getMaxSmoke()
     return this->max_smoke;
 }
 
+float Plume::getVolume()
+{
+    float total_volume = 0;
+    for (int i = 0; i < smoke_layers.size(); i++)
+    {
+        float total_smoke_volume = smoke_layers[i].thickness * PI * smoke_layers[i].r * smoke_layers[i].r;
+        total_volume += total_smoke_volume;
+    }
+    
+    return total_volume;
+}
+
 float Plume::getTransitionSpeed()
 {
     return this->transition_speed;

@@ -248,11 +248,11 @@ void SimulatorInputScreen::showEruptionParameters()
             }
         }
 
-		ImGui::SameLine();
-        if (ImGui::Button("Print VEI"))
-        {
-            std::cout << "VEI: " << PlumeManager::getInstance()->getPlume(plume_index).computeVEI() << std::endl;
-        }
+		//ImGui::SameLine();
+  //      if (ImGui::Button("Print Volune"))
+  //      {
+  //          std::cout << "Volume: " << PlumeManager::getInstance()->getPlume(plume_index).getVolume() << std::endl;
+  //      }
 
         ImGui::Combo("Eruption Vent", &plume_index, vent_names, ARRAYSIZE(vent_names));
         ImGui::Separator();
