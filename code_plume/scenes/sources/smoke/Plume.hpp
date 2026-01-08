@@ -141,8 +141,9 @@ private:
     void update_free_spheres();
 
     // Stagnation
-    void update_stagnation_spheres();
+    void update_stagnation_spheres(vcl::vec3 wind);
+    void update_stagnation_spheres_position();
 
-    void smoke_layer_update(unsigned int i);
+    void smoke_layer_update(unsigned int i, vcl::vec3 wind);
     void update_smoke_layer_init();
 };

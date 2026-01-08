@@ -92,12 +92,17 @@ void PlumeManager::update()
 				// update of layer and spheres
 				for (unsigned int id = 0; id < this->plumes[i].smoke_layers.size(); id++)
 				{
-					this->plumes[i].smoke_layer_update(id);
+					this->plumes[i].smoke_layer_update(id, computeWindVector(this->plumes[i].smoke_layers[id].center.z));
 				}
 
 				this->plumes[i].update_free_spheres();
 				if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
-				this->plumes[i].update_stagnation_spheres();
+
+				for (int id = this->plumes[i].free_spheres.size() - 1; id >= 0; id--)
+				{
+					this->plumes[i].update_stagnation_spheres(computeWindVector(this->plumes[i].free_spheres[id].center.z));
+				}
+				this->plumes[i].update_stagnation_spheres_position();
 
 				// update subspheres
 				//if (frame_count %50 == 0) update_subspheres_params();

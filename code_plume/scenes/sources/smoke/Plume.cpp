@@ -1,5 +1,4 @@
 #include "Plume.hpp"
-#include "singleton/PlumeManager.hpp"
 
 using namespace vcl;
 //------------------------------------------------------------
@@ -256,10 +255,9 @@ void Plume::sedimentation(unsigned int i, float& d_mass)
 
 }
 
-void Plume::smoke_layer_update(unsigned int i)
+void Plume::smoke_layer_update(unsigned int i, vcl::vec3 wind)
 {
     float d_mass = 0; // to track mass change for equation of dynamics
-    vec3 wind = PlumeManager::getInstance()->computeWindVector(smoke_layers[i].center.z); // get wind at altitude
     smoke_layers[i].lifetime = smoke_layers[i].lifetime + t_step;
 
     if (smoke_layers[i].plume == true && smoke_layers[i].center.z > 0.) sedimentation(i, d_mass); // sedimentation in altitude
@@ -910,7 +908,7 @@ void Plume::update_free_spheres()
 //---------------------- STAGNATION --------------------------
 //------------------------------------------------------------ */
 
-void Plume::update_stagnation_spheres()
+void Plume::update_stagnation_spheres(vec3 wind)
 {
     for (int i = free_spheres.size() - 1; i >= 0; i--)
     {
@@ -918,9 +916,6 @@ void Plume::update_stagnation_spheres()
         {
             // closest layer
             unsigned int closest_layer_id = free_spheres[i].closest_layer_idx;
-
-            // get wind
-            vec3 wind = PlumeManager::getInstance()->computeWindVector(free_spheres[i].center.z);
 
             // get radial composant relative to layer center
             vec3 p_radial = vec3(free_spheres[i].center.x, free_spheres[i].center.y, 0);
@@ -962,7 +957,10 @@ void Plume::update_stagnation_spheres()
             free_spheres[i].speed += wind;
         }
     }
+}
 
+void Plume::update_stagnation_spheres_position()
+{
     // update positions
     for (unsigned int i = 0; i < free_spheres.size(); i++)
     {
