@@ -124,7 +124,7 @@ private:
     // Pyroclastic flow : falling spheres
     float field_height_at(float x, float y);
     vcl::vec3 field_normal_at(float x, float y);
-    void sphere_ground_collision(free_sphere_params& sphere, int idx, unsigned int frame_nb);
+    void sphere_ground_collision(free_sphere_params& sphere, float terrain_z, vcl::vec3 terrain_normal, int idx, unsigned int frame_nb);
     void ground_falling_sphere_update(free_sphere_params& sphere, int idx, unsigned int frame_nb);
     void secondary_columns_creation();
 

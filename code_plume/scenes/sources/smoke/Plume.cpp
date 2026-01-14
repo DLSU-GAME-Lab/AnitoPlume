@@ -454,27 +454,26 @@ void Plume::setTranstionDelay(float transition_delay)
 //--------------------- FALLING SPHERES ----------------------
 //------------------------------------------------------------ */
 
+// TODO: move following functions to plume manager
 float Plume::field_height_at(float x, float y)
 {
+    //return terrain_struct.field_height_at(x, y);
     return 0;
 }
 
 vcl::vec3 Plume::field_normal_at(float x, float y)
 {
+    //return terrain_struct.field_normal_at(x, y);
     return { 0, 1, 0 };
 }
 
-void Plume::sphere_ground_collision(free_sphere_params& sphere, int idx, unsigned int frame_nb)
+// TODO: add field_height_at and field_normal_at as parameters
+void Plume::sphere_ground_collision(free_sphere_params& sphere, float terrain_z, vcl::vec3 terrain_normal, int idx, unsigned int frame_nb)
 {
-    // find ground point and normal
-    float terrain_z = field_height_at(sphere.center.x, sphere.center.y);
-
     // if sphere under ground mesh
     if (sphere.center.z < terrain_z)
     {
-
         vec3 terrain_pt(sphere.center.x, sphere.center.y, terrain_z);
-        vec3 terrain_normal = field_normal_at(sphere.center.x, sphere.center.y);
         vec3 pt_diff = terrain_pt - sphere.center;
 
         // compute new position
@@ -554,7 +553,13 @@ void Plume::ground_falling_sphere_update(free_sphere_params& sphere, int idx, un
     sphere.center = p;
     sphere.lifetime = sphere.lifetime + t_step;
 
-    if (!sphere.falling_disappeared) sphere_ground_collision(sphere, idx, frame_nb);
+    if (!sphere.falling_disappeared)
+    {
+        // find ground point and normal
+        float terrain_z = field_height_at(sphere.center.x, sphere.center.y);
+        vec3 terrain_normal = field_normal_at(sphere.center.x, sphere.center.y);
+        sphere_ground_collision(sphere, terrain_z, terrain_normal, idx, frame_nb);
+    }
 }
 
 void Plume::secondary_columns_creation()
