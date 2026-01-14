@@ -1,6 +1,8 @@
 #include "PlaybackScreen.hpp"
 #include "singleton/PlumeManager.hpp"
 #include "singleton/TextureManager.hpp"
+#include "singleton/GUIManager.hpp"
+#include "singleton/gui/SimulatorInputScreen.hpp"
 
 PlaybackScreen::PlaybackScreen() : GUIScreen("Playback")
 {
@@ -52,6 +54,7 @@ void PlaybackScreen::drawGUI()
         if (ImGui::ImageButton((ImTextureID)stopIcon, ImVec2(32, 32)))
         {
             PlumeManager::getInstance()->stopSimulation();
+            ((SimulatorInputScreen*)GUIManager::getInstance()->getGUIScreen("Simulator Input"))->resetEruptOnPlay();
         }
     }
     ImGui::End();
