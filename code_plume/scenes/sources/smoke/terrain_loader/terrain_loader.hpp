@@ -6,7 +6,7 @@
 
 struct terrain_loader
 {
-	//mesh mesh_terrain;
+	vcl::mesh mesh_terrain;
 	vcl::mesh_drawable terrain;
 	GLuint mesh_shader;
 	GLuint current_tex_id;

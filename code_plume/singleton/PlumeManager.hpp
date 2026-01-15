@@ -19,6 +19,7 @@ private:
 	std::vector<bool> toUpdate;
 	std::vector<int> wind_altitudes;
 	std::vector<wind_structure> winds;
+	terrain_structure terrain_struct;
 
 	float min_altitude;
 	float max_altitude;
@@ -36,6 +37,7 @@ public:
 public:
 	void createPlume(unsigned int id, std::string ventName, vcl::vec3 ventLoc, EruptionParams eruptParams);
 	void setupTransitionValues(int maxSmoke, float transitionSpeed, float transitionDelay);
+	void setupTerrainStruct(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal, vcl::mesh_drawable terrain);
 	void update();
 
 	bool getToUpdate(unsigned int plumeID);

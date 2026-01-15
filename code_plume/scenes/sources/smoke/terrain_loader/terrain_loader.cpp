@@ -24,7 +24,7 @@ void terrain_loader::load_terrain(std::string terrain_filename, std::string text
     //mesh_load_file_obj_async(terrain_path, mesh_terrain);
 
     // Terrain setup
-    mesh mesh_terrain = mesh_load_file_obj(terrain_path);
+    mesh_terrain = mesh_load_file_obj(terrain_path);
     terrain = mesh_drawable(mesh_terrain);
     terrain.shader = mesh_shader;
     terrain.uniform.color = { 1,1,1 };

@@ -66,6 +66,11 @@ void PlumeManager::setupTransitionValues(int dMaxSmoke, float fTransitionSpeed, 
 	}
 }
 
+void PlumeManager::setupTerrainStruct(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal, vcl::mesh_drawable terrain)
+{
+	this->terrain_struct.fill_height_field(position, normal, terrain);
+}
+
 void PlumeManager::update()
 {
 	// Force constant time step
@@ -96,7 +101,7 @@ void PlumeManager::update()
 				}
 
 				this->plumes[i].update_free_spheres();
-				if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(100);
+				if (frame_count % 100 == 0) this->plumes[i].falling_spheres_update(terrain_struct, 100);
 
 				for (int id = this->plumes[i].free_spheres.size() - 1; id >= 0; id--)
 				{

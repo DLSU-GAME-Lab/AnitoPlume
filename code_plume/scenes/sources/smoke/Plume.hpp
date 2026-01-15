@@ -122,10 +122,8 @@ private:
     float compute_atm_density(float height);
 
     // Pyroclastic flow : falling spheres
-    float field_height_at(float x, float y);
-    vcl::vec3 field_normal_at(float x, float y);
     void sphere_ground_collision(free_sphere_params& sphere, float terrain_z, vcl::vec3 terrain_normal, int idx, unsigned int frame_nb);
-    void ground_falling_sphere_update(free_sphere_params& sphere, int idx, unsigned int frame_nb);
+    void ground_falling_sphere_update(terrain_structure& terrain_struct, free_sphere_params& sphere, int idx, unsigned int frame_nb);
     void secondary_columns_creation();
 
     // Free spheres
@@ -135,7 +133,7 @@ private:
 
     public:
     // Pyroclastic flow : falling spheres
-    void falling_spheres_update(unsigned int frame_nb);
+    void falling_spheres_update(terrain_structure& terrain_struct, unsigned int frame_nb);
 
     // Free spheres
     void update_free_spheres();

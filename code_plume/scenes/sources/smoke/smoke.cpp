@@ -117,6 +117,11 @@ void scene_model::setup_data()
     //terrain_display.texture_id = create_texture_gpu(image_load_png("../assets/terrains/Taal_Texture_BaseColor_2016.png"));
     //terrain_display.norm_tex_id = add_normal_map(image_load_png("../assets/textures/Taal_Texture_normal_2024.png"));
     terrain_display.uniform.color = { 1,1,1 };
+	PlumeManager::getInstance()->setupTerrainStruct(
+        t_loader.mesh_terrain.position,
+        t_loader.mesh_terrain.normal,
+        t_loader.mesh_terrain
+    );
 
     fU0 = 150;
     fRho0 = 200;

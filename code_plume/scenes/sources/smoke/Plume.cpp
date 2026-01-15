@@ -454,25 +454,13 @@ void Plume::setTranstionDelay(float transition_delay)
 //--------------------- FALLING SPHERES ----------------------
 //------------------------------------------------------------ */
 
-// TODO: move following functions to plume manager
-float Plume::field_height_at(float x, float y)
-{
-    //return terrain_struct.field_height_at(x, y);
-    return 0;
-}
-
-vcl::vec3 Plume::field_normal_at(float x, float y)
-{
-    //return terrain_struct.field_normal_at(x, y);
-    return { 0, 1, 0 };
-}
-
 // TODO: add field_height_at and field_normal_at as parameters
 void Plume::sphere_ground_collision(free_sphere_params& sphere, float terrain_z, vcl::vec3 terrain_normal, int idx, unsigned int frame_nb)
 {
     // if sphere under ground mesh
     if (sphere.center.z < terrain_z)
     {
+		std::cout << "GROUND COLLISION DETECTED" << std::endl;
         vec3 terrain_pt(sphere.center.x, sphere.center.y, terrain_z);
         vec3 pt_diff = terrain_pt - sphere.center;
 
@@ -519,7 +507,7 @@ void Plume::sphere_ground_collision(free_sphere_params& sphere, float terrain_z,
 
 }
 
-void Plume::ground_falling_sphere_update(free_sphere_params& sphere, int idx, unsigned int frame_nb)
+void Plume::ground_falling_sphere_update(terrain_structure& terrain_struct, free_sphere_params& sphere, int idx, unsigned int frame_nb)
 {
     // find closest layer for radial force
     unsigned int closest_layer_id = 0;
@@ -556,8 +544,8 @@ void Plume::ground_falling_sphere_update(free_sphere_params& sphere, int idx, un
     if (!sphere.falling_disappeared)
     {
         // find ground point and normal
-        float terrain_z = field_height_at(sphere.center.x, sphere.center.y);
-        vec3 terrain_normal = field_normal_at(sphere.center.x, sphere.center.y);
+        float terrain_z = terrain_struct.field_height_at(sphere.center.x, sphere.center.y);
+        vec3 terrain_normal = terrain_struct.field_normal_at(sphere.center.x, sphere.center.y);
         sphere_ground_collision(sphere, terrain_z, terrain_normal, idx, frame_nb);
     }
 }
@@ -622,18 +610,18 @@ void Plume::secondary_columns_creation()
     }
 }
 
-void Plume::falling_spheres_update(unsigned int frame_nb)
+void Plume::falling_spheres_update(terrain_structure& terrain_struct, unsigned int frame_nb)
 {
     // edit spheres, attached or not to a buffer
     for (int i = falling_spheres.size() - 1; i >= 0; i--)
     {
-        ground_falling_sphere_update(falling_spheres[i], i, frame_nb);
+        ground_falling_sphere_update(terrain_struct, falling_spheres[i], i, frame_nb);
     }
     for (unsigned int i = 0; i < falling_spheres_buffers.size(); i++)
     {
         for (unsigned int j = 0; j < falling_spheres_buffers[i].size(); j++)
         {
-            ground_falling_sphere_update(falling_spheres_buffers[i][j], -1, frame_nb);
+            ground_falling_sphere_update(terrain_struct, falling_spheres_buffers[i][j], -1, frame_nb);
         }
     }
 
@@ -809,7 +797,7 @@ void Plume::update_free_spheres()
             // check if closest layer begins falling (if so, make sphere falling)
             if (smoke_layers[closest_layer_id].begin_falling)
             {
-                //subdivide_and_make_falling(i);
+                subdivide_and_make_falling(i);
             }
             else if (smoke_layers[closest_layer_id].stagnates && !smoke_layers[closest_layer_id].stagnates_long && !sphere_i.stagnate)
             {
