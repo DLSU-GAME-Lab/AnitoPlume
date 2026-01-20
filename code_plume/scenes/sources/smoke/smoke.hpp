@@ -20,6 +20,7 @@
 struct scene_model
 {
     size_t frame_replay;
+    const float display_ratio = 100.0f;
 
     // Trackers
     float avg_wind_dir_degrees;

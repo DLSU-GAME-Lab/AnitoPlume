@@ -144,11 +144,11 @@ void scene_model::setup_plume_params()
     vent_names[3] = "Binintiang Malaki";
     //vent_names[4] = "Calauit Point";
 
-    vent_positions[0] = vec3(2500, 0, 0);
-    vent_positions[1] = vec3(5850, 5950, 0);
-    vent_positions[2] = vec3(-2000, -6000, 0);
-    vent_positions[3] = vec3(-3100, 6200, 200);
-    //vent_positions[4] = vec3(5850, -6000, 0);
+    vent_positions[0] = vec3(0, 0, 0);
+    vent_positions[1] = vec3(3350, 5950, 0);
+    vent_positions[2] = vec3(-4500, -6000, 0);
+    vent_positions[3] = vec3(-5600, 6200, 200);
+    //vent_positions[4] = vec3(3350, -6000, 0);
 
     erupt_params.push_back(EruptionParams{ 150., 0., 100., 200., 500. });
     erupt_params.push_back(EruptionParams{ 50.,  0.,  20.,  50., 150. });
@@ -167,7 +167,6 @@ void scene_model::setup_plume_params()
 void scene_model::display()
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     if (camera->sky_enabled)
         skysphere_display->draw_sky(*camera, ShaderManager::getInstance()->getShader("sky_mesh"), skysphere_display->texture_id);
@@ -189,7 +188,7 @@ void scene_model::display()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     vcl::mat4 cam_mat = CameraManager::getInstance()->getCamera()->camera_matrix();
-    vcl::vec3 cam_pos = { cam_mat.xw * ratio - 25, cam_mat.yw * ratio, cam_mat.zw * ratio - 2 };
+    vcl::vec3 cam_pos = { cam_mat.xw * display_ratio, cam_mat.yw * display_ratio, cam_mat.zw * display_ratio };
     if (cam_pos.x != last_cam_pos.x || cam_pos.y != last_cam_pos.y || cam_pos.z != last_cam_pos.z)
     {
         last_cam_pos = cam_pos;
@@ -224,13 +223,12 @@ void scene_model::display()
 void scene_model::display_smoke_layers(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     for (unsigned int i = 0; i < plume->smoke_layers.size(); i++)
     {
         smoke_layer lay = plume->smoke_layers[i];
-        torus_display->uniform.transform.scaling = lay.r / ratio;
-        torus_display->uniform.transform.translation = vec3(lay.center.x / ratio - 25, lay.center.y / ratio, lay.center.z / ratio - 2);
+        torus_display->uniform.transform.scaling = lay.r / display_ratio;
+        torus_display->uniform.transform.translation = lay.center / display_ratio;
         torus_display->uniform.transform.rotation = rotation_from_axis_angle_mat3(lay.theta_axis, lay.theta - 3.14 / 2.0);
         torus_display->shader = ShaderManager::getInstance()->getShader("mesh");
         torus_display->draw(*camera);
@@ -240,7 +238,6 @@ void scene_model::display_smoke_layers(Plume* plume)
 void scene_model::display_billboards(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     glDepthMask(false);
 
@@ -250,11 +247,11 @@ void scene_model::display_billboards(Plume* plume)
         for (int j = 0; j < plume->getTransitionLifetime().size(); j++)
         {
             float animation = fmax(0, sinf(plume->getTransitionSpeed() * plume->getTransitionLifetime()[j]));
-            float initial_radius = plume->get_r_0() / ratio;
+            float initial_radius = plume->get_r_0() / display_ratio;
             float half_size = 4.0f;
             float new_scaling = animation == 0 ? (half_size * 2.0f) : (half_size + (animation * half_size));
-            float offset = (plume->get_z_0() / ratio) + terrain_display.uniform.transform.translation.z;
-            vec3 new_translation = vec3(plume->getPosition().x / ratio - 25, plume->getPosition().y / ratio, offset + (animation * (fabs(offset) - 2)));
+            float offset = (plume->get_z_0() / display_ratio) + terrain_display.uniform.transform.translation.z;
+            vec3 new_translation = vec3(plume->getPosition().x / display_ratio, plume->getPosition().y / display_ratio, offset + (animation * (fabs(offset))));
             float var = vcl::perlin(j, 2);
 
             quad_display->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume->getTransitionSpeed() * plume->getTransitionLifetime()[j] * var) * camera->orientation;
@@ -272,18 +269,9 @@ void scene_model::display_billboards(Plume* plume)
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float new_scaling = plume->free_spheres[j].r / ratio;
-        //if (j==0) std::cout << new_scaling << std::endl;
-        vec3 new_translation = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
-
-        //sphere_display->uniform.transform.translation = new_translation;
-        //sphere_display->uniform.transform.scaling = new_scaling;
-        //sphere_display->uniform.transform.rotation = R;
-        //sphere_display->uniform.color = { 1,1,1 };
-        //sphere_display->shader = ShaderManager::getInstance()->getShader("mesh");
-
+        float new_scaling = plume->free_spheres[j].r / display_ratio;
+        vec3 new_translation = plume->free_spheres[j].center / display_ratio;
         float var = vcl::perlin(plume->free_spheres[j].id, 2);
-
         //quad_display->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), free_spheres[j].current_angle * dot(free_spheres[j].rotation_axis, camera->orientation.col(2)) * 1.5f *(1+0.3*var) + 2.2145*j*j) * camera->orientation;
         quad_display->uniform.transform.rotation = rotation_from_axis_angle_mat3(camera->orientation.col(2), plume->free_spheres[j].id * var) * camera->orientation;
         quad_display->uniform.transform.translation = new_translation;
@@ -308,14 +296,13 @@ void scene_model::display_billboards(Plume* plume)
 void scene_model::display_free_spheres(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         //if (!free_spheres[j].falling)
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float r = plume->free_spheres[j].r / ratio;
-        vec3 t = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
+        float r = plume->free_spheres[j].r / display_ratio;
+        vec3 t = plume->free_spheres[j].center / display_ratio;
         float rho = plume->free_spheres[j].rho;
         float disp_rho = 1. - rho;
         if (disp_rho < 0) disp_rho = 0.;
@@ -333,13 +320,13 @@ void scene_model::display_free_spheres(Plume* plume)
 void scene_model::display_spheres_with_subspheres(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
+
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         //if (!free_spheres[j].falling)
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
-        float r = plume->free_spheres[j].r / ratio;
-        vec3 t = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
+        float r = plume->free_spheres[j].r / display_ratio;
+        vec3 t = plume->free_spheres[j].center / display_ratio;
         float rho = plume->free_spheres[j].rho;
         float disp_rho = 1. - rho;
         if (disp_rho < 0) disp_rho = 0.;
@@ -358,13 +345,13 @@ void scene_model::display_spheres_with_subspheres(Plume* plume)
 void scene_model::display_subspheres(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
+
     for (unsigned int j = 0; j < plume->s2_spheres.size(); j++)
     {
         if (!plume->free_spheres[plume->s2_spheres[j].parent_id].falling)
         {
-            float r = plume->s2_spheres[j].r / ratio;
-            vec3 t = plume->s2_spheres[j].center / ratio;
+            float r = plume->s2_spheres[j].r / display_ratio;
+            vec3 t = plume->s2_spheres[j].center / display_ratio;
             float rho = plume->free_spheres[plume->s2_spheres[j].parent_id].rho;
             float disp_rho = 1. - rho;
             if (disp_rho < 0) disp_rho = 0.;
@@ -382,12 +369,11 @@ void scene_model::display_subspheres(Plume* plume)
 void scene_model::display_falling_spheres(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     for (unsigned int j = 0; j < plume->falling_spheres.size(); j++)
     {
-        float new_scaling = plume->falling_spheres[j].r / ratio;
-        vec3 new_translation = { plume->falling_spheres[j].center.x / ratio - 25, plume->falling_spheres[j].center.y / ratio, plume->falling_spheres[j].center.z / ratio - 2 };
+        float new_scaling = plume->falling_spheres[j].r / display_ratio;
+        vec3 new_translation = plume->falling_spheres[j].center / display_ratio;
         sphere_display->uniform.transform.translation = new_translation;
         sphere_display->uniform.transform.scaling = new_scaling;
         sphere_display->uniform.transform.rotation = mat3::identity();
@@ -401,14 +387,13 @@ void scene_model::display_falling_spheres(Plume* plume)
 void scene_model::display_falling_spheres_buffers(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
-    float ratio = 100;
 
     for (unsigned int k = 0; k < plume->falling_spheres_buffers.size(); k++)
     {
         for (unsigned int j = 0; j < plume->falling_spheres_buffers[k].size(); j++)
         {
-            float new_scaling = plume->falling_spheres_buffers[k][j].r / ratio;
-            vec3 new_translation = { plume->falling_spheres_buffers[k][j].center.x / ratio, plume->falling_spheres_buffers[k][j].center.y / ratio, plume->falling_spheres_buffers[k][j].center.z / ratio + 5 };
+            float new_scaling = plume->falling_spheres_buffers[k][j].r / display_ratio;
+            vec3 new_translation = plume->falling_spheres_buffers[k][j].center / display_ratio;
             sphere_display->uniform.transform.translation = new_translation;
             sphere_display->uniform.transform.scaling = new_scaling;
             sphere_display->uniform.transform.rotation = mat3::identity();
