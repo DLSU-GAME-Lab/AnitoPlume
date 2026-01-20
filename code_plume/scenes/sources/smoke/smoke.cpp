@@ -275,11 +275,12 @@ void scene_model::display_billboards(Plume* plume)
         float new_scaling = plume->free_spheres[j].r / ratio;
         //if (j==0) std::cout << new_scaling << std::endl;
         vec3 new_translation = vec3(plume->free_spheres[j].center.x / ratio - 25, plume->free_spheres[j].center.y / ratio, plume->free_spheres[j].center.z / ratio - 2);
-     /*   sphere_display->uniform.transform.translation = new_translation;
-        sphere_display->uniform.transform.scaling = new_scaling;
-        sphere_display->uniform.transform.rotation = R;
-        sphere_display->uniform.color = { 1,1,1 };
-        sphere_display->shader = ShaderManager::getInstance()->getShader("mesh");*/
+
+        //sphere_display->uniform.transform.translation = new_translation;
+        //sphere_display->uniform.transform.scaling = new_scaling;
+        //sphere_display->uniform.transform.rotation = R;
+        //sphere_display->uniform.color = { 1,1,1 };
+        //sphere_display->shader = ShaderManager::getInstance()->getShader("mesh");
 
         float var = vcl::perlin(plume->free_spheres[j].id, 2);
 
@@ -386,7 +387,7 @@ void scene_model::display_falling_spheres(Plume* plume)
     for (unsigned int j = 0; j < plume->falling_spheres.size(); j++)
     {
         float new_scaling = plume->falling_spheres[j].r / ratio;
-        vec3 new_translation = { plume->falling_spheres[j].center.x / ratio, plume->falling_spheres[j].center.y / ratio, plume->falling_spheres[j].center.z / ratio - 2 };
+        vec3 new_translation = { plume->falling_spheres[j].center.x / ratio - 25, plume->falling_spheres[j].center.y / ratio, plume->falling_spheres[j].center.z / ratio - 2 };
         sphere_display->uniform.transform.translation = new_translation;
         sphere_display->uniform.transform.scaling = new_scaling;
         sphere_display->uniform.transform.rotation = mat3::identity();
