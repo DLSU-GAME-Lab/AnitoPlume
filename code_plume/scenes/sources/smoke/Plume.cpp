@@ -454,13 +454,11 @@ void Plume::setTranstionDelay(float transition_delay)
 //--------------------- FALLING SPHERES ----------------------
 //------------------------------------------------------------ */
 
-// TODO: add field_height_at and field_normal_at as parameters
 void Plume::sphere_ground_collision(free_sphere_params& sphere, float terrain_z, vcl::vec3 terrain_normal, int idx, unsigned int frame_nb)
 {
     // if sphere under ground mesh
     if (sphere.center.z < terrain_z)
     {
-		std::cout << "GROUND COLLISION DETECTED" << std::endl;
         vec3 terrain_pt(sphere.center.x, sphere.center.y, terrain_z);
         vec3 pt_diff = terrain_pt - sphere.center;
 
