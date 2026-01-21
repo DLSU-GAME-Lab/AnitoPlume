@@ -44,6 +44,8 @@ private:
     float transition_speed;
     float transition_delay;
 
+    const unsigned int nb_spheres = 2;
+
 public:
     // Constants
     float g;

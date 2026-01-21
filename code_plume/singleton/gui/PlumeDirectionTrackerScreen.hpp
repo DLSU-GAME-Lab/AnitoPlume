@@ -13,7 +13,7 @@ private:
 	const float imgSize = 256.0f;
 	const float halfSize = imgSize / 2.0f;
 	const float ratio = 256.0f;
-	const float xOffset = -6.0f;
+	const float xOffset = 4.0f;
 	const float yOffset = -6.0f;
 
 	const int steps = 10;

@@ -688,7 +688,6 @@ void Plume::add_free_sphere(unsigned int i, float angle, float size_fac)
 
 void Plume::add_free_spheres_for_one_layer(unsigned int i)
 {
-    unsigned int nb_spheres = 6;
     float angle_offset = 2 * PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
     //determine size differences
@@ -697,7 +696,13 @@ void Plume::add_free_spheres_for_one_layer(unsigned int i)
     {
         sizes.push_back(0.5f + static_cast <float>(rand()) / static_cast <float>(RAND_MAX));
     }
-    float total = sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4] + sizes[5];
+    
+    float total = 0;
+    for (unsigned int k = 0; k < nb_spheres; k++)
+    {
+        total += sizes[k];
+    }
+    
     float factor = (float)nb_spheres / total;
     for (unsigned int k = 0; k < sizes.size(); k++)
     {
