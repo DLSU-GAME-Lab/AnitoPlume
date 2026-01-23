@@ -144,6 +144,7 @@ void scene_model::setup_plume_params()
     vent_names[3] = "Binintiang Malaki";
     //vent_names[4] = "Calauit Point";
 
+    //vent_positions[0] = vec3(-1000, -1700, 0);
     vent_positions[0] = vec3(0, 0, 0);
     vent_positions[1] = vec3(3350, 5950, 0);
     vent_positions[2] = vec3(-4500, -6000, 0);
@@ -265,7 +266,6 @@ void scene_model::display_billboards(Plume* plume)
             quad_display->draw(*camera);
         }
     }
-
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
