@@ -211,7 +211,8 @@ void SimulatorInputScreen::showEruptionParameters()
 {
     if (ImGui::CollapsingHeader("Eruption Parameters", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * 9.0f), true);
+        float child_height = show_VEI ? 9.0f : 7.75f;
+        ImGui::BeginChild("Parameters", ImVec2(child_width, ImGui::GetItemsLineHeightWithSpacing() * child_height), true); // 9.0f with VEI
         ImGui::Indent(indent_width);
         ImGui::PushItemWidth(200);
 
@@ -267,23 +268,27 @@ void SimulatorInputScreen::showEruptionParameters()
             {
                 PlumeManager::getInstance()->setToUpdate(plume_index, true);
             }
-            else
+            else if (PlumeManager::getInstance()->getState() == SimulatorState::Stopped)
             {
-
+                PlumeManager::getInstance()->setToUpdate(plume_index, false);
             }
         }
 
 		ImGui::SameLine();
         if (ImGui::Button("Reset to default")) plume.reset_parameters();
 
-        unsigned int initial_vei_min = 1, initial_vei_max = 6;
-        if (ImGui::SliderScalar("Volcanic Eruption Index", ImGuiDataType_U32, &vei, &initial_vei_min, &initial_vei_max))
+        if (show_VEI)
         {
-            plume.setVEI(vei);
+            unsigned int initial_vei_min = 1, initial_vei_max = 6;
+            if (ImGui::SliderScalar("Volcanic Eruption Index", ImGuiDataType_U32, &vei, &initial_vei_min, &initial_vei_max))
+            {
+                plume.setVEI(vei);
+            }
+
+            ImGui::Spacing();
+            ImGui::Spacing();
         }
 
-        ImGui::Spacing();
-        ImGui::Spacing();
         double initial_speed_min = 0., initial_speed_max = 200.;
         if (ImGui::SliderScalar("Initial plume speed", ImGuiDataType_Double, &U_0, &initial_speed_min, &initial_speed_max, "%.2f m/s"))
         {

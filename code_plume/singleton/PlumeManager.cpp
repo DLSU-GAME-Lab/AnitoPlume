@@ -138,6 +138,7 @@ void PlumeManager::update()
 
 bool PlumeManager::getToUpdate(unsigned int plumeID)
 {
+	if (plumeID >= this->toUpdate.size()) return false;
 	return this->toUpdate[plumeID];
 }
 
@@ -149,6 +150,7 @@ void PlumeManager::setToUpdate(bool toUpdate)
 
 void PlumeManager::setToUpdate(unsigned int plumeID, bool toUpdate)
 {
+	if (plumeID >= this->toUpdate.size()) return;
 	this->toUpdate[plumeID] = toUpdate;
 }
 
@@ -159,6 +161,9 @@ void PlumeManager::setTimerScale(float scale)
 
 void PlumeManager::playSimulation()
 {
+	if (state == SimulatorState::Stopped)
+		this->reset();
+
 	timer.start();
 	state = SimulatorState::Playing;
 }
@@ -175,10 +180,7 @@ void PlumeManager::stopSimulation()
 	frame_count = 0;
 	state = SimulatorState::Stopped;
 	PlumeTracker::getInstance()->resetPlumePositions();
-	for (int i = 0; i < this->plumes.size(); i++)
-	{
-		this->plumes[i].reset();
-	}
+	this->reset();
 }
 
 void PlumeManager::reset()

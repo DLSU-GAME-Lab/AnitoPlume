@@ -17,6 +17,7 @@ private:
     const float slider_width = 25;
     const float plot_width = 330;
     const float plot_height = 100;
+    const bool show_VEI = false;
 
     //Wind settings ui
     float max_altitude;
