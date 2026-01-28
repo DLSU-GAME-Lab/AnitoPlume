@@ -75,6 +75,9 @@ public:
 	float getMaxAlt();
 	float getAltStep();
 	int getAltSize();
+	unsigned int getSmokeLayersCount();
+	unsigned int getFreeSphereCount();
+	unsigned int getSubsphereCount();
 
 //singleton Stuff
 private:

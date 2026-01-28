@@ -367,3 +367,42 @@ int PlumeManager::getAltSize()
 {
 	return this->altitude_size;
 }
+
+unsigned int PlumeManager::getSmokeLayersCount()
+{
+	unsigned int smokeLayersCount = 0;
+	for (int i = 0; i < this->plumes.size(); i++)
+	{
+		smokeLayersCount += this->plumes[i].smoke_layers.size();
+	}
+	return smokeLayersCount;
+}
+
+unsigned int PlumeManager::getFreeSphereCount()
+{
+	unsigned int totalSphereCount = 0;
+	for (int i = 0; i < this->plumes.size(); i++)
+	{
+		totalSphereCount += this->plumes[i].free_spheres.size();
+		totalSphereCount += this->plumes[i].falling_spheres.size();
+
+		for (int j = 0; j < this->plumes[i].falling_spheres_buffers.size(); j++)
+		{
+			totalSphereCount += this->plumes[i].falling_spheres_buffers[j].size();
+		}
+	}
+
+	return totalSphereCount;
+}
+
+unsigned int PlumeManager::getSubsphereCount()
+{
+	unsigned int totalSphereCount = 0;
+	for (int i = 0; i < this->plumes.size(); i++)
+	{
+		totalSphereCount += this->plumes[i].s2_spheres.size();
+		totalSphereCount += this->plumes[i].s3_spheres.size();
+	}
+
+	return totalSphereCount;
+}
