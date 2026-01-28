@@ -573,7 +573,7 @@ void Plume::secondary_columns_creation()
         float wanted_volume = wanted_ray * PI * wanted_ray * wanted_ray;
         float sphere_volume = 4. / 3. * PI * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r;
         float nb_spheres_needed = wanted_volume / sphere_volume;
-        nb_spheres_needed = 6;
+        //nb_spheres_needed = 6;
 
         //find closest layer
         vec3 center_i = falling_spheres_buffers[i][0].center;

@@ -266,6 +266,7 @@ void scene_model::display_billboards(Plume* plume)
             quad_display->draw(*camera);
         }
     }
+    //quad_display->texture_id = smoke_texture;
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
