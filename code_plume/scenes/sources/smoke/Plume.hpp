@@ -25,6 +25,7 @@ private:
     double z_0; // initial altitude
     double r_0; // initial radius
     double rho_0; // initial density
+    double expansion_strength;
 
     // Trackers
     float t_step;
