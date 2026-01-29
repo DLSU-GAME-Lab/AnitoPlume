@@ -91,7 +91,7 @@ void CameraSettingsScreen::drawGUI()
         float pos[] = { -camera->translation.x, -camera->translation.y, -camera->translation.z };
         if (ImGui::InputFloat3("Position", pos, "%.2f"))
         {
-            camera->limit_translation(vec3{ -pos[0], -pos[1], -pos[2] });
+            camera->apply_translation(vec3{ -pos[0], -pos[1], -pos[2] });
         }
         break;
     }

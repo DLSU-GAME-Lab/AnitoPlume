@@ -11,7 +11,7 @@ struct EruptionParams
     double rho_0; // initial density
     double maxRadius;
 };
-// TODO: Add getters and setters for encapsulation
+
 class Plume
 {
 private:
