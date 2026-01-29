@@ -528,9 +528,14 @@ void Plume::ground_falling_sphere_update(terrain_structure& terrain_struct, free
     vec3 gravity = vec3(0, 0, -m * g);
     vec3 buoyancy = vec3(0, 0, atm_rho * V * g);
     vec3 friction = -0.1 * normalize(sphere.speed);
-    friction = vec3(0, 0, 0);
+    //friction = vec3(0, 0, 0);
+    vec3 radial_dir = normalize(sphere.center - smoke_layers[closest_layer_id].center);
+    float expansion_strength = 1.f; // tune this
+    vec3 radial_force = radial_dir * expansion_strength * m;
+ 
 
-    vec3 forces = gravity + buoyancy + friction;
+
+    vec3 forces = gravity + buoyancy + friction + radial_force;
     vec3 a = forces / m;
     vec3 v = sphere.speed + a * frame_nb * t_step;
     vec3 p = sphere.center + v * frame_nb * t_step;
@@ -569,7 +574,7 @@ void Plume::secondary_columns_creation()
     // find big enough buffers
     for (unsigned int i = 0; i < falling_spheres_buffers.size(); i++)
     {
-        float wanted_ray = falling_spheres_buffers[i][0].r;
+        float wanted_ray = falling_spheres_buffers[i][0].r ;
         float wanted_volume = wanted_ray * PI * wanted_ray * wanted_ray;
         float sphere_volume = 4. / 3. * PI * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r * falling_spheres_buffers[i][0].r;
         float nb_spheres_needed = wanted_volume / sphere_volume;
@@ -592,7 +597,7 @@ void Plume::secondary_columns_creation()
         if (falling_spheres_buffers[i].size() > nb_spheres_needed * 3 && min_dist > wanted_ray)
         {
             // emit layer
-            add_smoke_layer(5, falling_spheres_buffers[i][0].rho, wanted_ray * 0.75, falling_spheres_buffers[i][0].center, true);
+            add_smoke_layer(5, falling_spheres_buffers[i][0].rho, wanted_ray * 2, falling_spheres_buffers[i][0].center, true);
             add_free_spheres_for_one_layer(smoke_layers.size() - 1);
             //if (debug_mode) std::cout << "SECONDARY LAYER ADDED OK" << std::endl;
 
