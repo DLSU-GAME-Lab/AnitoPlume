@@ -10,7 +10,7 @@ Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, Er
     this->id = id;
     this->vent_name = vent_name;
     this->vent_position = vent_position;
-    this->expansion_strength = 1;
+    this->expansion_strength = 1;// for use in making the spread of pyroclastic plumes
 	erupt_params = eruptParams;
 	reset_parameters();
     fMaxRadius = (float)erupt_params.maxRadius;
@@ -531,7 +531,6 @@ void Plume::ground_falling_sphere_update(terrain_structure& terrain_struct, free
     vec3 friction = -0.1 * normalize(sphere.speed);
     //friction = vec3(0, 0, 0);
     vec3 radial_dir = normalize(sphere.center - smoke_layers[closest_layer_id].center);
-    this->expansion_strength = 1.f; // tune this
     vec3 radial_force = radial_dir * expansion_strength * m;
  
 
