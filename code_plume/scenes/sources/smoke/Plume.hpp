@@ -18,10 +18,10 @@ private:
     unsigned int id;
     std::string vent_name;
     // User-defined parameters
-    double T_0; // initial temp
-    double theta_0; // initial angle
+    double T_0; // initial temp (unused)
+    double theta_0; // initial angle (unused)
     double U_0; // initial speed
-    double n_0; // initial gas mass fraction
+    double n_0; // initial gas mass fraction (unused)
     double z_0; // initial altitude
     double r_0; // initial radius
     double rho_0; // initial density

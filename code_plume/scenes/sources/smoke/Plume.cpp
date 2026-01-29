@@ -90,12 +90,14 @@ void Plume::add_smoke_layer(float v, float d, float r, vec3 position, bool secon
     smoke_layers.push_back(layer);
 }
 
-float Plume::compute_atm_temperature(float height) //(K) cf https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_normalis%C3%A9e
+//(K) cf https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_normalis%C3%A9e English: https://en.wikipedia.org/wiki/International_Standard_Atmosphere
+float Plume::compute_atm_temperature(float height)
 {
     return 288.15 - 6.5 * height / 1000.0;
 }
 
-float Plume::compute_atm_density(float height) //(kg.m-3) cf https://www.deleze.name/marcel/sec2/applmaths/pression-altitude/masse_volumique.pdf
+//(kg.m-3) cf https://www.deleze.name/marcel/sec2/applmaths/pression-altitude/masse_volumique.pdf
+float Plume::compute_atm_density(float height)
 {
     return 352.995 * pow(1 - 0.0000225577 * height, 5.25516) / (288.15 - 0.0065 * height);
 }
