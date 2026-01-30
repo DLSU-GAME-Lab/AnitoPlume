@@ -10,9 +10,9 @@ private:
 	const ImU32 red = IM_COL32(240, 0, 40, 255);
 	const ImU32 alphaRed = IM_COL32(240, 0, 40, 100);
 
-	const float imgSize = 256.0f;
+	const float imgSize = 360.0f;
 	const float halfSize = imgSize / 2.0f;
-	const float ratio = 256.0f;
+	const float ratio = 360.0f;
 	const float xOffset = 4.0f;
 	const float yOffset = -6.0f;
 

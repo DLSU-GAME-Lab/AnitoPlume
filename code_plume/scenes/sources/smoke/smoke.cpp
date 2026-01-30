@@ -32,6 +32,7 @@ void scene_model::setup_resources()
 {
     //Textures
     TextureManager::getInstance()->load("smoke", "../assets/smoke_tex/smoke-tex-0.png");
+    TextureManager::getInstance()->load("smoke_sphere", "../assets/smoke_tex/smoke_sphere.png");
     TextureManager::getInstance()->load("skysphere", "../assets/Skydome/Skysphere_Tex.png");
 
     //Meshes
@@ -75,17 +76,21 @@ void scene_model::setup_data()
     quad_display = MeshManager::getInstance()->getMesh("Quad");
     sphere_display = MeshManager::getInstance()->getMesh("Sphere");
     subspheres_display = MeshManager::getInstance()->getMesh("Subspheres");
-    sphere_display->texture_id = TextureManager::getInstance()->getTexture("white");
     
+    sphere_display->texture_id = TextureManager::getInstance()->getTexture("white");
+    sphere_display->uniform.shading.ambiant = 1.0f;
+    sphere_display->uniform.shading.specular = 0.0f;
+    sphere_display->uniform.shading.diffuse = 0.0f;
+
     torus_display->uniform.color = {1,0.5,0};
     torus_display->shader = ShaderManager::getInstance()->getShader("mesh");
     torus_display->texture_id = TextureManager::getInstance()->getTexture("white");
     torus_display->uniform.color_alpha = 0.6f;
 
     smoke_texture = TextureManager::getInstance()->getTexture("smoke");
-    quad_display->uniform.shading.ambiant = 1.0;
-    quad_display->uniform.shading.diffuse = 0.0;
-    quad_display->uniform.shading.specular = 0.0;
+    quad_display->uniform.shading.ambiant = 1.0f;
+    quad_display->uniform.shading.diffuse = 0.0f;
+    quad_display->uniform.shading.specular = 0.0f;
 
     PlumeManager::getInstance()->setupTransitionValues(20, 5.f, .2f); 
 
@@ -266,7 +271,7 @@ void scene_model::display_billboards(Plume* plume)
             quad_display->draw(*camera);
         }
     }
-    //quad_display->texture_id = smoke_texture;
+    
     for (unsigned int j = 0; j < plume->free_spheres.size(); j++)
     {
         mat3 const R = rotation_from_axis_angle_mat3(plume->free_spheres[j].rotation_axis, plume->free_spheres[j].current_angle);
@@ -337,6 +342,7 @@ void scene_model::display_spheres_with_subspheres(Plume* plume)
         subspheres_display->uniform.transform.scaling = r;
         subspheres_display->uniform.transform.rotation = R;
         subspheres_display->uniform.color = { disp_rho,disp_rho,disp_rho };
+        subspheres_display->texture_id = TextureManager::getInstance()->getTexture("smoke_sphere");
         subspheres_display->shader = ShaderManager::getInstance()->getShader("mesh");
 
         subspheres_display->draw(*camera);
@@ -361,6 +367,7 @@ void scene_model::display_subspheres(Plume* plume)
             sphere_display->uniform.transform.translation = t;
             sphere_display->uniform.transform.scaling = r;
             sphere_display->uniform.color = { disp_rho,disp_rho,disp_rho };
+            sphere_display->texture_id = TextureManager::getInstance()->getTexture("smoke_sphere");
             sphere_display->shader = ShaderManager::getInstance()->getShader("mesh");
             sphere_display->draw(*camera);
         }

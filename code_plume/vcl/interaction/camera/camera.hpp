@@ -59,10 +59,10 @@ struct camera_scene
     vec3 last_translation = {};
 
     float near_radial_limit = 100.f;
-    float far_radial_limit = 200.f;
+    float far_radial_limit = 300.f;
     float lower_limit = 5.0f;
     float upper_limit = 200.f;
-    float perimiter_limit = 100.f;
+    float perimiter_limit = 300.f;
 
     // No clip tool tips 0.3f
     float upper_phi_limit = 0.0f;
