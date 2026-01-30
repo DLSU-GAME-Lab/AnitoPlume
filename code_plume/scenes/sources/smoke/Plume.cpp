@@ -11,6 +11,7 @@ Plume::Plume(unsigned int id, std::string vent_name, vcl::vec3 vent_position, Er
     this->vent_name = vent_name;
     this->vent_position = vent_position;
     this->expansion_strength = 1;// for use in making the spread of pyroclastic plumes
+    this->radius_multiplier = 2.f;// for use in the size of secondary columns
 	erupt_params = eruptParams;
 	reset_parameters();
     fMaxRadius = (float)erupt_params.maxRadius;
@@ -599,7 +600,7 @@ void Plume::secondary_columns_creation()
         if (falling_spheres_buffers[i].size() > nb_spheres_needed * 3 && min_dist > wanted_ray)
         {
             // emit layer
-            add_smoke_layer(5, falling_spheres_buffers[i][0].rho, wanted_ray * 2, falling_spheres_buffers[i][0].center, true);
+            add_smoke_layer(5, falling_spheres_buffers[i][0].rho, wanted_ray * this->radius_multiplier, falling_spheres_buffers[i][0].center, true);
             add_free_spheres_for_one_layer(smoke_layers.size() - 1);
             //if (debug_mode) std::cout << "SECONDARY LAYER ADDED OK" << std::endl;
 

@@ -26,6 +26,7 @@ private:
     double r_0; // initial radius
     double rho_0; // initial density
     double expansion_strength;
+    double radius_multiplier;
 
     // Trackers
     float t_step;
