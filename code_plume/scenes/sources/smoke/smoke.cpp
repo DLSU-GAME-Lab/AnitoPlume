@@ -85,7 +85,10 @@ void scene_model::setup_data()
     torus_display->uniform.color = {1,0.5,0};
     torus_display->shader = ShaderManager::getInstance()->getShader("mesh");
     torus_display->texture_id = TextureManager::getInstance()->getTexture("white");
-    torus_display->uniform.color_alpha = 0.6f;
+    torus_display->uniform.color_alpha = 0.05f;
+    torus_display->uniform.shading.ambiant = 1.0f;
+    torus_display->uniform.shading.specular = 0.2f;
+    torus_display->uniform.shading.diffuse = 1.0f;
 
     smoke_texture = TextureManager::getInstance()->getTexture("smoke");
     quad_display->uniform.shading.ambiant = 1.0f;
@@ -205,18 +208,18 @@ void scene_model::display()
     {
         // billboards
         if (display_screen->getDisplayBillboards()) display_billboards(PlumeManager::getInstance()->getSortedPlumes()[i]);
-        // Display torus
-        if (display_screen->getDisplaySmokeLayers()) display_smoke_layers(PlumeManager::getInstance()->getSortedPlumes()[i]);
         // free + stagnation spheres display
         if (display_screen->getDisplayFreeSpheres()) display_free_spheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
-        // spheres+subspheres display (lighter)
-        if (display_screen->getDisplaySpheresWithSubspheres()) display_spheres_with_subspheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
-        // subspheres display
-        if (display_screen->getDisplaySubspheres()) display_subspheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
         // falling spheres display
         if (display_screen->getDisplayFreeSpheres()) display_falling_spheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
         // buffer falling spheres display
         if (display_screen->getDisplayFreeSpheres()) display_falling_spheres_buffers(PlumeManager::getInstance()->getSortedPlumes()[i]);
+        // subspheres display
+        if (display_screen->getDisplaySubspheres()) display_subspheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
+        // spheres+subspheres display (lighter)
+        if (display_screen->getDisplaySpheresWithSubspheres()) display_spheres_with_subspheres(PlumeManager::getInstance()->getSortedPlumes()[i]);
+        // Display torus
+        if (display_screen->getDisplaySmokeLayers()) display_smoke_layers(PlumeManager::getInstance()->getSortedPlumes()[i]);
     }
     
     if (display_screen->getDisplayTooltips() == true && camera->mode != view_mode::orbital) tip_loader.draw();
@@ -230,6 +233,8 @@ void scene_model::display_smoke_layers(Plume* plume)
 {
     camera_scene* camera = CameraManager::getInstance()->getCamera();
 
+    glDepthMask(false);
+
     for (unsigned int i = 0; i < plume->smoke_layers.size(); i++)
     {
         smoke_layer lay = plume->smoke_layers[i];
@@ -239,6 +244,9 @@ void scene_model::display_smoke_layers(Plume* plume)
         torus_display->shader = ShaderManager::getInstance()->getShader("mesh");
         torus_display->draw(*camera);
     }
+
+    glDepthMask(true);
+
 }
 
 void scene_model::display_billboards(Plume* plume)
