@@ -7,7 +7,7 @@ namespace vcl
 
 enum class camera_action_state {none, translation, rotation, scale, translation_depth};
 
-void camera_control_glfw::update_mouse_move(camera_scene& camera, GLFWwindow* window, float x1, float y1)
+void camera_control_glfw::update_mouse_move(camera_scene* camera, GLFWwindow* window, float x1, float y1)
 {
     assert(window!=nullptr);
 
@@ -55,7 +55,7 @@ void camera_control_glfw::update_mouse_move(camera_scene& camera, GLFWwindow* wi
 
         const float tx =  (x1-x0)/w;
         const float ty = -(y1-y0)/h;
-        camera.apply_translation_in_screen_plane( tx, ty );
+        camera->apply_translation_in_screen_plane( tx, ty );
 
     }
 
@@ -69,20 +69,20 @@ void camera_control_glfw::update_mouse_move(camera_scene& camera, GLFWwindow* wi
         const float uy1 = 1-2*y1/float(h);
 
         // apply rotation
-        camera.apply_rotation(ux0, uy0, ux1, uy1);
+        camera->apply_rotation(ux0, uy0, ux1, uy1);
     }
 
     else if ( state == camera_action_state::scale ) {
 
         const float scale_magnitude = (y0-y1)/h;
 
-        camera.apply_scaling( scale_magnitude );
+        camera->apply_scaling( scale_magnitude );
     }
 
     else if ( state == camera_action_state::translation_depth ) {
         const float translation_magnitude = (y1-y0)/h;
 
-        camera.apply_translation_orthogonal_to_screen_plane( translation_magnitude );
+        camera->apply_translation_orthogonal_to_screen_plane( translation_magnitude );
     }
 
 
@@ -93,25 +93,25 @@ void camera_control_glfw::update_mouse_move(camera_scene& camera, GLFWwindow* wi
 }
 
 
-void camera_control_glfw::update_mouse_click(camera_scene& , GLFWwindow* , int , int , int )
+void camera_control_glfw::update_mouse_click(camera_scene* , GLFWwindow* , int , int , int )
 {
 
 }
 
-void camera_control_glfw::update_mouse_scroll(camera_scene& camera, GLFWwindow* window, float xoffset, float yoffset)
+void camera_control_glfw::update_mouse_scroll(camera_scene* camera, GLFWwindow* window, float xoffset, float yoffset)
 {
-    if (yoffset == 0.0f || camera.mode != view_mode::orbital)
+    if (yoffset == 0.0f || camera->mode != view_mode::orbital)
     {
         return;
     }
 
-    float new_distance = camera.scale0 - (yoffset * scroll_speed * dt);
+    float new_distance = camera->scale0 - (yoffset * scroll_speed * dt);
 
     if (new_distance < orbit_min) new_distance = orbit_min;
     else if (new_distance > orbit_max) new_distance = orbit_max;
     else orbit_distance = new_distance;
 
-    camera.set_scale(orbit_distance);
+    camera->set_scale(orbit_distance);
 }
 
 void camera_control_glfw::update_timer()
@@ -119,7 +119,7 @@ void camera_control_glfw::update_timer()
     dt = timer.update();
 }
 
-void camera_control_glfw::update_rotate(camera_scene& camera, GLFWwindow* window, float x1, float y1)
+void camera_control_glfw::update_rotate(camera_scene* camera, GLFWwindow* window, float x1, float y1)
 {
     assert(window != nullptr);
 
@@ -163,7 +163,7 @@ void camera_control_glfw::update_rotate(camera_scene& camera, GLFWwindow* window
         const float uy1 = 1 - 2 * y1 / float(h);
 
         // apply rotation
-        camera.apply_rotation(ux0, uy0, ux1, uy1);
+        camera->apply_rotation(ux0, uy0, ux1, uy1);
     }
 
     // Update previous click position
@@ -171,7 +171,7 @@ void camera_control_glfw::update_rotate(camera_scene& camera, GLFWwindow* window
     y0 = y1;
 }
 
-void camera_control_glfw::update_move(terrain_structure& terrain_struct, camera_scene& camera, GLFWwindow* window, int key, int scancode, int action, int mods)
+void camera_control_glfw::update_move(camera_scene* camera, GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     assert(window != nullptr);
 
@@ -183,7 +183,7 @@ void camera_control_glfw::update_move(terrain_structure& terrain_struct, camera_
     const bool backward = (glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE);
 
     
-    if (update == false || camera.mode == view_mode::orbital)
+    if (update == false || camera->mode == view_mode::orbital)
     {
         return;
     }
@@ -224,19 +224,19 @@ void camera_control_glfw::update_move(terrain_structure& terrain_struct, camera_
     // ************************************************* //
 
     const float tx = rightwardSpeed * dt;
-    camera.apply_translation_in_screen_plane(tx, 0.0f);
+    camera->apply_translation_in_screen_plane(tx, 0.0f);
 
     const float ty = upwardSpeed * dt;
-    camera.apply_translation_in_world_axis(0.0f, 0.0f, ty);
+    camera->apply_translation_in_world_axis(0.0f, 0.0f, ty);
 
     const float translation_magnitude = forwardSpeed * dt;
-    camera.apply_translation_orthogonal_to_screen_plane(translation_magnitude);
+    camera->apply_translation_orthogonal_to_screen_plane(translation_magnitude);
 
-    //float height = terrain_struct.field_height_at(camera.translation.x, camera.translation.y);
-    //std::cout << "position: (" << camera.translation.x << ", " << camera.translation.y << ") field height: " << height << "\n";
+    //float height = terrain_struct.field_height_at(camera->translation.x, camera->translation.y);
+    //std::cout << "position: (" << camera->translation.x << ", " << camera->translation.y << ") field height: " << height << "\n";
 
     //height = (height / 100.0f) + eye_line;
-    //camera.snap_to_height(height);
+    //camera->snap_to_height(height);
 
 }
 

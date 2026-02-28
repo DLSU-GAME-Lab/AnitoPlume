@@ -40,13 +40,13 @@ void draw(const curve_drawable& drawable, const camera_scene& camera, GLuint sha
         glUseProgram(shader); opengl_debug();
 
 
-    uniform(shader, "rotation", drawable.uniform.transform.rotation);        opengl_debug();
-    uniform(shader, "translation", drawable.uniform.transform.translation);  opengl_debug();
-    uniform(shader, "color", drawable.uniform.color);                        opengl_debug();
-    uniform(shader, "scaling", drawable.uniform.transform.scaling);          opengl_debug();
+    set_uniform(shader, "rotation", drawable.uniform.transform.rotation);        opengl_debug();
+    set_uniform(shader, "translation", drawable.uniform.transform.translation);  opengl_debug();
+    set_uniform(shader, "color", drawable.uniform.color);                        opengl_debug();
+    set_uniform(shader, "scaling", drawable.uniform.transform.scaling);          opengl_debug();
 
-    uniform(shader,"perspective",camera.perspective.matrix());      opengl_debug();
-    uniform(shader,"view",camera.view_matrix());                    opengl_debug();
+    set_uniform(shader,"perspective",camera.perspective.matrix());      opengl_debug();
+    set_uniform(shader,"view",camera.view_matrix());                    opengl_debug();
 
     vcl::draw(drawable.data);                                                opengl_debug();
 }

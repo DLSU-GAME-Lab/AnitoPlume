@@ -1,72 +1,88 @@
 #include "tooltip_loader.hpp"
+#include "singleton/MeshManager.hpp"
+#include "singleton/ShaderManager.hpp"
+#include "singleton/CameraManager.hpp"
+
 using namespace vcl;
-void tooltip_loader::load_all_textures()
+
+void tooltip_loader::setup_tooltips()
 {
-    const char* tooltips[] = { "Tooltip-Balantoc", "Tooltip-Malaki",
-    "Tooltip-Munti", "Tooltip-Piraso", "Tooltip-Minimized" };
+    std::string tooltip_path = "../assets/tooltips/Tooltip.obj";
+
+    std::cout << "TOOLTIP LOADER: Loading tooltip..." << "\n";
+    
+    MeshManager::getInstance()->load("tooltip", tooltip_path);
+    tooltip = MeshManager::getInstance()->getMesh("tooltip");
+    shader = ShaderManager::getInstance()->getShader("mesh");
+
+    std::string tooltips[] = {
+        "Tooltip-Balantoc",
+        "Tooltip-Malaki",
+        "Tooltip-Munti",
+        "Tooltip-Piraso",
+        "Tooltip-Minimized"
+    };
+
     for (int i = 0; i < 5; i++)
     {
         std::string name = tooltips[i];
-        std::string texture_path = "../scenes/sources/smoke/tooltips/"+ name + ".png";
+        std::string texture_path = "../assets/tooltips/" + name + ".png";
         texture_id[i] = create_texture_gpu(image_load_png(texture_path));
+        opengl_debug();
     }
-    current_tex_id = texture_id[0];
+
+    for (int i = 0; i < 4; i++)
+    {
+        tooltip_display.push_back(*tooltip);
+        tooltip_display[i].shader = shader;
+        tooltip_display[i].uniform.transform.scaling = 4.f;
+        tooltip_display[i].uniform.shading.ambiant = 1.f;
+        tooltip_display[i].uniform.color = { 1,1,1 };
+        tooltip_display[i].uniform.color_alpha = 1.f;
+        tooltip_display[i].uniform.shading.ambiant = 1.f;
+        tooltip_display[i].uniform.shading.specular = 0.0f;
+        tooltip_display[i].uniform.transform.scaling = 4.f;
+    }
+
+    tooltip_display[0].uniform.transform.translation = { -55.f,55.f,-2.f };
+    tooltip_display[1].uniform.transform.translation = { -53.f,57.f,-10.f };
+    tooltip_display[2].uniform.transform.translation = { -42.f,-60.f,-10.f };
+    tooltip_display[3].uniform.transform.translation = { 37.f,60.f,-10.f };
 }
-void tooltip_loader::load_tooltip(std::string terrain_filename, std::string texture_filename, bool isTrans)
+
+void tooltip_loader::draw()
 {
-    std::string tooltip_path = "../scenes/sources/smoke/tooltips/" + terrain_filename;
-    std::string texture_path = "../scenes/sources/smoke/tooltips/" + texture_filename;
+    camera_scene* camera = CameraManager::getInstance()->getCamera();
+    vcl::mat4 cam_mat = camera->camera_matrix();
+    vcl::vec3 cam_pos = { cam_mat.xw, cam_mat.yw, cam_mat.zw };
+    if (cam_pos.x != last_cam_pos.x || cam_pos.y != last_cam_pos.y || cam_pos.z != last_cam_pos.z)
+    {
+        last_cam_pos = cam_pos;
+        std::sort(tooltip_display.begin(), tooltip_display.end(),
+            [cam_pos](mesh_drawable a, mesh_drawable b)
+            {
+                float distA = vcl::sqr_mag(a.uniform.transform.translation - cam_pos);
+                float distB = vcl::sqr_mag(a.uniform.transform.translation - cam_pos);
+                return distA > distB;
+            });
+    }
 
-    //if (check_file_exist(terrain_path) && check_file_exist(texture_path))
-    //{
-    //    load_terrain(terrain_filename, texture_filename);
-    //    load_texture(texture_path);
-    //}
-    //else
-    //{
-    //    std::cout << "Incorrect filename!" << "\n";
-    //    return;
-    //}
+    glDepthMask(false);
+    for (int i = 0; i < 4; i++)
+    {
+        vec3 tt_vec = tooltip_display[i].uniform.transform.translation + camera->translation;
+        float sqr_mag = (tt_vec.x * tt_vec.x) + (tt_vec.y * tt_vec.y) + (tt_vec.z * tt_vec.z);
+        tooltip_display[i].uniform.transform.rotation = camera->orientation;
 
-    std::cout << "TOOLTIP LOADER: Loading tooltip..." << "\n";
+        if (sqr_mag <= tooltip_dist * tooltip_dist)
+            tooltip_display[i].texture_id = texture_id[i];
+        else
+            tooltip_display[i].texture_id = texture_id[4];
 
-    //mesh_load_file_obj_async(terrain_path, mesh_terrain);
+        tooltip_display[i].draw(*camera);
 
-    // Terrain setup
-    mesh mesh_terrain = mesh_load_file_obj(tooltip_path);
-    tooltip = mesh_drawable(mesh_terrain);
-    tooltip.shader = mesh_shader;
-    tooltip.uniform.color = { 1,1,1 };
-    //tooltip.uniform.shading.specular = 1.0f;
-    tooltip.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
-    tooltip.uniform.transform.scaling = 1.f;
-    tooltip.uniform.transform.translation = { 0.f,0.f,0.f };
-    if (isTrans)
-        tooltip.uniform.color_alpha = 0.f;
-    else
-        tooltip.uniform.color_alpha = 1.f;
+    }
 
-    tooltip.texture_id = create_texture_gpu(image_load_png(texture_path));
 
-    //if (current_terrain != terrain_filename)
-    //{
-    //    current_terrain = terrain_filename;
-    //    mesh mesh_terrain = mesh_load_file_obj(terrain_path);
-    //    terrain = mesh_drawable(mesh_terrain);
-    //    terrain.shader = mesh_shader;
-    //    terrain.uniform.color = { 1,1,1 };
-    //    terrain.uniform.shading.specular = 0.0f;
-    //    terrain.uniform.transform.rotation = rotation_from_axis_angle_mat3({ 1.0f,0,0 }, 3.14f / 2.0f);
-    //    terrain.uniform.transform.scaling = 1.f;
-    //    terrain.uniform.transform.translation = { 0.f,0.f,0.f };
-
-    //}
-
-    //if (current_texture != texture_filename)
-    //{
-    //    current_texture = texture_filename;
-    //    terrain.texture_id = create_texture_gpu(image_load_png(texture_path));
-    //}
-    //
-    new_tooltip_loaded = true;
+    glDepthMask(true);
 }

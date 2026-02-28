@@ -61,8 +61,8 @@ namespace vcl
 
         // Send all uniform values to the shader
         //uniform(shader, "color", drawable.uniform.color);             opengl_debug();
-        uniform(shader, "perspective", camera.perspective.matrix());    opengl_debug();
-        uniform(shader, "view", camera.view_matrix());                  opengl_debug();
+        set_uniform(shader, "perspective", camera.perspective.matrix());    opengl_debug();
+        set_uniform(shader, "view", camera.view_matrix());                  opengl_debug();
 
         vcl::draw(drawable.data); opengl_debug();
 

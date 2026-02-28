@@ -125,7 +125,7 @@ void draw(const hierarchy_mesh_drawable& hierarchy, const camera_scene& camera)
         visual_element.uniform.transform.translation = T.translation + visual_element.uniform.transform.translation;
 
 
-        vcl::draw(visual_element, camera);
+        visual_element.draw(camera);
     }
 }
 

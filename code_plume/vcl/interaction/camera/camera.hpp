@@ -24,6 +24,7 @@ struct perspective_structure
 };
 
 enum camera_control_type {camera_control_trackball, camera_control_spherical_coordinates};
+enum camera_limit_type { camera_limit_none, camera_limit_cuboid, camera_limit_sphere, camera_limit_cylinder };
 
 /** Structure handling a camera.
     The camera handle internally
@@ -48,17 +49,20 @@ struct camera_scene
     vec3 camera_position() const;
 
     camera_control_type camera_type = camera_control_spherical_coordinates;
+	camera_limit_type camera_limit = camera_limit_cylinder;
     vec2 spherical_coordinates = {0,0};
 
+    bool sky_enabled = true;
+    vec4 clear_color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     view_mode mode = view_mode::orbital;
     vec3 last_translation = {};
 
     float near_radial_limit = 100.f;
-    float far_radial_limit = 200.f;
+    float far_radial_limit = 300.f;
     float lower_limit = 5.0f;
-    float upper_limit = 100.f;
-    float perimiter_limit = 100.f;
+    float upper_limit = 200.f;
+    float perimiter_limit = 300.f;
 
     // No clip tool tips 0.3f
     float upper_phi_limit = 0.0f;
@@ -83,12 +87,15 @@ struct camera_scene
 
     void set_scale(float s);
 
-    void limit_translation(vec3 new_t);
-    void sphere_limit_translation(vec3 new_t);
     void reset_translation();
     void apply_last_translation();
     void snap_to_height(float height);
     bool check_cam_rotate_limits(float phi) const;
+
+    void apply_translation(vec3 new_t);
+    void limit_translation_cuboid(vec3 new_t);
+    void limit_translation_sphere(vec3 new_t);
+    void limit_translation_cylinder(vec3 new_t);
 };
 
 

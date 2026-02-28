@@ -4,22 +4,17 @@
 #include <thread>
 struct landmark_loader
 {
+	static const int landmark_count = 11;
 	//mesh mesh_terrain;
-	vcl::mesh_drawable tooltip;
-	GLuint mesh_shader;
-	GLuint current_tex_id;
-	GLuint texture_id[5];
-	bool new_tooltip_loaded = false;
+	vcl::mesh_drawable* landmark;
+	vcl::mesh_drawable landmark_display[landmark_count];
 
-	const int size = 32;
-	std::string current_tooltip = "Tooltip-Balantoc.obj";
-	std::string current_texture = "Tooltip-Balantoc.png";
+	GLuint shader;
+	GLuint texture_id[landmark_count];
 
-	char tip_input[32] = "Tooltip-Balantoc.obj";
-	char tex_input[32] = "Tooltip-Balantoc.png";
+	float landmark_min_dist = 80;
+	float landmark_max_dist = 30;
 
-	int current_tex = 0;
-
-	void load_all_textures();
-	void load_landmark(std::string terrain_filename, std::string texture_filename, bool isTrans = false);
+	void setup_landmarks();
+	void draw();
 };

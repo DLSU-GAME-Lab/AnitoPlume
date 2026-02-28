@@ -10,6 +10,12 @@ template <size_t N> float dot(buffer_stack<double,N> const& a, buffer_stack<doub
 template <size_t N> float norm(const buffer_stack<float,N>& v);
 template <size_t N> double norm(const buffer_stack<double,N>& v);
 
+template <size_t N> float sqr_mag(const buffer_stack<float,N>& v);
+template <size_t N> double sqr_mag(const buffer_stack<double,N>& v);
+
+template <size_t N> float mag(const buffer_stack<float,N>& v);
+template <size_t N> double mag(const buffer_stack<double,N>& v);
+
 template <size_t N> buffer_stack<float,N> normalize(const buffer_stack<float,N>& v);
 template <size_t N> buffer_stack<double,N> normalize(const buffer_stack<double,N>& v);
 }
@@ -41,6 +47,32 @@ template <size_t N> float norm(const buffer_stack<float,N>& v)
 template <size_t N> float norm(const buffer_stack<double,N>& v)
 {
     return std::sqrt(dot(v,v));
+}
+
+template <size_t N> float sqr_mag(const buffer_stack<float,N>& v)
+{
+    float res = 0.0f;
+    for (size_t k = 0; k < N; ++k)
+        res += v[k] * v[k];
+    return res;
+}
+
+template <size_t N> double sqr_mag(const buffer_stack<double,N>& v)
+{
+    double res = 0.0;
+    for (size_t k = 0; k < N; ++k)
+        res += v[k] * v[k];
+    return res;
+}
+
+template <size_t N> float mag(const buffer_stack<float, N>& v)
+{
+    return std::sqrt(sqr_mag(v));
+}
+
+template <size_t N> double mag(const buffer_stack<double, N>& v)
+{
+    return std::sqrt(sqr_mag(v));
 }
 
 #ifdef __linux__

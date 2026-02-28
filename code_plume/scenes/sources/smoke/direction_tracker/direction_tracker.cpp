@@ -1,5 +1,4 @@
 #include "direction_tracker.hpp"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -66,19 +65,6 @@ std::vector<std::string> direction_tracker::get_location_names(float angle)
     return affected_locs;
 }
 
-vcl::vec3 direction_tracker::angle_to_vector(float angle) const
-{
-    double radians = (angle * pi) / 180;
-    return vcl::vec3(cos(radians), sin(radians), 0);
-}
-
-float direction_tracker::vector_to_angle(vcl::vec3 vector) const
-{
-    double radians = atan2(wind_vector.y, wind_vector.x);
-    if (radians < 0) radians += (2 * pi);
-    return radians * (180.0 / pi);
-}
-
 void direction_tracker::show_affected_areas(float image_size)
 {
     ImGui::BeginChild("Affected Areas", { 200.0f, image_size }, true);
@@ -141,9 +127,9 @@ void direction_tracker::show_gui(bool* show)
 
     if (predicton_enabled && cone_radius != 0)
     {
-        float angle = vector_to_angle(wind_vector);
-        vcl::vec3 wind1 = angle_to_vector(angle + cone_radius);
-        vcl::vec3 wind2 = angle_to_vector(angle - cone_radius);
+        float angle = vcl::vector_to_angle(wind_vector);
+        vcl::vec3 wind1 = vcl::angle_to_vector(angle + cone_radius);
+        vcl::vec3 wind2 = vcl::angle_to_vector(angle - cone_radius);
 
         ImVec2 end1 = ImVec2(start.x + (wind1.x * line_len), start.y + (-wind1.y * line_len));
         ImVec2 end2 = ImVec2(start.x + (wind2.x * line_len), start.y + (-wind2.y * line_len));

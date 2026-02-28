@@ -4,3 +4,5 @@
 #include "mat/mat.hpp"
 #include "transformation/transformation.hpp"
 #include "helper_functions/helper_functions.hpp"
+
+constexpr double PI = 3.14159;

@@ -129,22 +129,22 @@ void mesh_drawable_gpu_data::update_normal(const buffer<vec3>& new_normal)
     glBufferSubData(GL_ARRAY_BUFFER,0,GLsizeiptr(new_normal.size()*sizeof(float)*3),&new_normal[0]);
 }
 
-void draw(const mesh_drawable_gpu_data& gpu_data )
+void mesh_drawable_gpu_data::draw()
 {
     // Doesn't draw if the structure hasn't been initialized
-    if(gpu_data.number_triangles==0 && gpu_data.vao==0)
+    if(number_triangles==0 && vao==0)
         return ;
 
-    if(gpu_data.number_triangles==0) {
+    if(number_triangles==0) {
         std::cout<<"Warning, try to draw data with 0 triangles"<<std::endl;
         return ;
     }
-    assert(glIsVertexArray(gpu_data.vao));
-    assert(glIsBuffer(gpu_data.vbo_index));
+    assert(glIsVertexArray(vao));
+    assert(glIsBuffer(vbo_index));
 
-    glBindVertexArray(gpu_data.vao); opengl_debug();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_data.vbo_index); opengl_debug();
-    glDrawElements(GL_TRIANGLES, GLsizei(gpu_data.number_triangles*3), GL_UNSIGNED_INT, nullptr); opengl_debug();
+    glBindVertexArray(vao); opengl_debug();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_index); opengl_debug();
+    glDrawElements(GL_TRIANGLES, GLsizei(number_triangles*3), GL_UNSIGNED_INT, nullptr); opengl_debug();
     glBindVertexArray(0);
 }
 

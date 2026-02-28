@@ -20,6 +20,10 @@ struct terrain_structure
     float min_xyz;
     float max_xyz;
 
+    // Fill structures
+    void fill_height_field(vcl::buffer<vcl::vec3>& position, vcl::buffer<vcl::vec3>& normal,
+        vcl::mesh_drawable terrain);
+
     float field_height_at(float x, float y);
     vcl::vec3 field_normal_at(float x, float y);
 };

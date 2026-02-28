@@ -33,12 +33,12 @@ void segment_drawable_immediate_mode::draw(GLuint shader, const camera_scene& ca
     if(shader!=GLuint(current_shader))
         glUseProgram(shader);                                       opengl_debug();
 
-    uniform(shader, "color", uniform_parameter.color);              opengl_debug();
-    uniform(shader, "p1", uniform_parameter.p1);                    opengl_debug();
-    uniform(shader, "p2", uniform_parameter.p2);                    opengl_debug();
+    set_uniform(shader, "color", uniform_parameter.color);              opengl_debug();
+    set_uniform(shader, "p1", uniform_parameter.p1);                    opengl_debug();
+    set_uniform(shader, "p2", uniform_parameter.p2);                    opengl_debug();
 
-    uniform(shader,"perspective",camera.perspective.matrix());      opengl_debug();
-    uniform(shader,"view",camera.view_matrix());                    opengl_debug();
+    set_uniform(shader,"perspective",camera.perspective.matrix());      opengl_debug();
+    set_uniform(shader,"view",camera.view_matrix());                    opengl_debug();
 
     vcl::draw(data_gpu);                                            opengl_debug();
 }
